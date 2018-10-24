@@ -15,10 +15,10 @@ class ApiManager {
 		static void init();
 		static void close();
 		static void api_test();
-		static struct MemoryStruct get_res(char* url);
+		static struct MemoryStruct get_res(const char* url);
 		static json_object* post_api(char* payload);
 
-		static json_object* get_gallery(char* g_id, char* g_token);
+		static json_object* get_gallery(const char* g_id, const char* g_token);
 };
 
 #endif

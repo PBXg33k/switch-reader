@@ -94,7 +94,7 @@ void Screen::draw_image(std::string path, int x, int y){
 }
 
 void draw_text_internal(std::string text, int x, int y, SDL_Color color, TTF_Font* font){
-  SDL_Surface *surf = TTF_RenderText_Solid(Screen::normal, text.c_str(), color);
+  SDL_Surface *surf = TTF_RenderText_Solid(font, text.c_str(), color);
 
   SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, surf);
 
@@ -109,5 +109,5 @@ void Screen::draw_text(std::string text, int x, int y, SDL_Color color, TTF_Font
 }
 
 void Screen::draw_text(std::string text, int x, int y, SDL_Color color) {
-  draw_text_internal(text, x, y, color, normal);
+  draw_text_internal(text, x, y, color, Screen::normal);
 }

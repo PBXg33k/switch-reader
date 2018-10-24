@@ -4,9 +4,9 @@ CXX = g++ -std=gnu++17
 OUT = test
 
 LDLIBS =
-LIBS = -ljson-c -lcurl -lSDL2_image -lSDL2_ttf -lSDL2
+LIBS = -ljson-c -lcurl -lSDL2_image -lboost_regex -lSDL2_ttf -lSDL2
 
 all: build
 
 build: $(SOURCES)
-	$(CXX) -o $(OUT) $(LIBS) $(LDLIBS) $(SOURCES) ./source/main.c
+	$(CXX) -o $(OUT) $(LDLIBS) $(SOURCES) ./source/main.c $(LIBS)

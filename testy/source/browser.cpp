@@ -37,8 +37,7 @@ void Browser::render_entry(Entry entry, int x, int y)
 {
   MemoryStruct thumb = ApiManager::get_res((char*)entry.thumb);
 
-  Screen::draw_image_mem(thumb.memory, thumb.size, x, y);
-  Screen::draw_text(entry.title, x, y, COLOR_WHITE);
-  Screen::draw_text(entry.category, x, y+30, COLOR_WHITE);
-  Screen::draw_text(entry.thumb, x, y+60, COLOR_WHITE);
+  Screen::draw_adjusted_mem(thumb.memory, thumb.size, x, y, maxw, maxh);
+  Screen::draw_text(entry.title, x, maxh + 10, COLOR_WHITE, Screen::gallery_info);
+  Screen::draw_text(entry.category, x, maxh + 40, COLOR_WHITE, Screen::gallery_info);
 }

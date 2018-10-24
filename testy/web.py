@@ -17,7 +17,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
 
         # Send headers
-        self.send_header('Content-type','image/jpg')
+        self.send_header('Content-type','text/html')
         self.end_headers()
 
         # Send message back to client

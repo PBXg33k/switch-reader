@@ -14,6 +14,9 @@ class Browser {
   public:
     static Entry add_entry(json_object* json, int num);
     static void render_entry(Entry entry, int x, int y);
+
+    static const int maxw = 300; // Thumb width
+    static const int maxh = 500; // Thumb height
 };
 
 #endif
