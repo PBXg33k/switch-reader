@@ -3,15 +3,13 @@
 
 #include "browser.h"
 #include "api.h"
-
-typedef struct HResult{
-  vector<Entry> results;
-  size_t len;
-}HResult;
+#include <vector>
+#include <cstring>
 
 class HSearch{
   public:
-    static HResult search_keywords(char* keywords);
+    static std::vector<Entry> search_keywords(char* keywords, int maxResults);
+
 };
 
 #endif

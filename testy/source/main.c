@@ -12,20 +12,38 @@ int main(int argc, char **argv)
   ApiManager::init();
   Screen::init();
 
-  std::vector<Entry> result = HSearch::search_keywords("may", 3);
-  Browser::render_entry(result[0], 30, 30);
-  Browser::render_entry(result[1], 430, 30);
-  Browser::render_entry(result[2], 830, 30);
+  int state = 1;
 
-  //Screen::draw_image("/switch/res", 0, 0);
-  //Screen::draw_text(entry.thumb,15,15,COLOR_WHITE);
+  std::vector<Entry> result = HSearch::search_keywords("horse", 9);
 
-  Screen::render();
+  SDL_Event event;
+  while(state){
+    while(SDL_PollEvent(&event)){
+      switch (event.type) {
+        case SDL_KEYDOWN:
+          state = 0;
+          break;
+        case SDL_JOYBUTTONDOWN:
+          state = 0;
+          break;
+        default:
+          break;
+      }
 
-  getchar();
+      Browser::render_entry(&result[0], 30, 30);
+      Browser::render_entry(&result[1], 30, 30 + (Browser::maxh) + (30));
+      Browser::render_entry(&result[2], 30, 30 + (Browser::maxh * 2) + (30 * 2));
+      Browser::render_entry(&result[3], 30 + (Browser::maxw2) + (30), 30);
+      Browser::render_entry(&result[4], 30 + (Browser::maxw2) + (30), 30 + (Browser::maxh) + (30));
+      Browser::render_entry(&result[5], 30 + (Browser::maxw2) + (30), 30 + (Browser::maxh * 2) + (30 * 2));
+      Browser::render_entry(&result[6], 30 + (Browser::maxw2 * 2) + (30 * 2), 30);
+      Browser::render_entry(&result[7], 30 + (Browser::maxw2 * 2) + (30 * 2), 30 + (Browser::maxh) + (30));
+      Browser::render_entry(&result[8], 30 + (Browser::maxw2 * 2) + (30 * 2), 30 + (Browser::maxh * 2) + (30 * 2));
+      Screen::render();
+    }
+  }
 
   Screen::close();
-
   ApiManager::close();
 
   return 0;

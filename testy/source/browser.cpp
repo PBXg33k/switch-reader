@@ -30,14 +30,24 @@ Entry Browser::add_entry(json_object* json, int num)
   holder = get_json_obj(json, "thumb");
   entry.thumb = json_object_get_string(holder);
 
+  entry.thumb_loaded = 0;
   return entry;
 }
 
-void Browser::render_entry(Entry entry, int x, int y)
+void Browser::render_entry(Entry* entry, int x, int y)
 {
-  MemoryStruct thumb = ApiManager::get_res((char*)entry.thumb);
+  if(entry->thumb_loaded == 0){
+    entry->thumb_data = ApiManager::get_res((char*) entry->thumb);
+    entry->thumb_loaded = 1;
+  }
 
+  MemoryStruct thumb = entry->thumb_data;
+  std::string new_title = entry->title;
+  new_title.resize(25);
+
+  Screen::draw_rect(x-5, y-5, maxw+10, maxh+10, COLOR_LIGHTGRAY);
+  Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, COLOR_GRAY);
   Screen::draw_adjusted_mem(thumb.memory, thumb.size, x, y, maxw, maxh);
-  Screen::draw_text(entry.title, x, maxh + 10, COLOR_WHITE, Screen::gallery_info);
-  Screen::draw_text(entry.category, x, maxh + 40, COLOR_WHITE, Screen::gallery_info);
+  Screen::draw_text(new_title, x + maxw + 10, y + 5, COLOR_WHITE, Screen::gallery_info);
+  Screen::draw_text(entry->category, x + maxw + 10, y + 30, COLOR_WHITE, Screen::gallery_info);
 }

@@ -4,40 +4,48 @@
 #include "shared.h"
 #include "api.h"
 #include "browser.h"
+#include "h_search.h"
 
 int main(int argc, char **argv)
 {
 
   ApiManager::init();
+  nxlinkStdio();
   Screen::init();
 
-  json_object* json = ApiManager::get_gallery((char*)"618395",(char*)"0439fa3666");
-  struct Entry entry = Browser::add_entry(json, 0);
-  Browser::render_entry(entry, 30, 30);
+  int state = 1;
 
-  //Screen::draw_image("/switch/res", 0, 0);
-  //Screen::draw_text(entry.thumb,15,15,COLOR_WHITE);
+  std::vector<Entry> result = HSearch::search_keywords("horse", 9);
 
-  Screen::render();
-
-  // Main loop
-  while(appletMainLoop())
-  {
-    bool exit_flag = 0;
-    SDL_Event event;
-
-    while (SDL_PollEvent(&event)) {
-      if(event.type == SDL_KEYDOWN){
-        exit_flag = 1;
+  SDL_Event event;
+  while(state){
+    while(SDL_PollEvent(&event)){
+      switch (event.type) {
+        case SDL_KEYDOWN:
+          state = 0;
+          break;
+        case SDL_JOYBUTTONDOWN:
+          printf("Exiting");
+          state = 0;
+          break;
+        default:
+          break;
       }
-    }
 
-    if(exit_flag)
-      break;
+      Browser::render_entry(&result[0], 30, 30);
+      Browser::render_entry(&result[1], 30, 30 + (Browser::maxh) + (30));
+      Browser::render_entry(&result[2], 30, 30 + (Browser::maxh * 2) + (30 * 2));
+      Browser::render_entry(&result[3], 30 + (Browser::maxw2) + (30), 30);
+      Browser::render_entry(&result[4], 30 + (Browser::maxw2) + (30), 30 + (Browser::maxh) + (30));
+      Browser::render_entry(&result[5], 30 + (Browser::maxw2) + (30), 30 + (Browser::maxh * 2) + (30 * 2));
+      Browser::render_entry(&result[6], 30 + (Browser::maxw2 * 2) + (30 * 2), 30);
+      Browser::render_entry(&result[7], 30 + (Browser::maxw2 * 2) + (30 * 2), 30 + (Browser::maxh) + (30));
+      Browser::render_entry(&result[8], 30 + (Browser::maxw2 * 2) + (30 * 2), 30 + (Browser::maxh * 2) + (30 * 2));
+      Screen::render();
+    }
   }
 
   Screen::close();
-
   ApiManager::close();
 
   return 0;

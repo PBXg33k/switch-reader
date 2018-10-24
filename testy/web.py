@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse, unquote, parse_qs
+from fake_useragent import UserAgent
 import requests
 
 # HTTPRequestHandler class
@@ -10,20 +11,21 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
     # GET
     def do_GET(self):
         # Send response status code
-        query = urlparse(self.path).query
-        query_components = dict(qc.split("=") for qc in query.split("&"))
-        url = query_components["url"]
+        parsed = urlparse(self.path)
+        params = parse_qs(parsed.query)
+
 
         self.send_response(200)
 
         # Send headers
-        self.send_header('Content-type','text/html')
+        self.send_header('Content-type','image/jpg')
         self.end_headers()
 
         # Send message back to client
-        file = self.get_res(unquote(url))
-        # Write content as utf-8 data
-        self.wfile.write(file)
+        if(len(params) > 0):
+            file = self.get_res(unquote(params['url'][0]))
+            # Write content as utf-8 data
+            self.wfile.write(file)
         return
 
     def do_POST(self):
@@ -37,11 +39,19 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(bytes(message, "utf8"))
 
     def post_api(self, payload):
-        r = requests.post("https://api.e-hentai.org/api.php", data=payload)
+        ua = UserAgent()
+        headers = {
+            'User-Agent': ua.random
+        }
+        r = requests.post("https://api.e-hentai.org/api.php", data=payload, headers=headers)
         return r.text;
 
     def get_res(self, url):
-        r = requests.get(url, allow_redirects=True)
+        ua = UserAgent()
+        headers = {
+            'User-Agent': ua.random
+        }
+        r = requests.get(url, allow_redirects=True, headers=headers)
         return r.content
 
 

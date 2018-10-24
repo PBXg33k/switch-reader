@@ -1,27 +1,33 @@
 #include "h_search.h"
 
-#include <boost/regex.hpp>
+#include <regex>
 #include <iostream>
 
 #define searchURL "https://e-hentai.org/"
 #define apiURL "https://g.e-hentai.org/api.php"
 #define listRegex "<tr class=\"gtr[01]\">.+?<\\/tr>"
-#define imgRegex "(?<=<img src=\")(.+?)(?=\")"
+#define imgRegex "(<img src=\")(.+?)(?=\")"
 #define textRegex "(?<=alt=\")(.+?)(?=\")"
-#define linkRegex "(?<=div class=\"it5\"><a href=\")(.+?)(?=\" onmouse)"
-#define idRegex "(?<=\\/)(.+?)(?=\\/)"
+#define linkRegex "(\"it5\"><a href=)(\".+?)(?=\" onmouse)"
+#define idRegex "(.+?)(?=\\/)"
 
-std::vector<std::string> search(boost::regex re, std::string content){
+std::vector<std::string> search(std::regex re, std::string content){
   std::vector<std::string> matches;
 
-  boost::sregex_iterator iter(content.begin(), content.end(), re);
-  boost::sregex_iterator end;
+  std::sregex_iterator iter(content.begin(), content.end(), re);
+  std::sregex_iterator end;
 
   for(; iter != end; ++iter){
     matches.push_back(iter->str());
   }
 
   return matches;
+}
+
+std::smatch search_once(std::regex re, std::string content){
+  std::smatch match;
+  std::regex_search(content, match, re);
+  return match;
 }
 
 std::vector<Entry> HSearch::search_keywords(char* keywords, int maxResults){
@@ -33,8 +39,8 @@ std::vector<Entry> HSearch::search_keywords(char* keywords, int maxResults){
   char* safeKeywords;
 
   // TODO: Implement Tags
-  completeURL.append("?f_doujinshi=1&f_manga=1&f_artistcg=1&f_gamecg=1&f_western=1&f_non-h=1&f_imageset=1&f_cosplay=1&f_asianporn=1&f_misc=1");
-  //completeURL.append("?f_non-h=1");
+  //completeURL.append("?f_doujinshi=1&f_manga=1&f_artistcg=1&f_gamecg=1&f_western=1&f_non-h=1&f_imageset=1&f_cosplay=1&f_asianporn=1&f_misc=1");
+  completeURL.append("?f_non-h=1");
 
   // Format keywords for URL
   CURL* curl;
@@ -57,34 +63,35 @@ std::vector<Entry> HSearch::search_keywords(char* keywords, int maxResults){
   //printf(webPage.c_str());
 
   // Setup regexes
-  boost::regex listPattern(listRegex);
-  boost::regex imgPattern(imgRegex);
-  boost::regex textPattern(textRegex);
-  boost::regex linkPattern(linkRegex);
-  boost::regex idPattern(idRegex);
+  std::regex listPattern(listRegex);
+  std::regex imgPattern(imgRegex);
+  //std::regex textPattern(textRegex);
+  std::regex linkPattern(linkRegex);
+  std::regex idPattern(idRegex);
 
   // TODO : Remove, it works, but I don't wanna
   std::string test_string = "<img src=\"dicks.jpg\"></img>";
-  std::vector<std::string> matches = search(imgPattern, test_string);
-  for(int c=0; c < matches.size(); c++){
-    printf("Match: %s\n", matches[c].c_str());
-  }
+  std::smatch res = search_once(imgPattern, test_string);
+  printf("Match %s\n", res[0].str().c_str());
+  printf("True Match %s\n", res[2].str().c_str());
 
   // Find gallery list
   std::vector<std::string> listMatches = search(listPattern, webPage);
   printf("Found %d Entries\n", listMatches.size());
   for(int c=0; (c < listMatches.size()) && (c <= maxResults); c++){
-    // Get entry from gallery
-    std::vector<std::string> linkMatches = search(linkPattern, listMatches[c].c_str());
-    printf("Link: %s\n", linkMatches[0].c_str());
+    // Get url from gallery
+    std::smatch linkMatch = search_once(linkPattern, listMatches[c].c_str());
+    printf("Link: %s\n", linkMatch[2].str().c_str());
 
-    std::vector<std::string> idMatches = search(idPattern, linkMatches[0].c_str());
-    printf("ID : %s Token %s\n", idMatches[2].c_str(), idMatches[3].c_str());
+    // Get ID and Token from URL
+    std::vector<std::string> idMatches = search(idPattern, linkMatch[2].str().c_str());
+    printf("ID : %s Token %s\n", idMatches[4].substr(1).c_str(), idMatches[5].substr(1).c_str());
 
-    json_object* json = ApiManager::get_gallery(idMatches[2].c_str(), idMatches[3].c_str());
+    // Save to entry and push onto stack
+    json_object* json = ApiManager::get_gallery(idMatches[4].substr(1).c_str(), idMatches[5].substr(1).c_str());
     struct Entry entry = Browser::add_entry(json, 0);
-
     result.push_back(entry);
+
     printf("Title : %s\nCategory : %s\nThumb : %s\n", entry.title, entry.category, entry.thumb);
   }
 

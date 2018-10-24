@@ -19,6 +19,7 @@ void Screen::init()
   Screen::window = SDL_CreateWindow("Image Test",
     SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, 0);
   Screen::renderer = SDL_CreateRenderer(window, -1, 0);
+  Screen::surface = SDL_GetWindowSurface(Screen::window);
 }
 
 // Clean up SDL, free resources etc
@@ -83,8 +84,19 @@ void Screen::draw_adjusted_mem(char*data, size_t len, int x, int y, int maxw, in
     rect.w *= scaler;
     rect.h *= scaler;
   }
+
+  // Centre Image
+  rect.y = y + ((maxh - rect.h)/2);
+
   SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
   SDL_FreeSurface(image);
+}
+
+void Screen::draw_rect(int x, int y, int w, int h, SDL_Color color){
+  SDL_Rect rect = {x,y,w,h};
+  SDL_SetRenderDrawColor(Screen::renderer, color.r, color.g, color.b, color.a);
+  SDL_RenderFillRect(Screen::renderer, &rect);
+
 }
 
 // Draw image to screen at co-ords
@@ -95,11 +107,10 @@ void Screen::draw_image(std::string path, int x, int y){
 
 void draw_text_internal(std::string text, int x, int y, SDL_Color color, TTF_Font* font){
   SDL_Surface *surf = TTF_RenderText_Solid(font, text.c_str(), color);
-
   SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, surf);
 
-  SDL_Rect position = { x, y, surf->w, surf->h };
-  SDL_RenderCopy(Screen::renderer, texture, NULL, &position);
+  SDL_Rect rect = { x, y, surf->w, surf->h };
+  SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
   SDL_FreeSurface(surf);
 }
 
@@ -109,5 +120,5 @@ void Screen::draw_text(std::string text, int x, int y, SDL_Color color, TTF_Font
 }
 
 void Screen::draw_text(std::string text, int x, int y, SDL_Color color) {
-  draw_text_internal(text, x, y, color, Screen::normal);
+  draw_text_internal(text, x, y, color, normal);
 }
