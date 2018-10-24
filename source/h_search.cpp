@@ -89,7 +89,8 @@ std::vector<Entry> HSearch::search_keywords(char* keywords, int maxResults){
 
     // Save to entry and push onto stack
     json_object* json = ApiManager::get_gallery(idMatches[4].substr(1).c_str(), idMatches[5].substr(1).c_str());
-    struct Entry entry = Browser::add_entry(json, 0);
+    struct Entry entry = Browser::new_entry(json, 0);
+    entry.url = linkMatch[2].str().c_str();
     result.push_back(entry);
 
     printf("Title : %s\nCategory : %s\nThumb : %s\n", entry.title, entry.category, entry.thumb);

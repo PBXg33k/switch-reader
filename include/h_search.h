@@ -1,7 +1,7 @@
 #ifndef H_SEARCH_H
 #define H_SEARCH_H
 
-#include "browser.h"
+#include "Browser.h"
 #include "api.h"
 #include <vector>
 #include <cstring>
