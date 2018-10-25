@@ -14,6 +14,7 @@ struct Entry{
   std::string url;
   SDL_Texture* thumb_texture;
   int thumb_loaded;
+  int pages;
 };
 
 class Browser {
@@ -24,6 +25,7 @@ class Browser {
     static void add_entry(Entry entry);
     static void render_entry(Entry* entry, int x, int y, bool active);
     static void render();
+    static void clear();
     static Handler on_event(int val);
 
     static const int maxw = 128; // Thumb width

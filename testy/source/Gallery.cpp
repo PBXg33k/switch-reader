@@ -3,11 +3,11 @@
 #include "api.h"
 #include "ui.h"
 #include "Browser.h"
+#include <cstdlib>
 
 
 #define pagesXPath "//a[starts-with(@href, 'https://e-hentai.org/s/')]"
-#define imageXPath "//img[contains(@id, 'img')]"
-#define imageRegex "<img id=\"img\" src=\"(.+?)(?=\")"
+#define imageXPath "//img[@id='img']"
 
 Gallery* GalleryBrowser::active_gallery;
 SDL_Texture* GalleryBrowser::active_image = NULL;
@@ -20,12 +20,14 @@ void GalleryBrowser::load_gallery(Entry* entry){
   active_gallery = new Gallery();
   active_gallery->title = entry->title;
   active_gallery->index = entry->url;
+  active_gallery->total_pages = entry->pages;
+  printf("Pages: %d\n", entry->pages);
   printf("Active url %s Active url 2 %s\n", entry->url.c_str(), active_gallery->index.c_str());
   printf("Loading URLs\n");
-  GalleryBrowser::load_urls(0);
+  GalleryBrowser::load_urls(1);
   printf("Loading page\n");
-  GalleryBrowser::load_page(0);
-  cur_page = 0;
+  GalleryBrowser::load_page(30);
+  cur_page = 30;
 }
 
 
@@ -47,23 +49,33 @@ void GalleryBrowser::set_touch(){
 }
 
 void GalleryBrowser::load_page(int page){
+
+  // Load more URLs if needed - 40 on each page
+  if(page >= active_gallery->pages.size()){
+    int block = (active_gallery->pages.size()/40);
+    printf("Loading block %d\n", block);
+    load_urls(block);
+  }
+
+  xmlChar *path;
+  xmlChar *keyword;
+  xmlXPathObjectPtr result;
+  xmlDocPtr doc;
+  xmlNodeSetPtr nodeset;
+
   // Clear screen
   printf("Loaded page %d\n", page);
   clear_next_render = true;
 
   // Get html page
   MemoryStruct pageMem = ApiManager::get_res(active_gallery->pages[page].c_str());
-
-  xmlChar *path = (xmlChar*) imageXPath;
-  xmlChar *keyword;
-
-  xmlDocPtr doc = htmlReadMemory(pageMem.memory, pageMem.size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
-  xmlNodePtr rootElem = xmlDocGetRootElement(doc);
+  doc = htmlReadMemory(pageMem.memory, pageMem.size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
   // Get node list matching XPath for image
-  xmlXPathObjectPtr result = get_node_set(doc, path);
+  path = (xmlChar*) imageXPath;
+  result = get_node_set(doc, path);
   if(result){
-    xmlNodeSetPtr nodeset = result->nodesetval;
+    nodeset = result->nodesetval;
     keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
 
   }
@@ -78,7 +90,7 @@ void GalleryBrowser::load_page(int page){
 }
 
 Handler GalleryBrowser::on_event(int val){
-  if(val == 1 && cur_page < (active_gallery->pages.size() - 1)){
+  if(val == 1 && cur_page < (active_gallery->total_pages - 1)){
     cur_page++;
     load_page(cur_page);
   }
@@ -101,15 +113,17 @@ xmlXPathObjectPtr GalleryBrowser::get_node_set(xmlDocPtr doc, xmlChar *xpath){
 }
 
 // Buffer page urls on numbered index page (max 40 per index page)
-void GalleryBrowser::load_urls(int indexPage){
-
+void GalleryBrowser::load_urls(int page){
 
   xmlChar *path = (xmlChar*) pagesXPath;
   xmlChar *keyword;
   int i;
 
   // Load page into memory
-  MemoryStruct index = ApiManager::get_res(active_gallery->index.c_str());
+  std::string indexCopy = active_gallery->index;
+  indexCopy.append("?p=");
+  indexCopy.append(std::to_string(page));
+  MemoryStruct index = ApiManager::get_res(indexCopy.c_str());
 
   // Load to xml
   xmlDocPtr doc = htmlReadMemory(index.memory, index.size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
@@ -128,6 +142,11 @@ void GalleryBrowser::load_urls(int indexPage){
       active_gallery->pages.push_back((char *)keyword);
   		xmlFree(keyword);
 		}
+  }
+
+  // Load total pages if missing
+  if(!active_gallery->total_pages){
+
   }
 
 }

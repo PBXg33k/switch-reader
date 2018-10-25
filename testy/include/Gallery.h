@@ -11,6 +11,7 @@ typedef struct Gallery{
   std::string title;
   std::string index;
   std::vector<std::string> pages;
+  int total_pages;
 }Gallery;
 
 class GalleryBrowser {

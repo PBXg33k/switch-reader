@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 
   int state = 1;
 
-  std::vector<Entry> result = HSearch::search_keywords("cat", 1);
+  std::vector<Entry> result = HSearch::search_keywords("dog", 9);
   for(auto entry : result){
     printf("Returned %s\n", entry.url.c_str());
     Browser::add_entry(entry);

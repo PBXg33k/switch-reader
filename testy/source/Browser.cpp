@@ -60,6 +60,9 @@ Entry Browser::new_entry(json_object* json, int num)
   holder = get_json_obj(json, "thumb");
   entry.thumb = json_object_get_string(holder);
 
+  holder = get_json_obj(json, "filecount");
+  entry.pages = json_object_get_int(holder);
+
   entry.thumb_loaded = 0;
   return entry;
 }
@@ -69,7 +72,12 @@ void Browser::add_entry(Entry entry){
   Browser::entries.push_back(entry);
 }
 
+void Browser::clear(){
+  Browser::entries.clear();
+}
+
 void Browser::render(){
+
   int baseX = 30;
   int baseY = 30;
   int incX = (Browser::maxw2 + 30);
@@ -98,7 +106,7 @@ Handler Browser::on_event(int val){
     Browser::active_gallery = val;
   }
   if(Browser::active_gallery >= 0 && val == 10){
-    Entry entry = Browser::entries[0];
+    Entry entry = Browser::entries[active_gallery];
     printf("URL %s\n", entry.url.c_str());
     GalleryBrowser::set_touch();
     GalleryBrowser::load_gallery(&entry);
