@@ -75,24 +75,32 @@ std::vector<Entry> HSearch::search_keywords(char* keywords, int maxResults){
   printf("Match %s\n", res[0].str().c_str());
   printf("True Match %s\n", res[2].str().c_str());
 
+  std::vector<std::string> gids;
+  std::vector<std::string> gtkns;
+  std::vector<std::string> urls;
+
   // Find gallery list
   std::vector<std::string> listMatches = search(listPattern, webPage);
   printf("Found %d Entries\n", listMatches.size());
-  for(int c=0; (c < listMatches.size()) && (c <= maxResults); c++){
+  for(int c=0; (c < listMatches.size()) && (c < maxResults); c++){
     // Get url from gallery
     std::smatch linkMatch = search_once(linkPattern, listMatches[c].c_str());
-    printf("Link: %s\n", linkMatch[2].str().c_str());
 
     // Get ID and Token from URL
     std::vector<std::string> idMatches = search(idPattern, linkMatch[2].str().c_str());
-    printf("ID : %s Token %s\n", idMatches[4].substr(1).c_str(), idMatches[5].substr(1).c_str());
 
     // Save to entry and push onto stack
-    json_object* json = ApiManager::get_gallery(idMatches[4].substr(1).c_str(), idMatches[5].substr(1).c_str());
-    struct Entry entry = Browser::new_entry(json, 0);
-    entry.url = linkMatch[2].str().c_str();
-    result.push_back(entry);
+    gids.push_back(idMatches[4].substr(1));
+    gtkns.push_back(idMatches[5].substr(1));
+    urls.push_back(linkMatch[2].str());
+  }
 
+  json_object* json = ApiManager::get_galleries(gids, gtkns);
+
+  for(int c = 0; c < gids.size(); c++){
+    struct Entry entry = Browser::new_entry(json, c);
+    entry.url = urls[c].c_str();
+    result.push_back(entry);
     printf("Title : %s\nCategory : %s\nThumb : %s\n", entry.title, entry.category, entry.thumb);
   }
 

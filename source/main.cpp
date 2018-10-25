@@ -12,6 +12,7 @@ int main(int argc, char **argv)
 
   ApiManager::init();
 
+
   nxlinkStdio();
 
   Screen::init();
@@ -19,7 +20,7 @@ int main(int argc, char **argv)
 
   int state = 1;
 
-  std::vector<Entry> result = HSearch::search_keywords("horse", 9);
+  std::vector<Entry> result = HSearch::search_keywords("cat", 4);
   for(auto entry : result){
     Browser::add_entry(entry);
   }
@@ -31,8 +32,9 @@ int main(int argc, char **argv)
       switch (event.type) {
         case SDL_FINGERDOWN:
           val = TouchManager::get_value(event.tfinger.x*1280, event.tfinger.y*720);
-          printf("%d - %d\n", event.tfinger.x*1280, event.tfinger.y*720);
-          printf("%d\n",val);
+          Browser::on_event(val);
+          if(val == 100)
+            state = 0;
           break;
         case SDL_KEYDOWN:
           state = 0;

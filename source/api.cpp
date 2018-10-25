@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstring>
 
+
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -45,9 +46,26 @@ void ApiManager::close(){
   socketExit();
 }
 
-json_object* ApiManager::get_gallery(const char* g_id, const char* g_token){
-  char* data = (char*)malloc((strlen(g_id) + strlen(g_token) + 64) * sizeof(char));
-  sprintf(data, "{\"method\": \"gdata\",\"gidlist\": [[%s,\"%s\"]],\"namespace\": 1}", g_id, g_token);
+json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns){
+  char* temp = "[%s,\"%s\"]";
+  std::string gallery_list;
+  size_t size;
+  char* buffer;
+
+  printf("Making string\n");
+
+  for(int c = 0; c < gids.size(); c++){
+    size = snprintf(NULL, 0, temp, gids[c].c_str(), gtkns[c].c_str());
+    buffer = (char*) malloc(size + 1);
+    snprintf(buffer, size + 1, temp, gids[c].c_str(), gtkns[c].c_str());
+    gallery_list.append(buffer);
+    gallery_list.append(",");
+  }
+  gallery_list.resize(gallery_list.size() - 1);
+
+  char* data = (char*)malloc((strlen(gallery_list.c_str()) + 64) * sizeof(char));
+  sprintf(data, "{\"method\": \"gdata\",\"gidlist\": [%s],\"namespace\": 1}", gallery_list.c_str());
+  printf("%s\n",data);
   return ApiManager::post_api(data);
 }
 
@@ -100,6 +118,7 @@ struct MemoryStruct ApiManager::get_res(const char* url)
   chunk.size = 0;
 
   if(curl) {
+    //curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
@@ -125,6 +144,7 @@ json_object* ApiManager::post_api(char* payload)
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.0.12:5000/");
+    //curl_easy_setopt(curl, CURLOPT_URL, "https://api.e-hentai.org/api.php");
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);

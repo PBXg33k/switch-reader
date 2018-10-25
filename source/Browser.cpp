@@ -5,6 +5,7 @@
 #include "TouchManager.h"
 
 int Browser::grid_start = 0;
+int Browser::active_gallery = -1;
 std::vector<Entry> Browser::entries = std::vector<Entry>();
 
 json_object* get_json_obj(json_object* root, const char* key)
@@ -34,6 +35,11 @@ void Browser::set_touch(){
       val++;
     }
   }
+
+  SDL_Rect button = {screen_width-90, (screen_height/2) - 40, screen_width-10, (screen_height/2) + 40};
+  TouchManager::add_bounds(button, 10);
+  button = {screen_width-75, 0, screen_width, 75};
+  TouchManager::add_bounds(button, 100);
 }
 
 Entry Browser::new_entry(json_object* json, int num)
@@ -73,28 +79,50 @@ void Browser::render(){
 
   // Render upto 3X3 grid, based on start point.
   for (int x = 0; x < 3; x++){
-    for(int y = 0; (y < 3) && (grid <= num_entries); y++){
+    for(int y = 0; (y < 3) && (grid < num_entries); y++){
+      bool active = ((grid - Browser::grid_start) == Browser::active_gallery);
       Entry* entry = &(Browser::entries[grid]);
-      Browser::render_entry(entry, baseX + (x * incX), baseY + (y * incY));
+      Browser::render_entry(entry, baseX + (x * incX), baseY + (y * incY), active);
       grid++;
     }
   }
+
+  // Render next button
+  Screen::draw_rect(screen_width-90, (screen_height/2) - 40, 80, 80, COLOR_WHITE);
+  Screen::draw_rect(screen_width - 75, 0, 75, 75, COLOR_RED);
+  //Screen::draw_text("Next", screen_width - 55, (screen_height/2)-45, COLOR_BLACK, Screen::gallery_info);
 }
 
-void Browser::render_entry(Entry* entry, int x, int y)
+void Browser::on_event(int val){
+  if(val >= 0){
+    Browser::active_gallery = val;
+  }
+}
+
+void Browser::render_entry(Entry* entry, int x, int y, bool active)
 {
+  // If image not loaded, stick in texture
   if(entry->thumb_loaded == 0){
-    entry->thumb_data = ApiManager::get_res((char*) entry->thumb);
+    printf("Loading texture into memory\n");
+    MemoryStruct thumb_data = ApiManager::get_res((char*) entry->thumb);
+    entry->thumb_texture = Screen::load_texture(thumb_data.memory, thumb_data.size);
     entry->thumb_loaded = 1;
   }
 
-  MemoryStruct thumb = entry->thumb_data;
   std::string new_title = entry->title;
   new_title.resize(25);
 
-  Screen::draw_rect(x-5, y-5, maxw+10, maxh+10, COLOR_LIGHTGRAY);
-  Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, COLOR_GRAY);
-  Screen::draw_adjusted_mem(thumb.memory, thumb.size, x, y, maxw, maxh);
+  SDL_Color imgBG = COLOR_LIGHTGRAY;
+  SDL_Color imgFG = COLOR_GRAY;
+  if(active){
+    imgBG = COLOR_DARKRED;
+    imgFG = COLOR_RED;
+  }
+
+  Screen::draw_rect(x-5, y-5, maxw+10, maxh+10, imgBG);
+  Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, imgFG);
+
+  Screen::draw_adjusted_mem(entry->thumb_texture, x, y, maxw, maxh);
   Screen::draw_text(new_title, x + maxw + 10, y + 5, COLOR_WHITE, Screen::gallery_info);
   Screen::draw_text(entry->category, x + maxw + 10, y + 30, COLOR_WHITE, Screen::gallery_info);
 }

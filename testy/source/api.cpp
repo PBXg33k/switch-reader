@@ -101,7 +101,7 @@ struct MemoryStruct ApiManager::get_res(const char* url)
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&chunk);
   	curl_easy_perform(curl);

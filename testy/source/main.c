@@ -3,23 +3,42 @@
 #include "ui.h"
 #include "shared.h"
 #include "api.h"
-#include "browser.h"
+#include "Browser.h"
+#include "TouchManager.h"
 #include "h_search.h"
+#include <mbedtls/ssl.h>
 
 int main(int argc, char **argv)
 {
 
   ApiManager::init();
+
+  
+  //nxlinkStdio();
+
   Screen::init();
+  Browser::set_touch();
 
   int state = 1;
 
-  std::vector<Entry> result = HSearch::search_keywords("horse", 9);
+  std::vector<Entry*> result;
+  //printf("Should be empty size %d")
+  HSearch::search_keywords(&result,"horse", 2);
+
+  for(auto entry : result){
+    Browser::add_entry(*entry);
+  }
 
   SDL_Event event;
   while(state){
     while(SDL_PollEvent(&event)){
+      int val;
       switch (event.type) {
+        case SDL_FINGERDOWN:
+          val = TouchManager::get_value(event.tfinger.x*1280, event.tfinger.y*720);
+          Browser::on_event(val);
+          printf("%d\n", val);
+          break;
         case SDL_KEYDOWN:
           state = 0;
           break;
@@ -30,15 +49,7 @@ int main(int argc, char **argv)
           break;
       }
 
-      Browser::render_entry(&result[0], 30, 30);
-      Browser::render_entry(&result[1], 30, 30 + (Browser::maxh) + (30));
-      Browser::render_entry(&result[2], 30, 30 + (Browser::maxh * 2) + (30 * 2));
-      Browser::render_entry(&result[3], 30 + (Browser::maxw2) + (30), 30);
-      Browser::render_entry(&result[4], 30 + (Browser::maxw2) + (30), 30 + (Browser::maxh) + (30));
-      Browser::render_entry(&result[5], 30 + (Browser::maxw2) + (30), 30 + (Browser::maxh * 2) + (30 * 2));
-      Browser::render_entry(&result[6], 30 + (Browser::maxw2 * 2) + (30 * 2), 30);
-      Browser::render_entry(&result[7], 30 + (Browser::maxw2 * 2) + (30 * 2), 30 + (Browser::maxh) + (30));
-      Browser::render_entry(&result[8], 30 + (Browser::maxw2 * 2) + (30 * 2), 30 + (Browser::maxh * 2) + (30 * 2));
+      Browser::render();
       Screen::render();
     }
   }

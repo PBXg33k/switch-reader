@@ -6,6 +6,15 @@ void Screen::init()
   IMG_Init(IMG_INIT_JPG);
   TTF_Init();
 
+  //plInitialize();
+
+  // Result rc;
+  // rc = plGetSharedFontByType(&Screen::standardFontData, PlSharedFontType_Standard);
+  // if(!R_FAILED(rc)){
+  //   Screen::gallery_info = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 18);
+  //   Screen::normal = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 24);
+  // }
+
   Screen::gallery_info = TTF_OpenFont("Helvetica.ttf", 18);
 
   // Set up windows
@@ -26,63 +35,64 @@ void Screen::close()
   SDL_Quit();
 }
 
+SDL_Texture* Screen::load_texture(char* image, size_t size){
+  SDL_RWops *rw = SDL_RWFromMem(image, size);
+  SDL_Surface *surf = IMG_Load_RW(rw, 1);
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, surf);
+  if(texture == NULL){
+    printf("SDL_CreateTextureFromSurface Error - %s\n", SDL_GetError());
+  }
+  SDL_FreeSurface(surf);
+  return texture;
+}
+
 void Screen::render(){
   SDL_RenderPresent(Screen::renderer);
 }
 
-void fit_image(SDL_Surface *image, int x, int y)
+void fit_image(SDL_Texture* texture, int x, int y)
 {
-  if(image){
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, image);
-
-    // Maintain ratio and fill screen
-    int w, h;
-    SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-    float scaler = 720.0f / ((float)(h));
-
-    SDL_Rect rect;
-    rect.w = (int)(w * scaler);
-    rect.h = (int)(h * scaler);
-    rect.x = (1280/2) - (rect.w / 2);
-    rect.y = 0;
-
-    SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
-  }
-  SDL_FreeSurface(image);
-}
-
-// Draw image from memory
-void Screen::draw_image_mem(char* data, size_t size, int x, int y){
-  SDL_RWops *rw = SDL_RWFromMem(data, size);
-  SDL_Surface *image = IMG_Load_RW(rw, 1);
-  fit_image(image, x, y);
-}
-
-void Screen::draw_adjusted_mem(char*data, size_t len, int x, int y, int maxw, int maxh){
-  SDL_RWops *rw = SDL_RWFromMem(data, len);
-  SDL_Surface *image = IMG_Load_RW(rw, 1);
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, image);
-
+  // Maintain ratio and fill screen
   int w, h;
   SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-  float scaler = maxh / ((float)(h));
+  float scaler = 720.0f / ((float)(h));
+
   SDL_Rect rect;
   rect.w = (int)(w * scaler);
   rect.h = (int)(h * scaler);
-  rect.x = x;
-  rect.y = y;
-
-  scaler = maxw / ((float)(rect.w));
-  if(scaler < 1){
-    rect.w *= scaler;
-    rect.h *= scaler;
-  }
-
-  // Centre Image
-  rect.y = y + ((maxh - rect.h)/2);
+  rect.x = (1280/2) - (rect.w / 2);
+  rect.y = 0;
 
   SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
-  SDL_FreeSurface(image);
+}
+
+// Draw image from memory
+void Screen::draw_image_mem(SDL_Texture* texture, int x, int y){
+  fit_image(texture, x, y);
+}
+
+void Screen::draw_adjusted_mem(SDL_Texture* texture, int x, int y, int maxw, int maxh){
+  if(texture){
+    int w, h;
+    SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+    float scaler = maxh / ((float)(h));
+    SDL_Rect rect;
+    rect.w = (int)(w * scaler);
+    rect.h = (int)(h * scaler);
+    rect.x = x;
+    rect.y = y;
+
+    scaler = maxw / ((float)(rect.w));
+    if(scaler < 1){
+      rect.w *= scaler;
+      rect.h *= scaler;
+    }
+
+    // Centre Image
+    rect.y = y + ((maxh - rect.h)/2);
+
+    SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
+  }
 }
 
 void Screen::draw_rect(int x, int y, int w, int h, SDL_Color color){
@@ -92,12 +102,6 @@ void Screen::draw_rect(int x, int y, int w, int h, SDL_Color color){
 
 }
 
-// Draw image to screen at co-ords
-void Screen::draw_image(std::string path, int x, int y){
-  SDL_Surface *image = IMG_Load(path.c_str());
-  fit_image(image, x, y);
-}
-
 void draw_text_internal(std::string text, int x, int y, SDL_Color color, TTF_Font* font){
   SDL_Surface *surf = TTF_RenderText_Solid(font, text.c_str(), color);
   SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, surf);
@@ -105,6 +109,7 @@ void draw_text_internal(std::string text, int x, int y, SDL_Color color, TTF_Fon
   SDL_Rect rect = { x, y, surf->w, surf->h };
   SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
   SDL_FreeSurface(surf);
+  SDL_DestroyTexture(texture);
 }
 
 void Screen::draw_text(std::string text, int x, int y, SDL_Color color, TTF_Font* font)
