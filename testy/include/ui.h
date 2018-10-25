@@ -2,6 +2,7 @@
 #define UI_H
 
 #include <string>
+//#include <switch.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -16,12 +17,14 @@ class Screen {
     static void draw_text(std::string text, int x, int y, SDL_Color color);
     static void draw_text(std::string text, int x, int y, SDL_Color color, TTF_Font* font);
     static void draw_rect(int x, int y, int w, int h, SDL_Color color);
+    static void clear(SDL_Color color);
     static void render();
 
     static inline SDL_Renderer *renderer;
     static inline SDL_Window *window;
     static inline SDL_Surface *surface;
 
+    //static inline PlFontData standardFontData;
     static inline TTF_Font *gallery_info;
     static inline TTF_Font *normal;
     static inline TTF_Font *large;

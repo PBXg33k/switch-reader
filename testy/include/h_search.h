@@ -8,7 +8,7 @@
 
 class HSearch{
   public:
-    static void search_keywords(std::vector<Entry*>* result, char* keywords, int maxResults);
+    static std::vector<Entry> search_keywords(char* keywords, int maxResults);
 
 };
 

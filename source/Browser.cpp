@@ -1,8 +1,8 @@
 #include "ui.h"
 #include "api.h"
 #include "Browser.h"
-#include "shared.h"
 #include "TouchManager.h"
+#include "Gallery.h"
 
 int Browser::grid_start = 0;
 int Browser::active_gallery = -1;
@@ -93,10 +93,19 @@ void Browser::render(){
   //Screen::draw_text("Next", screen_width - 55, (screen_height/2)-45, COLOR_BLACK, Screen::gallery_info);
 }
 
-void Browser::on_event(int val){
-  if(val >= 0){
+Handler Browser::on_event(int val){
+  printf("Got event %d\n", val);
+  if(val >= 0 && val < 10){
     Browser::active_gallery = val;
   }
+  if(Browser::active_gallery >= 0 && val == 10){
+    Entry entry = Browser::entries[0];
+    printf("URL %s\n", entry.url.c_str());
+    GalleryBrowser::load_gallery(&entry);
+    return Handler::Gallery;
+  }
+
+  return Handler::Browser;
 }
 
 void Browser::render_entry(Entry* entry, int x, int y, bool active)
@@ -104,7 +113,7 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   // If image not loaded, stick in texture
   if(entry->thumb_loaded == 0){
     printf("Loading texture into memory\n");
-    MemoryStruct thumb_data = ApiManager::get_res((char*) entry->thumb);
+    MemoryStruct thumb_data = ApiManager::get_res((char*)entry->thumb.c_str());
     entry->thumb_texture = Screen::load_texture(thumb_data.memory, thumb_data.size);
     entry->thumb_loaded = 1;
   }

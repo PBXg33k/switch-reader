@@ -5,13 +5,14 @@
 #include "api.h"
 #include "Browser.h"
 #include "TouchManager.h"
+#include "Gallery.h"
 #include "h_search.h"
 
 int main(int argc, char **argv)
 {
+  Handler handler = Handler::Browser;
 
   ApiManager::init();
-
 
   nxlinkStdio();
 
@@ -20,19 +21,19 @@ int main(int argc, char **argv)
 
   int state = 1;
 
-  std::vector<Entry> result = HSearch::search_keywords("cat", 4);
+  std::vector<Entry> result = HSearch::search_keywords("cat", 1);
   for(auto entry : result){
+    printf("Returned %s\n", entry.url.c_str());
     Browser::add_entry(entry);
   }
 
   SDL_Event event;
   while(state){
     while(SDL_PollEvent(&event)){
-      int val;
+      int val = -1;
       switch (event.type) {
         case SDL_FINGERDOWN:
           val = TouchManager::get_value(event.tfinger.x*1280, event.tfinger.y*720);
-          Browser::on_event(val);
           if(val == 100)
             state = 0;
           break;
@@ -46,7 +47,19 @@ int main(int argc, char **argv)
           break;
       }
 
-      Browser::render();
+      switch(handler){
+        case Handler::Browser:
+          handler = Browser::on_event(val);
+          Browser::render();
+          break;
+        case Handler::Gallery:
+          handler = GalleryBrowser::on_event(val);
+          GalleryBrowser::render();
+          break;
+        default:
+          break;
+      }
+
       Screen::render();
     }
   }

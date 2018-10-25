@@ -22,5 +22,6 @@ int TouchManager::get_value(int x, int y){
 }
 
 void TouchManager::clear(){
-  TouchManager::bounds = vector<pair<SDL_Rect, int>>();
+  bounds.clear();
+  printf("Size %zd:",bounds.size());
 }

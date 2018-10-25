@@ -88,11 +88,20 @@ void Screen::draw_adjusted_mem(SDL_Texture* texture, int x, int y, int maxw, int
       rect.h *= scaler;
     }
 
-    // Centre Image
+    // Centre Image Vertically
     rect.y = y + ((maxh - rect.h)/2);
+
+    // Centre Image Horizontally
+    rect.x = x + ((maxw - rect.w)/2);
 
     SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
   }
+}
+
+void Screen::clear(SDL_Color color){
+  SDL_SetRenderDrawColor(Screen::renderer, color.r, color.g, color.b, color.a);
+  SDL_RenderClear(Screen::renderer);
+  Screen::render();
 }
 
 void Screen::draw_rect(int x, int y, int w, int h, SDL_Color color){

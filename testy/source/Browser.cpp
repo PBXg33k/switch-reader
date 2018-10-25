@@ -1,8 +1,8 @@
 #include "ui.h"
 #include "api.h"
 #include "Browser.h"
-#include "shared.h"
 #include "TouchManager.h"
+#include "Gallery.h"
 
 int Browser::grid_start = 0;
 int Browser::active_gallery = -1;
@@ -36,28 +36,32 @@ void Browser::set_touch(){
     }
   }
 
-  SDL_Rect button = {screen_width-60, (screen_height/25) - 25, 50, 50};
+  SDL_Rect button = {screen_width-90, (screen_height/2) - 40, screen_width-10, (screen_height/2) + 40};
   TouchManager::add_bounds(button, 10);
+  button = {screen_width-75, 0, screen_width, 75};
+  TouchManager::add_bounds(button, 100);
 }
 
-void Browser::new_entry(Entry* entry, json_object* json, int num)
+Entry Browser::new_entry(json_object* json, int num)
 {
   json_object *holder;
+  struct Entry entry;
 
   // Populate entry
   json = get_json_obj(json, "gmetadata");
   json = json_object_array_get_idx(json, num);
 
   holder = get_json_obj(json, "title");
-  entry->title = json_object_get_string(holder);
+  entry.title = json_object_get_string(holder);
 
   holder = get_json_obj(json, "category");
-  entry->category = json_object_get_string(holder);
+  entry.category = json_object_get_string(holder);
 
   holder = get_json_obj(json, "thumb");
-  entry->thumb = json_object_get_string(holder);
+  entry.thumb = json_object_get_string(holder);
 
-  entry->thumb_loaded = 0;
+  entry.thumb_loaded = 0;
+  return entry;
 }
 
 // Add entry to list of entries
@@ -72,8 +76,6 @@ void Browser::render(){
   int incY = (Browser::maxh + 30);
   int grid = Browser::grid_start;
   int num_entries = Browser::entries.size() - Browser::grid_start;
-  printf("Rendering %d Entries\n", num_entries);
-
 
   // Render upto 3X3 grid, based on start point.
   for (int x = 0; x < 3; x++){
@@ -86,14 +88,24 @@ void Browser::render(){
   }
 
   // Render next button
-  Screen::draw_rect(screen_width - 60, (screen_height/2) - 25, 50, 50, COLOR_WHITE);
-  Screen::draw_text("Next", screen_width - 55, (screen_height/2)-45, COLOR_BLACK, Screen::gallery_info);
+  Screen::draw_rect(screen_width-90, (screen_height/2) - 40, 80, 80, COLOR_WHITE);
+  Screen::draw_rect(screen_width - 75, 0, 75, 75, COLOR_RED);
+  //Screen::draw_text("Next", screen_width - 55, (screen_height/2)-45, COLOR_BLACK, Screen::gallery_info);
 }
 
-void Browser::on_event(int val){
-  if(val >= 0){
+Handler Browser::on_event(int val){
+  if(val >= 0 && val < 10){
     Browser::active_gallery = val;
   }
+  if(Browser::active_gallery >= 0 && val == 10){
+    Entry entry = Browser::entries[0];
+    printf("URL %s\n", entry.url.c_str());
+    GalleryBrowser::set_touch();
+    GalleryBrowser::load_gallery(&entry);
+    return Handler::Gallery;
+  }
+
+  return Handler::Browser;
 }
 
 void Browser::render_entry(Entry* entry, int x, int y, bool active)
@@ -101,8 +113,7 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   // If image not loaded, stick in texture
   if(entry->thumb_loaded == 0){
     printf("Loading texture into memory\n");
-    MemoryStruct thumb_data = ApiManager::get_res((char*) entry->thumb);
-    entry->thumb_data = thumb_data;
+    MemoryStruct thumb_data = ApiManager::get_res((char*)entry->thumb.c_str());
     entry->thumb_texture = Screen::load_texture(thumb_data.memory, thumb_data.size);
     entry->thumb_loaded = 1;
   }
@@ -120,7 +131,6 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   Screen::draw_rect(x-5, y-5, maxw+10, maxh+10, imgBG);
   Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, imgFG);
 
-  MemoryStruct* thumb_data = &(entry->thumb_data);
   Screen::draw_adjusted_mem(entry->thumb_texture, x, y, maxw, maxh);
   Screen::draw_text(new_title, x + maxw + 10, y + 5, COLOR_WHITE, Screen::gallery_info);
   Screen::draw_text(entry->category, x + maxw + 10, y + 30, COLOR_WHITE, Screen::gallery_info);
