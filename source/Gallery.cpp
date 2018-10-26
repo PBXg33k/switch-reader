@@ -12,7 +12,6 @@
 Gallery* GalleryBrowser::active_gallery;
 SDL_Texture* GalleryBrowser::active_image = NULL;
 int GalleryBrowser::cur_page = 0;
-bool GalleryBrowser::clear_next_render = false;
 
 void GalleryBrowser::close(){
   if(active_gallery){
@@ -62,9 +61,7 @@ void GalleryBrowser::load_page(size_t page){
   xmlDocPtr doc;
   xmlNodeSetPtr nodeset;
 
-  // Clear screen
   printf("Loading page %zd\n", page);
-  clear_next_render = true;
 
   // Get html page
   MemoryStruct* pageMem = new MemoryStruct();
@@ -170,15 +167,12 @@ void GalleryBrowser::load_urls(size_t page){
 }
 
 void GalleryBrowser::render(){
-  if(clear_next_render){
-    Screen::clear(COLOR_BLACK);
-    clear_next_render = false;
-  }
+  Screen::clear(ThemeBG);
   // Image
   Screen::draw_adjusted_mem(active_image, 100, 0, screen_width - 100, screen_height);
   // Right side button (next and kill)
-  Screen::draw_rect(screen_width-90, (screen_height/2) - 40, 80, 80, COLOR_WHITE);
-  Screen::draw_rect(screen_width - 75, 0, 75, 75, COLOR_RED);
+  Screen::draw_rect(screen_width-90, (screen_height/2) - 40, 80, 80, ThemeButton);
+  Screen::draw_rect(screen_width - 75, 0, 75, 75, ThemeButtonQuit);
   // Left side button (prev)
-  Screen::draw_rect(10, (screen_height/2) - 40, 80, 80, COLOR_WHITE);
+  Screen::draw_rect(10, (screen_height/2) - 40, 80, 80, ThemeButton);
 }

@@ -30,7 +30,6 @@ class GalleryBrowser {
     static int cur_page;
     static Gallery* active_gallery;
     static SDL_Texture* active_image;
-    static bool clear_next_render;
   private:
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
 };

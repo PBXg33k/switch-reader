@@ -86,6 +86,7 @@ void Browser::clear(){
 }
 
 void Browser::render(){
+  Screen::clear(ThemeBG);
 
   int baseX = 30;
   int baseY = 30;
@@ -105,10 +106,10 @@ void Browser::render(){
   }
 
   // Render next button
-  Screen::draw_rect(screen_width-190, (screen_height/2) - 40, 180, 80, COLOR_WHITE);
+  Screen::draw_rect(screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButton);
   // Quit button
-  Screen::draw_rect(screen_width - 75, 0, 75, 75, COLOR_RED);
-  Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, COLOR_BLACK, Screen::normal);
+  Screen::draw_rect(screen_width - 75, 0, 75, 75, ThemeButtonQuit);
+  Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
 }
 
 Handler Browser::on_event(int val){
@@ -120,7 +121,6 @@ Handler Browser::on_event(int val){
     printf("URL %s\n", entry.url.c_str());
     GalleryBrowser::set_touch();
     GalleryBrowser::load_gallery(&entry);
-    Screen::clear(COLOR_BLACK);
     return Handler::Gallery;
   }
 
@@ -141,15 +141,15 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   std::string new_title = entry->title;
   new_title.resize(25);
 
-  SDL_Color imgBG = COLOR_LIGHTGRAY;
-  SDL_Color imgFG = COLOR_GRAY;
+  SDL_Color imgFG = ThemePanelLight;
+  SDL_Color imgBG = ThemePanelDark;
   if(active){
-    imgBG = COLOR_DARKRED;
-    imgFG = COLOR_RED;
+    imgFG = ThemePanelSelectedLight;
+    imgBG = ThemePanelSelectedDark;
   }
 
-  Screen::draw_rect(x-5, y-5, maxw+10, maxh+10, imgBG);
-  Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, imgFG);
+  Screen::draw_rect(x-5, y-5, maxw+10, maxh+10, imgFG);
+  Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, imgBG);
 
   // Lock texture before drawing - Might be loading!
   //if(mutexTryLock(entry->mutex)){
@@ -157,8 +157,8 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   //  mutexUnlock(entry->mutex);
   //}
 
-  Screen::draw_text(new_title, x + maxw + 10, y + 5, COLOR_WHITE, Screen::gallery_info);
-  Screen::draw_text(entry->category, x + maxw + 10, y + 30, COLOR_WHITE, Screen::gallery_info);
-  Screen::draw_text(std::to_string(entry->pages).c_str(), x + maxw + 10, y + 50, COLOR_WHITE, Screen::gallery_info);
-  Screen::draw_text("Pages", x + maxw + 70, y + 50, COLOR_WHITE, Screen::gallery_info);
+  Screen::draw_text(new_title, x + maxw + 10, y + 5, ThemeText, Screen::gallery_info);
+  Screen::draw_text(entry->category, x + maxw + 10, y + 30, ThemeText, Screen::gallery_info);
+  Screen::draw_text(std::to_string(entry->pages).c_str(), x + maxw + 10, y + 50, ThemeText, Screen::gallery_info);
+  Screen::draw_text("Pages", x + maxw + 70, y + 50, ThemeText, Screen::gallery_info);
 }

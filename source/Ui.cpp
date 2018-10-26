@@ -1,4 +1,5 @@
 #include "Ui.hpp"
+#include "Shared.hpp"
 
 static SDL_Texture* s_refresh;
 
@@ -126,9 +127,9 @@ void Screen::draw_adjusted_mem(SDL_Texture* texture, int x, int y, int maxw, int
 }
 
 void Screen::clear(SDL_Color color){
+  SDL_Rect rect = {0,0, screen_width, screen_height};
   SDL_SetRenderDrawColor(Screen::renderer, color.r, color.g, color.b, color.a);
-  SDL_RenderClear(Screen::renderer);
-  Screen::render();
+  SDL_RenderFillRect(Screen::renderer, &rect);
 }
 
 void Screen::draw_rect(int x, int y, int w, int h, SDL_Color color){
