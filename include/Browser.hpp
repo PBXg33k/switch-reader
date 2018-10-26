@@ -12,6 +12,7 @@ struct Entry{
   int rating;
   std::string thumb;
   std::string url;
+  MemoryStruct* thumb_data;
   SDL_Texture* thumb_texture;
   int thumb_loaded;
   int pages;

@@ -59,8 +59,9 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
   printf("%s\n", completeURL.c_str());
 
   // Fetch webpage as string
-  MemoryStruct searchPage = ApiManager::get_res(completeURL.c_str());
-  std::string webPage(searchPage.memory);
+  MemoryStruct* searchPage = new MemoryStruct();
+  ApiManager::get_res(searchPage, completeURL.c_str());
+  std::string webPage(searchPage->memory);
 
   // Setup regexes
   std::regex listPattern(listRegex);
@@ -102,6 +103,8 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
     result.push_back(entry);
     printf("Before Return %s\n", entry.url.c_str());
   }
+
+  delete searchPage;
 
   return result;
 }

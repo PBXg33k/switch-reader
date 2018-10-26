@@ -121,8 +121,9 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   // If image not loaded, stick in texture
   if(entry->thumb_loaded == 0){
     printf("Loading texture into memory\n");
-    MemoryStruct thumb_data = ApiManager::get_res((char*)entry->thumb.c_str());
-    entry->thumb_texture = Screen::load_texture(thumb_data.memory, thumb_data.size);
+    entry->thumb_data = new MemoryStruct();
+    ApiManager::request_res(entry->thumb_data, (char*)entry->thumb.c_str());
+    entry->thumb_texture = Screen::load_texture(entry->thumb_data->memory, entry->thumb_data->size);
     entry->thumb_loaded = 1;
   }
 

@@ -1,13 +1,16 @@
 #include "Api.hpp"
 #include <iostream>
 #include <cstring>
+#include <thread>
+#include <mutex>
 
+//static std::vector<std::pair<Thread, std::string>> requests;
 
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
   size_t realsize = size * nmemb;
-  struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+  MemoryStruct *mem = (MemoryStruct *)userp;
 
   char *ptr = (char*)realloc(mem->memory, mem->size + realsize + 1);
   if(ptr == NULL) {
@@ -44,6 +47,33 @@ void ApiManager::init(){
 void ApiManager::close(){
   curl_global_cleanup();
   socketExit();
+}
+
+void test_res(void *url){
+
+}
+
+// Pass reference of MemoryStruct to thread to popualte.
+void ApiManager::request_res(MemoryStruct* mem, const char *url){
+  printf("Requesting\n");
+
+
+  // Create thread struct to hold gallery_info
+  Thread* resThread = new Thread();
+  Result result;
+
+  // Create mutex to pass back values
+  // Mutex* m = new Mutex();
+  // mutexInit(m);
+
+  threadCreate(resThread, test_res, (void*)url, 1000, 0x2C, -2);
+  threadStart(resThread);
+  result = threadWaitForExit(resThread);
+  threadClose(resThread);
+
+  printf("Thread result %d\n", result);
+
+  get_res(mem, url);
 }
 
 json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns){
@@ -100,7 +130,7 @@ void ApiManager::api_test()
 
 
 
-struct MemoryStruct ApiManager::get_res(const char* url)
+void ApiManager::get_res(MemoryStruct* chunk, const char* url)
 {
   CURL *curl;
   const char *host = "http://192.168.0.12:5000/?url=";
@@ -112,28 +142,22 @@ struct MemoryStruct ApiManager::get_res(const char* url)
   strcpy(link, host);
   strcat(link, uri);
 
-  MemoryStruct chunk;
-
-  chunk.memory = (char*) malloc(1);
-  chunk.size = 0;
-
   if(curl) {
     //curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_URL, link);
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&chunk);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) chunk);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
   	curl_easy_perform(curl);
     curl_free(uri);
     curl_easy_cleanup(curl);
-    printf("%zu bytes retrieved\n", chunk.size);
+    printf("%zu bytes retrieved\n", chunk->size);
     FILE *test = fopen("test2.jpg", "wb");
-    fwrite(chunk.memory, 4, chunk.size, test);
+    fwrite(chunk->memory, 4, chunk->size, test);
     fclose(test);
   }
   curl_global_cleanup();
-  return chunk;
 }
 
 json_object* ApiManager::post_api(char* payload)
