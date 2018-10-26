@@ -3,6 +3,7 @@
 
 #include <json-c/json.h>
 #include <vector>
+#include <mutex>
 #include "Api.hpp"
 #include "Shared.hpp"
 
@@ -12,9 +13,16 @@ struct Entry{
   int rating;
   std::string thumb;
   std::string url;
+  Mutex* mutex;
+  MemoryStruct* thumb_data;
   SDL_Texture* thumb_texture;
   int thumb_loaded;
   int pages;
+  // 
+  // ~Entry(){
+  //   if(thumb_texture)
+  //     SDL_DestroyTexture(thumb_texture);
+  // }
 };
 
 class Browser {

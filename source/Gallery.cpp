@@ -61,10 +61,11 @@ void GalleryBrowser::load_page(size_t page){
   clear_next_render = true;
 
   // Get html page
-  MemoryStruct pageMem = ApiManager::get_res(active_gallery->pages[page].c_str());
+  MemoryStruct* pageMem = new MemoryStruct();
+  ApiManager::get_res(pageMem, active_gallery->pages[page].c_str());
   // Check if failed to load
 
-  doc = htmlReadMemory(pageMem.memory, pageMem.size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+  doc = htmlReadMemory(pageMem->memory, pageMem->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
   // Get node list matching XPath for image
   path = (xmlChar*) imageXPath;
@@ -83,11 +84,14 @@ void GalleryBrowser::load_page(size_t page){
     SDL_DestroyTexture(active_image);
   }
   // Render new one, if empty, use stock failure image
-  if(image.size > 0){
-    active_image = Screen::load_texture(image.memory, image.size);
+  if(image->size > 0){
+    active_image = Screen::load_texture(image->memory, image->size);
   } else {
     //active_image = Screen::load_stored_image(0);
   }
+
+  delete pageMem;
+  delete image;
 }
 
 Handler GalleryBrowser::on_event(int val){
@@ -118,16 +122,21 @@ void GalleryBrowser::load_urls(size_t page){
 
   xmlChar *path = (xmlChar*) pagesXPath;
   xmlChar *keyword;
+
   int i;
 
   // Load page into memory
   std::string indexCopy = active_gallery->index;
   indexCopy.append("?p=");
   indexCopy.append(std::to_string(page));
-  MemoryStruct index = ApiManager::get_res(indexCopy.c_str());
+  MemoryStruct* index = new MemoryStruct();
+  printf("Made struct\n");
+  ApiManager::get_res(index, indexCopy);
+
+  printf("Loaded page\n");
 
   // Load to xml
-  xmlDocPtr doc = htmlReadMemory(index.memory, index.size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+  xmlDocPtr doc = htmlReadMemory(index->memory, index->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
   // Get node list matching XPath
   xmlXPathObjectPtr result = get_node_set(doc, path);
@@ -149,6 +158,8 @@ void GalleryBrowser::load_urls(size_t page){
 
   }
 
+  // Clear unused memory
+  delete index;
 }
 
 void GalleryBrowser::render(){
