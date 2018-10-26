@@ -12,6 +12,7 @@ class Screen {
     static void init();
     static void close();
     static SDL_Texture* load_texture(char* image, size_t size);
+    static SDL_Texture* load_stored_texture(int id);
     static void draw_image_mem(SDL_Texture* texture, int x, int y);
     static void draw_adjusted_mem(SDL_Texture* texture, int x, int y, int maxw, int maxy);
     static void draw_text(std::string text, int x, int y, SDL_Color color);

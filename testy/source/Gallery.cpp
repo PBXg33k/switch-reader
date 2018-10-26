@@ -26,8 +26,8 @@ void GalleryBrowser::load_gallery(Entry* entry){
   printf("Loading URLs\n");
   GalleryBrowser::load_urls(1);
   printf("Loading page\n");
-  GalleryBrowser::load_page(30);
-  cur_page = 30;
+  GalleryBrowser::load_page(0);
+  cur_page = 0;
 }
 
 
@@ -36,16 +36,13 @@ void GalleryBrowser::set_touch(){
   TouchManager::clear();
 
   // Forwards
-  SDL_Rect button = {screen_width-90, (screen_height/2) - 40, screen_width-10, (screen_height/2) + 40};
-  TouchManager::add_bounds(button, 1);
+  TouchManager::add_bounds(screen_width-90, (screen_height/2) - 40, 80, 80, 1);
 
   // Back
-  button = {10, (screen_height/2) - 40, 90, (screen_height/2) + 40};
-  TouchManager::add_bounds(button, 2);
+  TouchManager::add_bounds(10, (screen_height/2) - 40, 80, 80, 2);
 
   // Quit
-  button = {screen_width-75, 0, screen_width, 75};
-  TouchManager::add_bounds(button, 100);
+  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 100);
 }
 
 void GalleryBrowser::load_page(int page){
@@ -64,11 +61,13 @@ void GalleryBrowser::load_page(int page){
   xmlNodeSetPtr nodeset;
 
   // Clear screen
-  printf("Loaded page %d\n", page);
+  printf("Loading page %d\n", page);
   clear_next_render = true;
 
   // Get html page
   MemoryStruct pageMem = ApiManager::get_res(active_gallery->pages[page].c_str());
+  // Check if failed to load
+
   doc = htmlReadMemory(pageMem.memory, pageMem.size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
   // Get node list matching XPath for image
@@ -85,8 +84,12 @@ void GalleryBrowser::load_page(int page){
   if(active_image){
     SDL_DestroyTexture(active_image);
   }
-  // Render new one
-  active_image = Screen::load_texture(image.memory, image.size);
+  // Render new one, if empty, use stock failure image
+  if(image.size > 0){
+    active_image = Screen::load_texture(image.memory, image.size);
+  } else {
+    //active_image = Screen::load_stored_image(0);
+  }
 }
 
 Handler GalleryBrowser::on_event(int val){

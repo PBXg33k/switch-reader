@@ -16,6 +16,7 @@ void Screen::init()
   // }
 
   Screen::gallery_info = TTF_OpenFont("Helvetica.ttf", 18);
+  Screen::normal = TTF_OpenFont("Helvetica.ttf", 24);
 
   // Set up windows
   Screen::window = SDL_CreateWindow("Image Test",
@@ -44,6 +45,16 @@ SDL_Texture* Screen::load_texture(char* image, size_t size){
   }
   SDL_FreeSurface(surf);
   return texture;
+}
+
+SDL_Texture* Screen::load_stored_texture(int id){
+  switch(id){
+    case 0:
+      return s_refresh;
+    default:
+      break;
+  }
+  return NULL;
 }
 
 void Screen::render(){

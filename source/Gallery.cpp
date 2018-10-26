@@ -1,16 +1,18 @@
-#include "Gallery.h"
-#include "TouchManager.h"
-#include "api.h"
-#include "ui.h"
-#include "Browser.h"
-#include <libxml/HTMLparser.h>
+#include "Gallery.hpp"
+#include "TouchManager.hpp"
+#include "Api.hpp"
+#include "Ui.hpp"
+#include "Browser.hpp"
+#include <cstdlib>
 
-#define pageBlockRegex "class=\"gdtm(.+?)class=\"c"
-#define pageListRegex "href=\"(.+?)(?=\"><img alt)"
-#define imageRegex "<img id=\"img\" src=\"(.+?)(?=\")"
+
+#define pagesXPath "//a[starts-with(@href, 'https://e-hentai.org/s/')]"
+#define imageXPath "//img[@id='img']"
 
 Gallery* GalleryBrowser::active_gallery;
 SDL_Texture* GalleryBrowser::active_image = NULL;
+int GalleryBrowser::cur_page = 0;
+bool GalleryBrowser::clear_next_render = false;
 
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
@@ -18,11 +20,14 @@ void GalleryBrowser::load_gallery(Entry* entry){
   active_gallery = new Gallery();
   active_gallery->title = entry->title;
   active_gallery->index = entry->url;
+  active_gallery->total_pages = entry->pages;
+  printf("Pages: %d\n", entry->pages);
   printf("Active url %s Active url 2 %s\n", entry->url.c_str(), active_gallery->index.c_str());
   printf("Loading URLs\n");
-  GalleryBrowser::load_urls(0);
+  GalleryBrowser::load_urls(1);
   printf("Loading page\n");
   GalleryBrowser::load_page(0);
+  cur_page = 0;
 }
 
 
@@ -31,51 +36,128 @@ void GalleryBrowser::set_touch(){
   TouchManager::clear();
 
   // Forwards
-  SDL_Rect button = {screen_width-90, (screen_height/2) - 40, screen_width-10, (screen_height/2) + 40};
-  TouchManager::add_bounds(button, 1);
+  TouchManager::add_bounds(screen_width-90, (screen_height/2) - 40, 80, 80, 1);
 
   // Back
-  button = {10, (screen_height/2) - 40, 90, (screen_height/2) + 40};
-  TouchManager::add_bounds(button, 2);
+  TouchManager::add_bounds(10, (screen_height/2) - 40, 80, 80, 2);
 
   // Quit
-  button = {screen_width-75, 0, screen_width, 75};
-  TouchManager::add_bounds(button, 100);
+  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 100);
 }
 
-void GalleryBrowser::load_page(int page){
-  const char* url = active_gallery->pages[page];
-  MemoryStruct pageMem = ApiManager::get_res(url);
-  std::string pageContent(pageMem.memory);
+void GalleryBrowser::load_page(size_t page){
 
-  std::regex imagePattern(imageRegex);
+  // Load more URLs if needed - 40 on each page
+  if(page >= active_gallery->pages.size()){
+    int block = (active_gallery->pages.size()/40);
+    printf("Loading block %d\n", block);
+    load_urls(block);
+  }
 
-  std::smatch imageMatch = RegexHelper::search_once(imagePattern, pageContent.c_str());
+  xmlChar *path;
+  xmlChar *keyword = NULL;
+  xmlXPathObjectPtr result;
+  xmlDocPtr doc;
+  xmlNodeSetPtr nodeset;
 
-  MemoryStruct image = ApiManager::get_res(imageMatch[1].str().c_str());
+  // Clear screen
+  printf("Loading page %zd\n", page);
+  clear_next_render = true;
+
+  // Get html page
+  MemoryStruct pageMem = ApiManager::get_res(active_gallery->pages[page].c_str());
+  // Check if failed to load
+
+  doc = htmlReadMemory(pageMem.memory, pageMem.size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+
+  // Get node list matching XPath for image
+  path = (xmlChar*) imageXPath;
+  result = get_node_set(doc, path);
+  if(result){
+    nodeset = result->nodesetval;
+    keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
+
+  }
+
+  MemoryStruct image = ApiManager::get_res((char*) keyword);
   // Clean up existing image
   if(active_image){
     SDL_DestroyTexture(active_image);
   }
-  // Render new one
-  active_image = Screen::load_texture(image.memory, image.size);
+  // Render new one, if empty, use stock failure image
+  if(image.size > 0){
+    active_image = Screen::load_texture(image.memory, image.size);
+  } else {
+    //active_image = Screen::load_stored_image(0);
+  }
 }
 
 Handler GalleryBrowser::on_event(int val){
+  if(val == 1 && cur_page < (active_gallery->total_pages - 1)){
+    cur_page++;
+    load_page(cur_page);
+  }
+  if(val == 2 && cur_page > 0){
+    cur_page--;
+    load_page(cur_page);
+  }
   return Handler::Gallery;
 }
 
+
+xmlXPathObjectPtr GalleryBrowser::get_node_set(xmlDocPtr doc, xmlChar *xpath){
+    xmlXPathContextPtr context;
+    xmlXPathObjectPtr result;
+
+    // Get doc context to do XPath on
+    context = xmlXPathNewContext(doc);
+    result = xmlXPathEvalExpression(xpath, context);
+    return result;
+}
+
 // Buffer page urls on numbered index page (max 40 per index page)
-void GalleryBrowser::load_urls(int page){
+void GalleryBrowser::load_urls(size_t page){
+
+  xmlChar *path = (xmlChar*) pagesXPath;
+  xmlChar *keyword;
+  int i;
+
   // Load page into memory
-  MemoryStruct index = ApiManager::get_res(active_gallery->index.c_str());
+  std::string indexCopy = active_gallery->index;
+  indexCopy.append("?p=");
+  indexCopy.append(std::to_string(page));
+  MemoryStruct index = ApiManager::get_res(indexCopy.c_str());
 
   // Load to xml
-  htmlDocPtr doc = htmlReadMemory(index.memory, index.size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
-  xmlNode *rootElem = xmlDocGetRootElement(doc);
+  xmlDocPtr doc = htmlReadMemory(index.memory, index.size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+
+  // Get node list matching XPath
+  xmlXPathObjectPtr result = get_node_set(doc, path);
+
+  // Iterate through results
+  if(result) {
+    xmlNodeSetPtr nodeset = result->nodesetval;
+    printf("Found %d entries\n", nodeset->nodeNr);
+    for (i=0; i < nodeset->nodeNr; i++) {
+			keyword = xmlGetProp(nodeset->nodeTab[i], (xmlChar*) "href");
+  		printf("Page %d: %s\n", i, keyword);
+      active_gallery->pages.push_back((char *)keyword);
+  		xmlFree(keyword);
+		}
+  }
+
+  // Load total pages if missing
+  if(!active_gallery->total_pages){
+
+  }
+
 }
 
 void GalleryBrowser::render(){
+  if(clear_next_render){
+    Screen::clear(COLOR_BLACK);
+    clear_next_render = false;
+  }
   // Image
   Screen::draw_adjusted_mem(active_image, 100, 0, screen_width - 100, screen_height);
   // Right side button (next and kill)

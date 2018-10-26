@@ -30,16 +30,15 @@ void Browser::set_touch(){
     for (int y = 0; y < 3; y++){
       int newX = baseX + (x * incX);
       int newY = baseY + (y * incY);
-      SDL_Rect rect = {newX, newY, newX + Browser::maxw2, newY + Browser::maxh};
-      TouchManager::add_bounds(rect, val);
+      TouchManager::add_bounds(newX, newY, Browser::maxw2, Browser::maxh, val);
       val++;
     }
   }
 
-  SDL_Rect button = {screen_width-90, (screen_height/2) - 40, screen_width-10, (screen_height/2) + 40};
-  TouchManager::add_bounds(button, 10);
-  button = {screen_width-75, 0, screen_width, 75};
-  TouchManager::add_bounds(button, 100);
+  // Next
+  TouchManager::add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 10);
+  // Quit
+  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 100);
 }
 
 Entry Browser::new_entry(json_object* json, int num)
@@ -96,9 +95,10 @@ void Browser::render(){
   }
 
   // Render next button
-  Screen::draw_rect(screen_width-90, (screen_height/2) - 40, 80, 80, COLOR_WHITE);
+  Screen::draw_rect(screen_width-190, (screen_height/2) - 40, 180, 80, COLOR_WHITE);
+  // Quit button
   Screen::draw_rect(screen_width - 75, 0, 75, 75, COLOR_RED);
-  //Screen::draw_text("Next", screen_width - 55, (screen_height/2)-45, COLOR_BLACK, Screen::gallery_info);
+  Screen::draw_text("Next", screen_width - 130, (screen_height/2)-10, COLOR_BLACK, Screen::normal);
 }
 
 Handler Browser::on_event(int val){
@@ -142,4 +142,6 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   Screen::draw_adjusted_mem(entry->thumb_texture, x, y, maxw, maxh);
   Screen::draw_text(new_title, x + maxw + 10, y + 5, COLOR_WHITE, Screen::gallery_info);
   Screen::draw_text(entry->category, x + maxw + 10, y + 30, COLOR_WHITE, Screen::gallery_info);
+  Screen::draw_text(std::to_string(entry->pages).c_str(), x + maxw + 10, y + 50, COLOR_WHITE, Screen::gallery_info);
+  Screen::draw_text("Pages", x + maxw + 70, y + 50, COLOR_WHITE, Screen::gallery_info);
 }

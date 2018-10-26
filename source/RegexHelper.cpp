@@ -1,4 +1,4 @@
-#include "RegexHelper.h"
+#include "RegexHelper.hpp"
 
 std::vector<std::string> RegexHelper::search(std::regex re, std::string content){
   std::vector<std::string> matches;

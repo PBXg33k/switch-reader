@@ -1,12 +1,12 @@
 #include <stdio.h>
 
-#include "ui.h"
-#include "shared.h"
-#include "api.h"
-#include "Browser.h"
-#include "TouchManager.h"
-#include "Gallery.h"
-#include "h_search.h"
+#include "Ui.hpp"
+#include "Shared.hpp"
+#include "Api.hpp"
+#include "Browser.hpp"
+#include "TouchManager.hpp"
+#include "Gallery.hpp"
+#include "HSearch.hpp"
 
 int main(int argc, char **argv)
 {
@@ -14,14 +14,14 @@ int main(int argc, char **argv)
 
   ApiManager::init();
 
-  nxlinkStdio();
+  //nxlinkStdio();
 
   Screen::init();
   Browser::set_touch();
 
   int state = 1;
 
-  std::vector<Entry> result = HSearch::search_keywords("cat", 1);
+  std::vector<Entry> result = HSearch::search_keywords("cat", 9);
   for(auto entry : result){
     printf("Returned %s\n", entry.url.c_str());
     Browser::add_entry(entry);
@@ -31,7 +31,14 @@ int main(int argc, char **argv)
   while(state){
     while(SDL_PollEvent(&event)){
       int val = -1;
+      int x, y;
       switch (event.type) {
+        case SDL_MOUSEBUTTONDOWN:
+          SDL_GetMouseState(&x, &y);
+          val = TouchManager::get_value(x, y);
+          if(val == 100)
+            state = 0;
+          break;
         case SDL_FINGERDOWN:
           val = TouchManager::get_value(event.tfinger.x*1280, event.tfinger.y*720);
           if(val == 100)
@@ -45,6 +52,9 @@ int main(int argc, char **argv)
           break;
         default:
           break;
+      }
+      if(val > -1){
+        printf("Event : %d\n", val);
       }
 
       switch(handler){

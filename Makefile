@@ -34,7 +34,7 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
-INCLUDES	:=	include
+INCLUDES	:=	include /opt/devkitpro/portlibs/switch/include/mbedtls
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 
@@ -53,7 +53,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -ljson-c -lfreetype -lSDL2_mixer -lmodplug -lmpg123 -lvorbisidec -logg -lSDL2_ttf -lSDL2_image -lpng -ljpeg -lcurl `sdl2-config --libs` `freetype-config --libs`  -lm -lnx
+LIBS	:= -lxml2 -ljson-c -lfreetype -lSDL2_mixer -lmodplug -lmpg123 -lvorbisidec -logg -lSDL2_ttf -lSDL2_image -lpng -ljpeg -lcurl `sdl2-config --libs` `freetype-config --libs`  -lm -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

@@ -47,7 +47,7 @@ void ApiManager::close(){
 }
 
 json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns){
-  char* temp = "[%s,\"%s\"]";
+  char* temp = (char *) "[%s,\"%s\"]";
   std::string gallery_list;
   size_t size;
   char* buffer;
@@ -123,6 +123,7 @@ struct MemoryStruct ApiManager::get_res(const char* url)
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&chunk);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1);
   	curl_easy_perform(curl);
     curl_free(uri);
     curl_easy_cleanup(curl);

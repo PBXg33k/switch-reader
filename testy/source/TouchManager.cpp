@@ -2,7 +2,8 @@
 
 vector<pair<SDL_Rect, int>> TouchManager::bounds = vector<pair<SDL_Rect, int>>();
 
-void TouchManager::add_bounds(SDL_Rect rect, int val){
+void TouchManager::add_bounds(int x, int y, int w, int h, int val){
+  SDL_Rect rect{x,y,x+w,y+h};
   pair<SDL_Rect, int> pair(rect, val);
   TouchManager::bounds.push_back(pair);
 }
@@ -23,5 +24,4 @@ int TouchManager::get_value(int x, int y){
 
 void TouchManager::clear(){
   bounds.clear();
-  printf("Size %zd:",bounds.size());
 }

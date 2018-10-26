@@ -30,7 +30,7 @@
 //   return match;
 // }
 
-std::vector<Entry> HSearch::search_keywords(char* keywords, int maxResults){
+std::vector<Entry> HSearch::search_keywords(std::string keywords, int maxResults){
 
   std::vector<Entry> result;
 
@@ -45,7 +45,7 @@ std::vector<Entry> HSearch::search_keywords(char* keywords, int maxResults){
   // Format keywords for URL
   CURL* curl;
   curl = curl_easy_init();
-  safeKeywords = curl_easy_escape(curl, keywords, strlen(keywords));
+  safeKeywords = curl_easy_escape(curl, keywords.c_str(), strlen(keywords.c_str()));
 
   ssize_t bufferSize = snprintf(NULL, 0, "&f_search=%s&f_apply=Apply+Filter", safeKeywords);
   char* searchParams = (char*) malloc(bufferSize + 1);

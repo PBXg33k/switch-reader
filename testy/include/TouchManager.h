@@ -9,7 +9,7 @@ using namespace std;
 
 class TouchManager {
   public:
-    static void add_bounds(SDL_Rect, int val);
+    static void add_bounds(int x, int y, int w, int h, int val);
     static int get_value(int x, int y);
     static void clear();
   private:
