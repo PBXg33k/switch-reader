@@ -17,8 +17,6 @@ void Screen::init()
     Screen::normal = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 24);
   }
 
-  plExit();
-
   // Screen::gallery_info = TTF_OpenFont("Helvetica.ttf", 18);
   // Screen::normal = TTF_OpenFont("Helvetica.ttf", 24);
 
@@ -50,6 +48,8 @@ void Screen::close()
   SDL_DestroyRenderer(Screen::renderer);
   SDL_DestroyWindow(Screen::window);
   SDL_Quit();
+
+  plExit();
 }
 
 SDL_Texture* Screen::load_texture(char* image, size_t size){
@@ -143,6 +143,19 @@ void draw_text_internal(std::string text, int x, int y, SDL_Color color, TTF_Fon
   SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, surf);
 
   SDL_Rect rect = { x, y, surf->w, surf->h };
+  SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
+  SDL_FreeSurface(surf);
+  SDL_DestroyTexture(texture);
+}
+
+void Screen::draw_text_centered(std::string text, int x, int y, int maxw, int maxh, SDL_Color color, TTF_Font* font){
+  SDL_Surface *surf = TTF_RenderText_Solid(font, text.c_str(), color);
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, surf);
+  int w, h;
+  SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+
+  SDL_Rect rect = { x + (maxw - surf->w)/2, y + (maxh - surf->h)/2,
+                   surf->w, surf->h };
   SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
   SDL_FreeSurface(surf);
   SDL_DestroyTexture(texture);

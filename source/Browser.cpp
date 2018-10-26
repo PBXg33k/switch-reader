@@ -108,7 +108,7 @@ void Browser::render(){
   Screen::draw_rect(screen_width-190, (screen_height/2) - 40, 180, 80, COLOR_WHITE);
   // Quit button
   Screen::draw_rect(screen_width - 75, 0, 75, 75, COLOR_RED);
-  Screen::draw_text("Load Gallery", screen_width - 140, (screen_height/2)-10, COLOR_BLACK, Screen::normal);
+  Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, COLOR_BLACK, Screen::normal);
 }
 
 Handler Browser::on_event(int val){
