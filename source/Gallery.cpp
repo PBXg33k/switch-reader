@@ -177,8 +177,8 @@ void GalleryBrowser::render(){
   // Image
   Screen::draw_adjusted_mem(active_image, 100, 0, screen_width - 100, screen_height);
   // Right side button (next and kill)
-  Screen::draw_rect(screen_width-90, (screen_height/2) - 40, 80, 80, ThemeButton);
-  Screen::draw_rect(screen_width - 75, 0, 75, 75, ThemeButtonQuit);
+  Screen::draw_button(screen_width-90, (screen_height/2) - 40, 80, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
   // Left side button (prev)
-  Screen::draw_rect(10, (screen_height/2) - 40, 80, 80, ThemeButton);
+  Screen::draw_button(10, (screen_height/2) - 40, 80, 80, ThemeButton, ThemeButtonBorder, 4);
 }

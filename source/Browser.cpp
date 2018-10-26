@@ -109,13 +109,13 @@ void Browser::render(){
   }
 
   // Search button
-  Screen::draw_rect(screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButton);
+  Screen::draw_button(screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButton, ThemeButtonBorder, 4);
   Screen::draw_text_centered("Search", screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButtonText, Screen::normal);
   // Load Gallery button
-  Screen::draw_rect(screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButton);
+  Screen::draw_button(screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButton, ThemeButtonBorder, 4);
   Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
   // Quit button
-  Screen::draw_rect(screen_width - 75, 0, 75, 75, ThemeButtonQuit);
+  Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
 }
 
 Handler Browser::on_event(int val){

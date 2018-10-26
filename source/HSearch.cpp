@@ -22,7 +22,9 @@ xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath){
     return result;
 }
 
-std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResults){
+
+
+std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResults, int categories){
 
   std::vector<Entry> result;
   xmlChar *path;
@@ -44,7 +46,19 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
 
   // TODO: Implement Tags
   //completeURL.append("?f_doujinshi=1&f_manga=1&f_artistcg=1&f_gamecg=1&f_western=1&f_non-h=1&f_imageset=1&f_cosplay=1&f_asianporn=1&f_misc=1");
-  completeURL.append("?f_non-h=1");
+
+  // Add selected categories to url
+
+  if (categories & (int) Category::Doujinshi) completeURL.append("?f_doujinshi=1"); else completeURL.append("?f_doujinshi=0");
+  if (categories & (int) Category::Manga) completeURL.append("&f_manga=1"); else completeURL.append("&f_manga=0");
+  if (categories & (int) Category::ArtistCg) completeURL.append("&f_artistcg=1"); else completeURL.append("&f_artistcg=0");
+  if (categories & (int) Category::GameCg) completeURL.append("&f_gamecg=1"); else completeURL.append("&f_gamecg=0");
+  if (categories & (int) Category::Western) completeURL.append("&f_western=1"); else completeURL.append("&f_western=0");
+  if (categories & (int) Category::NonH) completeURL.append("&f_non-h=1"); else completeURL.append("&f_non-h=0");
+  if (categories & (int) Category::ImageSet) completeURL.append("&f_imageset=1"); else completeURL.append("&f_imageset=0");
+  if (categories & (int) Category::Cosplay) completeURL.append("&f_cosplay=1"); else completeURL.append("&f_cosplay=0");
+  if (categories & (int) Category::AsianPorn) completeURL.append("&f_asianporn=1"); else completeURL.append("&f_asianporn=0");
+  if (categories & (int) Category::Misc) completeURL.append("&f_misc=1"); else completeURL.append("&f_misc=0");
 
   // Format keywords for URL
   CURL* curl;
@@ -56,6 +70,8 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
   snprintf(searchParams, bufferSize + 1, "&f_search=%s&f_apply=Apply+Filter", safeKeywords);
 
   completeURL.append(searchParams);
+
+  printf("Search URL : %s\n", completeURL.c_str());
 
   // XML //
 

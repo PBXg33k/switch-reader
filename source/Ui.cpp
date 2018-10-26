@@ -140,7 +140,7 @@ void Screen::draw_rect(int x, int y, int w, int h, SDL_Color color){
 
 }
 
-void Screen::draw_button(int x, int y, int w, int h, SDL_Color back, SDL_Color fore, int border){
+void Screen::draw_button(int x, int y, int w, int h, SDL_Color fore, SDL_Color back, int border){
   // Draw back layer (border)
   if(border > 0)
     draw_rect(x, y, w, h, back);

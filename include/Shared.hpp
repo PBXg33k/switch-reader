@@ -1,7 +1,17 @@
 #ifndef SHARED_HPP
 #define SHARED_HPP
 #include <SDL2/SDL.h>
-enum class Handler { Browser, Search, Gallery, };
+enum class Handler { Browser, Search, Gallery };
+enum class Category { Doujinshi=1,
+                      Manga=2,
+                      ArtistCg=4,
+                      GameCg=8,
+                      Western=16,
+                      NonH=32,
+                      ImageSet=64,
+                      Cosplay=128,
+                      AsianPorn=256,
+                      Misc=512 };
 
 extern SDL_Color ThemeBG;
 extern SDL_Color ThemeButton;
@@ -13,6 +23,8 @@ extern SDL_Color ThemePanelLight;
 extern SDL_Color ThemeText;
 extern SDL_Color ThemePanelSelectedDark;
 extern SDL_Color ThemePanelSelectedLight;
+extern SDL_Color ThemeOptionSelected;
+extern SDL_Color ThemeOptionUnselected;
 
 extern SDL_Color COLOR_WHITE;
 extern SDL_Color COLOR_BLACK;
@@ -25,6 +37,7 @@ extern SDL_Color COLOR_PALEYELLOW;
 extern SDL_Color COLOR_PALEISHYELLOW;
 extern SDL_Color COLOR_PALEYELLOW;
 extern SDL_Color COLOR_PALEWHITE;
+extern SDL_Color COLOR_VLIGHTGRAY;
 
 static const int screen_width = 1280;
 static const int screen_height = 720;
