@@ -14,6 +14,12 @@ SDL_Texture* GalleryBrowser::active_image = NULL;
 int GalleryBrowser::cur_page = 0;
 bool GalleryBrowser::clear_next_render = false;
 
+void GalleryBrowser::close(){
+  if(active_gallery){
+    delete active_gallery;
+  }
+}
+
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
   printf("-- LOADING GALLERY --\nTitle: %s\nURL: %s\nPages:%d\n", entry->title.c_str(), entry->url.c_str(), entry->pages);
@@ -75,7 +81,8 @@ void GalleryBrowser::load_page(size_t page){
     keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
   }
 
-  MemoryStruct image = ApiManager::get_res((char*) keyword);
+  MemoryStruct* image = new MemoryStruct;
+  ApiManager::get_res(image, (char*) keyword);
   xmlFree(keyword);
   xmlFreeDoc(doc);
   xmlCleanupParser();

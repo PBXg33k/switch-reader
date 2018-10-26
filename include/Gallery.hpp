@@ -16,6 +16,7 @@ typedef struct Gallery{
 
 class GalleryBrowser {
   public:
+    static void close();
     static void load_gallery(Entry* entry);
     static void set_touch();
 

@@ -4,14 +4,13 @@
 #include <thread>
 #include <mutex>
 
-static std::vector<Resource*> requests;
-static int serving;
-
 typedef struct Resource{
   MemoryStruct* mem;
   Mutex* mutex;
   std::string url;
 }Resource;
+
+static std::vector<Resource*> requests;
 
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -47,7 +46,6 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 }
 
 void ApiManager::init(){
-  serving = 0;
   socketInitializeDefault();
   curl_global_init(CURL_GLOBAL_ALL);
 }
@@ -58,35 +56,35 @@ void ApiManager::close(){
 }
 
 void prompt_request_queue(){}
-
-void test_res(void *args){
-  Resource* res = (Resource*) args;
-
-  mutexLock(res->mutex);
-  ApiManager::get_res(res->mem, res->url);
-  mutexUnlock(res->mutex);
-}
+// 
+// void test_res(void *args){
+//   Resource* res = (Resource*) args;
+//
+//   mutexLock(res->mutex);
+//   ApiManager::get_res(res->mem, res->url);
+//   mutexUnlock(res->mutex);
+// }
 
 // Pass MemoryStruct and Mutex - Can afford to wait
-void ApiManager::request_res(MemoryStruct* mem, Mutex* mutex, std::string url){
+void ApiManager::request_res(MemoryStruct* mem, std::string url){
   printf("Requesting\n");
+  //
+  // // Create thread struct to hold gallery_info
+  // Thread* resThread = new Thread();
+  // Result result;
+  //
+  // //Create resource to Pass
+  // Resource* res = new Resource();
+  // res->mem = mem;
+  // res->mutex = mutex;
+  // res->url = url;
+  //
+  // threadCreate(resThread, test_res, res, 5000, 0x2C, -2);
+  // threadStart(resThread);
+  // result = threadWaitForExit(resThread);
+  // threadClose(resThread);
 
-  // Create thread struct to hold gallery_info
-  Thread* resThread = new Thread();
-  Result result;
-
-  //Create resource to Pass
-  Resource* res = new Resource();
-  res->mem = mem;
-  res->mutex = mutex;
-  res->url = url;
-
-  threadCreate(resThread, test_res, res, 5000, 0x2C, -2);
-  threadStart(resThread);
-  result = threadWaitForExit(resThread);
-  threadClose(resThread);
-
-  //get_res(mem, url);
+  get_res(mem, url);
 }
 
 json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns){

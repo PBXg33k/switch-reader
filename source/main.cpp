@@ -7,6 +7,7 @@
 #include "TouchManager.hpp"
 #include "Gallery.hpp"
 #include "HSearch.hpp"
+#include "Search.hpp"
 
 int main(int argc, char **argv)
 {
@@ -21,7 +22,7 @@ int main(int argc, char **argv)
 
   int state = 1;
 
-  std::vector<Entry> result = HSearch::search_keywords("cat", 9);
+  std::vector<Entry> result = HSearch::search_keywords("cat", 25);
   for(auto entry : result){
     printf("Returned %s\n", entry.url.c_str());
     Browser::add_entry(entry);
@@ -57,23 +58,43 @@ int main(int argc, char **argv)
         printf("Event : %d\n", val);
       }
 
+      // Post Event
       switch(handler){
         case Handler::Browser:
           handler = Browser::on_event(val);
-          Browser::render();
+          break;
+        case Handler::Search:
+          handler = SearchBrowser::on_event(val);
           break;
         case Handler::Gallery:
           handler = GalleryBrowser::on_event(val);
+          break;
+        default:
+          break;
+      }
+
+      // render
+      switch(handler){
+        case Handler::Browser:
+          Browser::render();
+          break;
+        case Handler::Search:
+          SearchBrowser::render();
+          break;
+        case Handler::Gallery:
           GalleryBrowser::render();
           break;
         default:
           break;
       }
 
+
       Screen::render();
     }
   }
 
+  //Browser::close();
+  //GalleryBrowser::close();
   Screen::close();
   ApiManager::close();
 

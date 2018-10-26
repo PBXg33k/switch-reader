@@ -6,7 +6,7 @@
 *.html
 testfile
 Helvetica.ttf
-build
+build/
 
 # Prerequisites
 *.d

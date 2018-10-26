@@ -13,20 +13,16 @@ struct Entry{
   int rating;
   std::string thumb;
   std::string url;
-  Mutex* mutex;
+  //Mutex* mutex;
   MemoryStruct* thumb_data;
   SDL_Texture* thumb_texture;
   int thumb_loaded;
   int pages;
-  // 
-  // ~Entry(){
-  //   if(thumb_texture)
-  //     SDL_DestroyTexture(thumb_texture);
-  // }
 };
 
 class Browser {
   public:
+    static void close();
     static void set_touch();
 
     static Entry new_entry(json_object* json, int num);

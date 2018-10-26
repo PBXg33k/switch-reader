@@ -1,7 +1,7 @@
 #ifndef SHARED_HPP
 #define SHARED_HPP
 #include <SDL2/SDL.h>
-enum class Handler { Browser, Gallery };
+enum class Handler { Browser, Search, Gallery, };
 
 extern SDL_Color COLOR_WHITE;
 extern SDL_Color COLOR_BLACK;

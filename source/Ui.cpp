@@ -17,6 +17,8 @@ void Screen::init()
     Screen::normal = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 24);
   }
 
+  plExit();
+
   // Screen::gallery_info = TTF_OpenFont("Helvetica.ttf", 18);
   // Screen::normal = TTF_OpenFont("Helvetica.ttf", 24);
 

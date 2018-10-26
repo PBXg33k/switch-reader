@@ -8,6 +8,14 @@ int Browser::grid_start = 0;
 int Browser::active_gallery = -1;
 std::vector<Entry> Browser::entries = std::vector<Entry>();
 
+void Browser::close(){
+  for(auto e : entries){
+    if(e.thumb_data){
+      delete e.thumb_data;
+    }
+  }
+}
+
 json_object* get_json_obj(json_object* root, const char* key)
 {
   json_object* ret;
@@ -68,8 +76,8 @@ Entry Browser::new_entry(json_object* json, int num)
 
 // Add entry to list of entries
 void Browser::add_entry(Entry entry){
-  entry.mutex = new Mutex();
-  mutexInit(entry.mutex);
+  //entry.mutex = new Mutex();
+  //mutexInit(entry.mutex);
   Browser::entries.push_back(entry);
 }
 
@@ -100,7 +108,7 @@ void Browser::render(){
   Screen::draw_rect(screen_width-190, (screen_height/2) - 40, 180, 80, COLOR_WHITE);
   // Quit button
   Screen::draw_rect(screen_width - 75, 0, 75, 75, COLOR_RED);
-  Screen::draw_text("Next", screen_width - 130, (screen_height/2)-10, COLOR_BLACK, Screen::normal);
+  Screen::draw_text("Load Gallery", screen_width - 140, (screen_height/2)-10, COLOR_BLACK, Screen::normal);
 }
 
 Handler Browser::on_event(int val){
@@ -125,7 +133,7 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   if(entry->thumb_loaded == 0){
     printf("Loading texture into memory\n");
     entry->thumb_data = new MemoryStruct();
-    ApiManager::request_res(entry->thumb_data, entry->mutex, entry->thumb);
+    ApiManager::request_res(entry->thumb_data, entry->thumb);
     entry->thumb_texture = Screen::load_texture(entry->thumb_data->memory, entry->thumb_data->size);
     entry->thumb_loaded = 1;
   }
@@ -144,10 +152,10 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, imgFG);
 
   // Lock texture before drawing - Might be loading!
-  if(mutexTryLock(entry->mutex)){
+  //if(mutexTryLock(entry->mutex)){
     Screen::draw_adjusted_mem(entry->thumb_texture, x, y, maxw, maxh);
-    mutexUnlock(entry->mutex);
-  }
+  //  mutexUnlock(entry->mutex);
+  //}
 
   Screen::draw_text(new_title, x + maxw + 10, y + 5, COLOR_WHITE, Screen::gallery_info);
   Screen::draw_text(entry->category, x + maxw + 10, y + 30, COLOR_WHITE, Screen::gallery_info);
