@@ -100,7 +100,6 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
     struct Entry entry = Browser::new_entry(json, c);
     entry.url = urls[c].substr(1).c_str();
     result.push_back(entry);
-    printf("Before Return %s\n", entry.url.c_str());
   }
 
   return result;

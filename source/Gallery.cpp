@@ -16,16 +16,12 @@ bool GalleryBrowser::clear_next_render = false;
 
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
-  printf("Loading gallery\n");
+  printf("-- LOADING GALLERY --\nTitle: %s\nURL: %s\nPages:%d\n", entry->title.c_str(), entry->url.c_str(), entry->pages);
   active_gallery = new Gallery();
   active_gallery->title = entry->title;
   active_gallery->index = entry->url;
   active_gallery->total_pages = entry->pages;
-  printf("Pages: %d\n", entry->pages);
-  printf("Active url %s Active url 2 %s\n", entry->url.c_str(), active_gallery->index.c_str());
-  printf("Loading URLs\n");
   GalleryBrowser::load_urls(1);
-  printf("Loading page\n");
   GalleryBrowser::load_page(0);
   cur_page = 0;
 }
@@ -76,10 +72,12 @@ void GalleryBrowser::load_page(size_t page){
   if(result){
     nodeset = result->nodesetval;
     keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
-
   }
 
   MemoryStruct image = ApiManager::get_res((char*) keyword);
+  xmlFree(keyword);
+  xmlFreeDoc(doc);
+  xmlCleanupParser();
   // Clean up existing image
   if(active_image){
     SDL_DestroyTexture(active_image);

@@ -1,3 +1,12 @@
+# Custom
+*.nro
+*.pfs0
+*.nso
+*.elf
+*.html
+testfile
+Helvetica.ttf
+
 # Prerequisites
 *.d
 
