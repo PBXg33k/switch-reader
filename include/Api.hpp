@@ -5,6 +5,7 @@
 #include <json-c/json.h>
 #include <string>
 #include <vector>
+#include <mutex>
 #include <switch.h>
 
 typedef struct MemoryStruct {
@@ -24,8 +25,8 @@ class ApiManager {
 		static void init();
 		static void close();
 		static void api_test();
-    static void request_res(MemoryStruct* mem, const char* url);
-		static void get_res(MemoryStruct* mem, const char* url);
+    static void request_res(MemoryStruct* mem, Mutex* mutex, std::string url);
+		static void get_res(MemoryStruct* mem, std::string url);
 		static json_object* post_api(char* payload);
 
     static const std::string gallery_template;

@@ -4,7 +4,14 @@
 #include <thread>
 #include <mutex>
 
-//static std::vector<std::pair<Thread, std::string>> requests;
+static std::vector<Resource*> requests;
+static int serving;
+
+typedef struct Resource{
+  MemoryStruct* mem;
+  Mutex* mutex;
+  std::string url;
+}Resource;
 
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -40,6 +47,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 }
 
 void ApiManager::init(){
+  serving = 0;
   socketInitializeDefault();
   curl_global_init(CURL_GLOBAL_ALL);
 }
@@ -49,31 +57,36 @@ void ApiManager::close(){
   socketExit();
 }
 
-void test_res(void *url){
+void prompt_request_queue(){}
 
+void test_res(void *args){
+  Resource* res = (Resource*) args;
+
+  mutexLock(res->mutex);
+  ApiManager::get_res(res->mem, res->url);
+  mutexUnlock(res->mutex);
 }
 
-// Pass reference of MemoryStruct to thread to popualte.
-void ApiManager::request_res(MemoryStruct* mem, const char *url){
+// Pass MemoryStruct and Mutex - Can afford to wait
+void ApiManager::request_res(MemoryStruct* mem, Mutex* mutex, std::string url){
   printf("Requesting\n");
-
 
   // Create thread struct to hold gallery_info
   Thread* resThread = new Thread();
   Result result;
 
-  // Create mutex to pass back values
-  // Mutex* m = new Mutex();
-  // mutexInit(m);
+  //Create resource to Pass
+  Resource* res = new Resource();
+  res->mem = mem;
+  res->mutex = mutex;
+  res->url = url;
 
-  threadCreate(resThread, test_res, (void*)url, 1000, 0x2C, -2);
+  threadCreate(resThread, test_res, res, 5000, 0x2C, -2);
   threadStart(resThread);
   result = threadWaitForExit(resThread);
   threadClose(resThread);
 
-  printf("Thread result %d\n", result);
-
-  get_res(mem, url);
+  //get_res(mem, url);
 }
 
 json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns){
@@ -130,13 +143,13 @@ void ApiManager::api_test()
 
 
 
-void ApiManager::get_res(MemoryStruct* chunk, const char* url)
+void ApiManager::get_res(MemoryStruct* chunk, std::string url)
 {
   CURL *curl;
   const char *host = "http://192.168.0.12:5000/?url=";
 
   curl = curl_easy_init();
-  char *uri = curl_easy_escape(curl, url, strlen(url));
+  char *uri = curl_easy_escape(curl, url.c_str(), strlen(url.c_str()));
 
   char *link = (char*)malloc(strlen(host) + strlen(uri) + 1);
   strcpy(link, host);
@@ -177,7 +190,10 @@ json_object* ApiManager::post_api(char* payload)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
   	curl_easy_perform(curl);
     curl_easy_cleanup(curl);
-    return json_tokener_parse(readBuffer.c_str());
+    // Mark json as in use - caller must put later
+    json_object* json = json_tokener_parse(readBuffer.c_str());
+    json_object_get(json);
+    return json;
   }
   curl_global_cleanup();
   const char* empty = "";

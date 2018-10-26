@@ -68,6 +68,8 @@ Entry Browser::new_entry(json_object* json, int num)
 
 // Add entry to list of entries
 void Browser::add_entry(Entry entry){
+  entry.mutex = new Mutex();
+  mutexInit(entry.mutex);
   Browser::entries.push_back(entry);
 }
 
@@ -110,6 +112,7 @@ Handler Browser::on_event(int val){
     printf("URL %s\n", entry.url.c_str());
     GalleryBrowser::set_touch();
     GalleryBrowser::load_gallery(&entry);
+    Screen::clear(COLOR_BLACK);
     return Handler::Gallery;
   }
 
@@ -122,7 +125,7 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   if(entry->thumb_loaded == 0){
     printf("Loading texture into memory\n");
     entry->thumb_data = new MemoryStruct();
-    ApiManager::request_res(entry->thumb_data, (char*)entry->thumb.c_str());
+    ApiManager::request_res(entry->thumb_data, entry->mutex, entry->thumb);
     entry->thumb_texture = Screen::load_texture(entry->thumb_data->memory, entry->thumb_data->size);
     entry->thumb_loaded = 1;
   }
@@ -140,7 +143,12 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   Screen::draw_rect(x-5, y-5, maxw+10, maxh+10, imgBG);
   Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, imgFG);
 
-  Screen::draw_adjusted_mem(entry->thumb_texture, x, y, maxw, maxh);
+  // Lock texture before drawing - Might be loading!
+  if(mutexTryLock(entry->mutex)){
+    Screen::draw_adjusted_mem(entry->thumb_texture, x, y, maxw, maxh);
+    mutexUnlock(entry->mutex);
+  }
+
   Screen::draw_text(new_title, x + maxw + 10, y + 5, COLOR_WHITE, Screen::gallery_info);
   Screen::draw_text(entry->category, x + maxw + 10, y + 30, COLOR_WHITE, Screen::gallery_info);
   Screen::draw_text(std::to_string(entry->pages).c_str(), x + maxw + 10, y + 50, COLOR_WHITE, Screen::gallery_info);

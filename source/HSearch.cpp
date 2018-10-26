@@ -1,40 +1,42 @@
 #include "HSearch.hpp"
-#include "RegexHelper.hpp"
-#include <regex>
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
+#include <libxml/HTMLparser.h>
+#include <libxml/xpath.h>
+#include <regex>
+#include "RegexHelper.hpp"
 
 
 #define searchURL "https://e-hentai.org/"
 #define apiURL "https://g.e-hentai.org/api.php"
-#define listRegex "<tr class=\"gtr[01]\">.+?<\\/tr>"
-#define imgRegex "(<img src=\")(.+?)(?=\")"
-#define textRegex "(?<=alt=\")(.+?)(?=\")"
-#define linkRegex "(\"it5\"><a href=)(\".+?)(?=\" onmouse)"
 #define idRegex "(.+?)(?=\\/)"
-//
-// std::vector<std::string> search(std::regex re, std::string content){
-//   std::vector<std::string> matches;
-//
-//   std::sregex_iterator iter(content.begin(), content.end(), re);
-//   std::sregex_iterator end;
-//
-//   for(; iter != end; ++iter){
-//     matches.push_back(iter->str());
-//   }
-//
-//   return matches;
-// }
-//
-// std::smatch RegexHelper::search_once(std::regex re, std::string content){
-//   std::smatch match;
-//   std::regex_search(content, match, re);
-//   return match;
-// }
+#define listXPath "//div[@class='it5']/a"
+
+xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath){
+    xmlXPathContextPtr context;
+    xmlXPathObjectPtr result;
+
+    context = xmlXPathNewContext(doc);
+    result = xmlXPathEvalExpression(xpath, context);
+    return result;
+}
 
 std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResults){
 
   std::vector<Entry> result;
+  xmlChar *path;
+  xmlChar *url;
+  xmlDocPtr doc;
+  xmlXPathObjectPtr results;
+  xmlNodeSetPtr nodeset;
+  std::vector<std::string> idMatches;
+
+  std::vector<std::string> gids;
+  std::vector<std::string> gtkns;
+  std::vector<std::string> urls;
+
+  std::regex idPattern(idRegex);
 
   // Build url
   std::string completeURL = searchURL;
@@ -55,56 +57,49 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
 
   completeURL.append(searchParams);
 
-  // TODO : Remove, debug
-  printf("%s\n", completeURL.c_str());
+  // XML //
 
-  // Fetch webpage as string
-  MemoryStruct* searchPage = new MemoryStruct();
-  ApiManager::get_res(searchPage, completeURL.c_str());
-  std::string webPage(searchPage->memory);
+  // Get html page
+  MemoryStruct* pageMem = new MemoryStruct();
+  ApiManager::get_res(pageMem, completeURL.c_str());
 
-  // Setup regexes
-  std::regex listPattern(listRegex);
-  std::regex imgPattern(imgRegex);
-  std::regex linkPattern(linkRegex);
-  std::regex idPattern(idRegex);
+  doc = htmlReadMemory(pageMem->memory, pageMem->size, completeURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
-  // TODO : Remove, it works, but I don't wanna
-  std::string test_string = "<img src=\"dicks.jpg\"></img>";
-  std::smatch res = RegexHelper::search_once(imgPattern, test_string);
-  printf("Match %s\n", res[0].str().c_str());
-  printf("True Match %s\n", res[2].str().c_str());
-
-  std::vector<std::string> gids;
-  std::vector<std::string> gtkns;
-  std::vector<std::string> urls;
-
-  // Find gallery list
-  std::vector<std::string> listMatches = RegexHelper::search(listPattern, webPage);
-  printf("Found %zd Entries\n", listMatches.size());
-  for(size_t c = 0; (c < listMatches.size()) && (c < maxResults); c++){
-    // Get url from gallery - Second group matching
-    std::smatch linkMatch = RegexHelper::search_once(linkPattern, listMatches[c]);
-
-    // Get ID and Token from URL
-    std::vector<std::string> idMatches = RegexHelper::search(idPattern, linkMatch[2].str());
-
-    // Save to entry and push onto stack
-    gids.push_back(idMatches[4].substr(1));
-    gtkns.push_back(idMatches[5].substr(1));
-    urls.push_back(linkMatch[2].str());
+  // Get node list matching XPath for table rows, print first rows content
+  path = (xmlChar*) listXPath;
+  results = get_node_set(doc, path);
+  if(results){
+    nodeset = results->nodesetval;
+    printf("Matched %d results\n", nodeset->nodeNr);
+    // Push each gallery link found onto stack
+    for(int c = 0; c < nodeset->nodeNr; c++)
+    {
+      // Get URL from Href
+      url = xmlGetProp(nodeset->nodeTab[c], (xmlChar*) "href");
+      urls.push_back((char*)url);
+      // Grab GID and GTokens from URL (Used for API call)
+      idMatches = RegexHelper::search(idPattern, (char*)url);
+      gids.push_back(idMatches[4].substr(1));
+      gtkns.push_back(idMatches[5].substr(1));
+      xmlFree(url);
+    }
   }
+
+  xmlFreeDoc(doc);
+  xmlCleanupParser();
+  delete pageMem;
 
   json_object* json = ApiManager::get_galleries(gids, gtkns);
 
   for(size_t c = 0; c < gids.size(); c++){
     struct Entry entry = Browser::new_entry(json, c);
-    entry.url = urls[c].substr(1).c_str();
+    entry.url = urls[c];
     result.push_back(entry);
     printf("Before Return %s\n", entry.url.c_str());
   }
 
-  delete searchPage;
+  // Unmark as in use IMPORTANT
+  json_object_put(json);
 
   return result;
 }

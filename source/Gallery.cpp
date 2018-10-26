@@ -21,9 +21,7 @@ void GalleryBrowser::load_gallery(Entry* entry){
   active_gallery->title = entry->title;
   active_gallery->index = entry->url;
   active_gallery->total_pages = entry->pages;
-  printf("Pages: %d\n", entry->pages);
-  printf("Active url %s Active url 2 %s\n", entry->url.c_str(), active_gallery->index.c_str());
-  printf("Loading URLs\n");
+  printf("-- GALLERY --\nTitle: %s\nURL: %s\nPages: %d\n", entry->title.c_str(), entry->url.c_str(), entry->pages);
   GalleryBrowser::load_urls(1);
   printf("Loading page\n");
   GalleryBrowser::load_page(0);
@@ -125,6 +123,7 @@ void GalleryBrowser::load_urls(size_t page){
 
   xmlChar *path = (xmlChar*) pagesXPath;
   xmlChar *keyword;
+
   int i;
 
   // Load page into memory
@@ -132,7 +131,10 @@ void GalleryBrowser::load_urls(size_t page){
   indexCopy.append("?p=");
   indexCopy.append(std::to_string(page));
   MemoryStruct* index = new MemoryStruct();
-  ApiManager::get_res(index, indexCopy.c_str());
+  printf("Made struct\n");
+  ApiManager::get_res(index, indexCopy);
+
+  printf("Loaded page\n");
 
   // Load to xml
   xmlDocPtr doc = htmlReadMemory(index->memory, index->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
