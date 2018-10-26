@@ -18,6 +18,7 @@ int main(int argc, char **argv)
   nxlinkStdio();
 
   Screen::init();
+
   Browser::set_touch();
 
   int state = 1;

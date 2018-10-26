@@ -26,7 +26,7 @@ void GalleryBrowser::load_gallery(Entry* entry){
   active_gallery->title = entry->title;
   active_gallery->index = entry->url;
   active_gallery->total_pages = entry->pages;
-  GalleryBrowser::load_urls(1);
+  GalleryBrowser::load_urls(0);
   GalleryBrowser::load_page(0);
   cur_page = 0;
 }
@@ -42,8 +42,8 @@ void GalleryBrowser::set_touch(){
   // Back
   TouchManager::add_bounds(10, (screen_height/2) - 40, 80, 80, 2);
 
-  // Quit
-  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 100);
+  // Browser
+  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
 }
 
 void GalleryBrowser::load_page(size_t page){
@@ -107,6 +107,11 @@ Handler GalleryBrowser::on_event(int val){
     cur_page--;
     load_page(cur_page);
   }
+  if(val == 101){
+    delete active_gallery;
+    Browser::set_touch();
+    return Handler::Browser;
+  }
   return Handler::Gallery;
 }
 
@@ -133,6 +138,7 @@ void GalleryBrowser::load_urls(size_t page){
   std::string indexCopy = active_gallery->index;
   indexCopy.append("?p=");
   indexCopy.append(std::to_string(page));
+  printf("Fetching %s\n", indexCopy.c_str());
   MemoryStruct* index = new MemoryStruct();
   printf("Made struct\n");
   ApiManager::get_res(index, indexCopy);

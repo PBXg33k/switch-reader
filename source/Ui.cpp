@@ -16,6 +16,7 @@ void Screen::init()
   if(!R_FAILED(rc)){
     Screen::gallery_info = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 18);
     Screen::normal = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 24);
+    Screen::large = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 30);
   }
 
   // Screen::gallery_info = TTF_OpenFont("Helvetica.ttf", 18);
@@ -137,6 +138,15 @@ void Screen::draw_rect(int x, int y, int w, int h, SDL_Color color){
   SDL_SetRenderDrawColor(Screen::renderer, color.r, color.g, color.b, color.a);
   SDL_RenderFillRect(Screen::renderer, &rect);
 
+}
+
+void Screen::draw_button(int x, int y, int w, int h, SDL_Color back, SDL_Color fore, int border){
+  // Draw back layer (border)
+  if(border > 0)
+    draw_rect(x, y, w, h, back);
+
+  // Draw front layer
+  draw_rect(x+border, y+border, w-(border*2), h-(border*2), fore);
 }
 
 void draw_text_internal(std::string text, int x, int y, SDL_Color color, TTF_Font* font){

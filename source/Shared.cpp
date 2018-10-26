@@ -16,6 +16,7 @@ SDL_Color ThemeBG = COLOR_PALEYELLOW;
 SDL_Color ThemeButton = COLOR_PALEWHITE;
 SDL_Color ThemeButtonQuit = COLOR_RED;
 SDL_Color ThemeButtonText = COLOR_LIGHTGRAY;
+SDL_Color ThemeButtonBorder = COLOR_LIGHTGRAY;
 SDL_Color ThemePanelDark = COLOR_PALEISHYELLOW;
 SDL_Color ThemePanelLight = COLOR_PALEWHITE;
 SDL_Color ThemePanelSelectedDark = COLOR_PALEISHRED;

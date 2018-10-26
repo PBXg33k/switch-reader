@@ -7,6 +7,7 @@ extern SDL_Color ThemeBG;
 extern SDL_Color ThemeButton;
 extern SDL_Color ThemeButtonQuit;
 extern SDL_Color ThemeButtonText;
+extern SDL_Color ThemeButtonBorder;
 extern SDL_Color ThemePanelDark;
 extern SDL_Color ThemePanelLight;
 extern SDL_Color ThemeText;

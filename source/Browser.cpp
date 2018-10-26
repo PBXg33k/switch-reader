@@ -3,6 +3,7 @@
 #include "Browser.hpp"
 #include "TouchManager.hpp"
 #include "Gallery.hpp"
+#include "Search.hpp"
 
 int Browser::grid_start = 0;
 int Browser::active_gallery = -1;
@@ -43,7 +44,9 @@ void Browser::set_touch(){
     }
   }
 
-  // Next
+  // Search
+  TouchManager::add_bounds(screen_width-190, (screen_height/2) - 190, 180, 80, 11);
+  // Load Gallery
   TouchManager::add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 10);
   // Quit
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 100);
@@ -105,23 +108,28 @@ void Browser::render(){
     }
   }
 
-  // Render next button
+  // Search button
+  Screen::draw_rect(screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButton);
+  Screen::draw_text_centered("Search", screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButtonText, Screen::normal);
+  // Load Gallery button
   Screen::draw_rect(screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButton);
+  Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
   // Quit button
   Screen::draw_rect(screen_width - 75, 0, 75, 75, ThemeButtonQuit);
-  Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
 }
 
 Handler Browser::on_event(int val){
   if(val >= 0 && val < 10){
     Browser::active_gallery = val;
-  }
-  if(Browser::active_gallery >= 0 && val == 10){
+  } else if(Browser::active_gallery >= 0 && val == 10){
     Entry entry = Browser::entries[active_gallery];
     printf("URL %s\n", entry.url.c_str());
     GalleryBrowser::set_touch();
     GalleryBrowser::load_gallery(&entry);
     return Handler::Gallery;
+  } else if (val == 11) {
+    SearchBrowser::set_touch();
+    return Handler::Search;
   }
 
   return Handler::Browser;
