@@ -13,11 +13,14 @@ struct Entry{
   int rating;
   std::string thumb;
   std::string url;
-  //Mutex* mutex;
-  MemoryStruct* thumb_data;
   SDL_Texture* thumb_texture;
   int thumb_loaded;
   int pages;
+
+  Resource* res;
+  Entry(){
+    thumb_texture = NULL;
+  }
 };
 
 class Browser {

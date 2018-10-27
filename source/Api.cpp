@@ -1,14 +1,9 @@
 #include "Api.hpp"
+#include "Browser.hpp"
 #include <iostream>
 #include <cstring>
 #include <thread>
 #include <mutex>
-
-typedef struct Resource{
-  MemoryStruct* mem;
-  Mutex* mutex;
-  std::string url;
-}Resource;
 
 static std::vector<Resource*> requests;
 
@@ -56,35 +51,25 @@ void ApiManager::close(){
 }
 
 void prompt_request_queue(){}
-// 
-// void test_res(void *args){
-//   Resource* res = (Resource*) args;
-//
-//   mutexLock(res->mutex);
-//   ApiManager::get_res(res->mem, res->url);
-//   mutexUnlock(res->mutex);
-// }
 
-// Pass MemoryStruct and Mutex - Can afford to wait
-void ApiManager::request_res(MemoryStruct* mem, std::string url){
-  printf("Requesting\n");
-  //
-  // // Create thread struct to hold gallery_info
-  // Thread* resThread = new Thread();
-  // Result result;
-  //
-  // //Create resource to Pass
-  // Resource* res = new Resource();
-  // res->mem = mem;
-  // res->mutex = mutex;
-  // res->url = url;
-  //
-  // threadCreate(resThread, test_res, res, 5000, 0x2C, -2);
-  // threadStart(resThread);
-  // result = threadWaitForExit(resThread);
-  // threadClose(resThread);
+void test_res(void *args){
+  Resource* res = (Resource*) args;
 
-  get_res(mem, url);
+  //mutexLock(res->mutex);
+  ApiManager::get_res(res->mem, res->url);
+  //mutexUnlock(res->mutex);
+}
+
+// Affordable wait resources
+void ApiManager::request_res(Resource* res){
+  Thread* resThread = new Thread();
+
+  threadCreate(resThread, test_res, res, 5000, 0x2C, -2);
+  threadStart(resThread);
+  threadWaitForExit(resThread);
+  threadClose(resThread);
+
+  //get_res(res->mem, res->url);
 }
 
 json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns){
@@ -194,6 +179,5 @@ json_object* ApiManager::post_api(char* payload)
     return json;
   }
   curl_global_cleanup();
-  const char* empty = "";
-  return json_tokener_parse(empty);
+  return NULL;
 }

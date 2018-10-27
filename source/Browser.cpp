@@ -11,8 +11,8 @@ std::vector<Entry> Browser::entries = std::vector<Entry>();
 
 void Browser::close(){
   for(auto e : entries){
-    if(e.thumb_data){
-      delete e.thumb_data;
+    if(e.res->mem){
+      delete e.res->mem;
     }
   }
 }
@@ -140,9 +140,9 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   // If image not loaded, stick in texture
   if(entry->thumb_loaded == 0){
     printf("Loading texture into memory\n");
-    entry->thumb_data = new MemoryStruct();
-    ApiManager::request_res(entry->thumb_data, entry->thumb);
-    entry->thumb_texture = Screen::load_texture(entry->thumb_data->memory, entry->thumb_data->size);
+    entry->res = new Resource();
+    entry->res->url = entry->thumb;
+    ApiManager::request_res(entry->res);
     entry->thumb_loaded = 1;
   }
 
@@ -159,11 +159,16 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   Screen::draw_rect(x-5, y-5, maxw+10, maxh+10, imgFG);
   Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, imgBG);
 
-  // Lock texture before drawing - Might be loading!
-  //if(mutexTryLock(entry->mutex)){
+  if(!entry->thumb_texture){
+    if(entry->res->mem->size != 0){
+      entry->thumb_texture = Screen::load_texture(entry->res->mem->memory, entry->res->mem->size);
+      delete entry->res->mem;
+    }
+  }
+
+  if(entry->thumb_texture){
     Screen::draw_adjusted_mem(entry->thumb_texture, x, y, maxw, maxh);
-  //  mutexUnlock(entry->mutex);
-  //}
+  }
 
   Screen::draw_text(new_title, x + maxw + 10, y + 5, ThemeText, Screen::gallery_info);
   Screen::draw_text(entry->category, x + maxw + 10, y + 30, ThemeText, Screen::gallery_info);

@@ -10,12 +10,27 @@
 #define imageXPath "//img[@id='img']"
 
 Gallery* GalleryBrowser::active_gallery;
-SDL_Texture* GalleryBrowser::active_image = NULL;
+SDL_Texture* GalleryBrowser::active_image;
+SDL_Texture* GalleryBrowser::prev_image;
+SDL_Texture* GalleryBrowser::next_image;
 int GalleryBrowser::cur_page = 0;
 
 void GalleryBrowser::close(){
   if(active_gallery){
     delete active_gallery;
+  }
+
+  if(!prev_image){
+    Screen::cleanup_texture(prev_image);
+    prev_image = NULL;
+  }
+  if(!active_image){
+    Screen::cleanup_texture(active_image);
+    active_image = NULL;
+  }
+  if(!next_image){
+    Screen::cleanup_texture(next_image);
+    next_image = NULL;
   }
 }
 
@@ -26,8 +41,14 @@ void GalleryBrowser::load_gallery(Entry* entry){
   active_gallery->title = entry->title;
   active_gallery->index = entry->url;
   active_gallery->total_pages = entry->pages;
+
+  prev_image = NULL;
+  active_image = NULL;
+  next_image = NULL;
+
   GalleryBrowser::load_urls(0);
-  GalleryBrowser::load_page(0);
+  active_image = GalleryBrowser::load_page(0);
+  next_image = GalleryBrowser::load_page(1);
   cur_page = 0;
 }
 
@@ -46,7 +67,7 @@ void GalleryBrowser::set_touch(){
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
 }
 
-void GalleryBrowser::load_page(size_t page){
+SDL_Texture* GalleryBrowser::load_page(size_t page){
 
   // Load more URLs if needed - 40 on each page
   if(page >= active_gallery->pages.size()){
@@ -66,7 +87,12 @@ void GalleryBrowser::load_page(size_t page){
   // Get html page
   MemoryStruct* pageMem = new MemoryStruct();
   ApiManager::get_res(pageMem, active_gallery->pages[page].c_str());
-  // Check if failed to load
+
+  // If page failed to load, return failure image
+  if(pageMem->size == 0){
+    delete pageMem;
+    return Screen::load_stored_texture(0);
+  }
 
   doc = htmlReadMemory(pageMem->memory, pageMem->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
@@ -78,37 +104,60 @@ void GalleryBrowser::load_page(size_t page){
     keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
   }
 
+  // Image not found in page, return failure image;
+  if(keyword == NULL){
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
+    delete pageMem;
+    return Screen::load_stored_texture(0);
+  }
+
   MemoryStruct* image = new MemoryStruct;
   ApiManager::get_res(image, (char*) keyword);
   xmlFree(keyword);
   xmlFreeDoc(doc);
   xmlCleanupParser();
-  // Clean up existing image
-  if(active_image){
-    SDL_DestroyTexture(active_image);
-  }
-  // Render new one, if empty, use stock failure image
-  if(image->size > 0){
-    active_image = Screen::load_texture(image->memory, image->size);
-  } else {
-    //active_image = Screen::load_stored_image(0);
-  }
-
   delete pageMem;
+  // Clean up existing image
+
+  // Render new page, if fails, use stock failure image
+  SDL_Texture* ret = Screen::load_texture(image->memory, image->size);
+
   delete image;
+  return ret;
 }
 
 Handler GalleryBrowser::on_event(int val){
+  // Next page
   if(val == 1 && cur_page < (active_gallery->total_pages - 1)){
     cur_page++;
-    load_page(cur_page);
+
+    Screen::cleanup_texture(prev_image);
+    prev_image = active_image;
+    active_image = next_image;
+    // Not last page, load next
+    if(cur_page < active_gallery->total_pages - 1)
+      next_image = load_page(cur_page+1);
+    // If not set to NULL, will wipe on prev
+    else
+      next_image = NULL;
   }
+
+  // Previous page
   if(val == 2 && cur_page > 0){
     cur_page--;
-    load_page(cur_page);
+
+    Screen::cleanup_texture(next_image);
+    next_image = active_image;
+    active_image = prev_image;
+    // Not first page, load prev
+    if(cur_page > 0)
+      prev_image = load_page(cur_page-1);
   }
+
+  // Back to browser
   if(val == 101){
-    delete active_gallery;
+    close();
     Browser::set_touch();
     return Handler::Browser;
   }
@@ -163,12 +212,9 @@ void GalleryBrowser::load_urls(size_t page){
 		}
   }
 
-  // Load total pages if missing
-  if(!active_gallery->total_pages){
-
-  }
-
-  // Clear unused memory
+  // Cleanup
+  xmlFreeDoc(doc);
+  xmlCleanupParser();
   delete index;
 }
 

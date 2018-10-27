@@ -29,9 +29,17 @@ void Screen::init()
   Screen::surface = SDL_GetWindowSurface(Screen::window);
 
   // Load perm images
-  SDL_Surface* surf = IMG_Load("romfs:/refresh.png");
+  SDL_Surface* surf = IMG_Load("romfs:/failed.png");
   s_refresh = SDL_CreateTextureFromSurface(Screen::renderer, surf);
   SDL_FreeSurface(surf);
+}
+
+void Screen::cleanup_texture(SDL_Texture* texture){
+  if(texture != NULL){
+    if(texture != s_refresh){
+      SDL_DestroyTexture(texture);
+    }
+  }
 }
 
 // Clean up SDL, free resources etc
@@ -58,10 +66,11 @@ SDL_Texture* Screen::load_texture(char* image, size_t size){
   SDL_RWops *rw = SDL_RWFromMem(image, size);
   SDL_Surface *surf = IMG_Load_RW(rw, 1);
   SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, surf);
+  SDL_FreeSurface(surf);
   if(texture == NULL){
     printf("SDL_CreateTextureFromSurface Error - %s\n", SDL_GetError());
+    return load_stored_texture(0);
   }
-  SDL_FreeSurface(surf);
   return texture;
 }
 

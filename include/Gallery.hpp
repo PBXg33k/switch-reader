@@ -20,7 +20,7 @@ class GalleryBrowser {
     static void load_gallery(Entry* entry);
     static void set_touch();
 
-    static void load_page(size_t page);
+    static SDL_Texture* load_page(size_t page);
     static void load_urls(size_t page);
 
     static Handler on_event(int val);
@@ -30,6 +30,8 @@ class GalleryBrowser {
     static int cur_page;
     static Gallery* active_gallery;
     static SDL_Texture* active_image;
+    static SDL_Texture* prev_image;
+    static SDL_Texture* next_image;
   private:
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
 };

@@ -20,12 +20,22 @@ typedef struct MemoryStruct {
   }
 }MemoryStruct;
 
+
+struct Resource{
+  MemoryStruct* mem;
+  std::string url;
+  //Mutex* mutex;
+  Resource(){
+    mem = new MemoryStruct();
+  }
+};
+
 class ApiManager {
 	public:
 		static void init();
 		static void close();
 		static void api_test();
-    static void request_res(MemoryStruct* mem, std::string url);
+    static void request_res(Resource* res);
 		static void get_res(MemoryStruct* mem, std::string url);
 		static json_object* post_api(char* payload);
 

@@ -73,11 +73,19 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
 
   printf("Search URL : %s\n", completeURL.c_str());
 
+  curl_easy_cleanup(curl);
+
   // XML //
 
   // Get html page
   MemoryStruct* pageMem = new MemoryStruct();
   ApiManager::get_res(pageMem, completeURL.c_str());
+
+  // Search failed, return empty handed
+  if(pageMem->size == 0){
+    delete pageMem;
+    return result;
+  }
 
   doc = htmlReadMemory(pageMem->memory, pageMem->size, completeURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
@@ -106,6 +114,11 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
   delete pageMem;
 
   json_object* json = ApiManager::get_galleries(gids, gtkns);
+
+  // API Call failed, return empty handed
+  if(json == NULL){
+    return result;
+  }
 
   for(size_t c = 0; c < gids.size(); c++){
     struct Entry entry = Browser::new_entry(json, c);
