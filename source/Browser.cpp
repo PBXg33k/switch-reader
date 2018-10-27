@@ -75,8 +75,6 @@ Entry* Browser::new_entry(json_object* json, int num, std::string url)
 
   entry->url = url;
 
-  entry->thumb_loaded = 0;
-
   entries.push_back(entry);
   return entry;
 }
@@ -125,14 +123,18 @@ void Browser::render(){
 }
 
 Handler Browser::on_event(int val){
+  // Select Gallery
   if(val >= 0 && val < 10){
     Browser::active_gallery = val;
+  // Change to Gallery
   } else if(Browser::active_gallery >= 0 && val == 10){
     Entry* entry = Browser::entries[active_gallery];
     printf("URL %s\n", entry->url.c_str());
+    ApiManager::cancel_all_requests();
     GalleryBrowser::set_touch();
     GalleryBrowser::load_gallery(entry);
     return Handler::Gallery;
+  // Change to Search
   } else if (val == 11) {
     SearchBrowser::set_touch();
     return Handler::Search;
@@ -144,13 +146,13 @@ Handler Browser::on_event(int val){
 void Browser::render_entry(Entry* entry, int x, int y, bool active)
 {
   // If image not loaded, stick in texture
-  if(entry->thumb_loaded == 0){
+  if(entry->res->requested == 0){
     printf("Requesting thumb texture\n");
     //entry->res = new Resource();
     //mutexInit(mutex);
     entry->res->url = entry->thumb;
     ApiManager::request_res(entry->res);
-    entry->thumb_loaded = 1;
+    entry->res->requested = 1;
   }
 
   std::string new_title = entry->title;
@@ -166,8 +168,8 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   Screen::draw_rect(x-5, y-5, maxw+10, maxh+10, imgFG);
   Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, imgBG);
 
-  if(entry->res->thumb_texture){
-    Screen::draw_adjusted_mem(entry->res->thumb_texture, x, y, maxw, maxh);
+  if(entry->res->texture){
+    Screen::draw_adjusted_mem(entry->res->texture, x, y, maxw, maxh);
   }
 
   Screen::draw_text(new_title, x + maxw + 10, y + 5, ThemeText, Screen::gallery_info);

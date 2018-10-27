@@ -74,12 +74,20 @@ void test_res(void *args){
 
 void ApiManager::update(){
   // If requests are waiting, start request thread
-  if(active_res == NULL && requests.size() > 0){
+  if(active_res == NULL && !requests.empty()){
 
     printf("Starting request thread\n");
     // Resource pointer
-    active_res = requests.back();
-    requests.pop_back();
+    while(!requests.empty()){
+      active_res = requests.back();
+      requests.pop_back();
+
+      if(active_res->requested)
+        break;
+    }
+
+    if(!active_res->requested)
+      return;
 
     threadCreate(res_thread, test_res, active_res, 5000, 0x2C, -2);
     threadStart(res_thread);
@@ -89,7 +97,7 @@ void ApiManager::update(){
       // If done, load texture into memory, close thread
       if(active_res->done){
         printf("Request thread complete\n");
-        active_res->thumb_texture = Screen::load_texture(active_res->mem->memory, active_res->mem->size);
+        active_res->texture = Screen::load_texture(active_res->mem->memory, active_res->mem->size);
 
         threadWaitForExit(res_thread);
         threadClose(res_thread);
@@ -98,6 +106,14 @@ void ApiManager::update(){
       mutexUnlock(mutex);
     }
   }
+}
+
+// Cancel all requests queued to be loaded request thread
+void ApiManager::cancel_all_requests(){
+  for(auto res : requests){
+    res->requested = 0;
+  }
+  requests.clear();
 }
 
 // Affordable wait resources

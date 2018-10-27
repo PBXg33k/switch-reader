@@ -39,6 +39,7 @@ void Screen::cleanup_texture(SDL_Texture* texture){
     if(texture != s_refresh){
       SDL_DestroyTexture(texture);
     }
+    texture = NULL;
   }
 }
 
