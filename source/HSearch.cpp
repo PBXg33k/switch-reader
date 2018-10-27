@@ -121,9 +121,9 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
   }
 
   for(size_t c = 0; c < gids.size(); c++){
-    struct Entry entry = Browser::new_entry(json, c);
-    entry.url = urls[c];
-    result.push_back(entry);
+    Entry* entry = Browser::new_entry(json, c, urls[c]);
+    //printf("HSearch - %s - %s - %s - %s\n", entry->category.c_str(), entry->title.c_str(), entry->url.c_str(), entry->thumb.c_str());
+    result.push_back(*entry);
   }
 
   // Unmark as in use IMPORTANT

@@ -52,28 +52,30 @@ void Browser::set_touch(){
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 100);
 }
 
-Entry Browser::new_entry(json_object* json, int num)
+Entry* Browser::new_entry(json_object* json, int num, std::string url)
 {
   json_object *holder;
-  struct Entry entry;
+  Entry* entry = new Entry;
 
   // Populate entry
   json = get_json_obj(json, "gmetadata");
   json = json_object_array_get_idx(json, num);
 
   holder = get_json_obj(json, "title");
-  entry.title = json_object_get_string(holder);
+  entry->title = json_object_get_string(holder);
 
   holder = get_json_obj(json, "category");
-  entry.category = json_object_get_string(holder);
+  entry->category = json_object_get_string(holder);
 
   holder = get_json_obj(json, "thumb");
-  entry.thumb = json_object_get_string(holder);
+  entry->thumb = json_object_get_string(holder);
 
   holder = get_json_obj(json, "filecount");
-  entry.pages = json_object_get_int(holder);
+  entry->pages = json_object_get_int(holder);
 
-  entry.thumb_loaded = 0;
+  entry->url = url;
+
+  entry->thumb_loaded = 0;
   return entry;
 }
 
@@ -98,11 +100,13 @@ void Browser::render(){
   int grid = Browser::grid_start;
   int num_entries = Browser::entries.size() - Browser::grid_start;
 
+
   // Render upto 3X3 grid, based on start point.
   for (int x = 0; x < 3; x++){
     for(int y = 0; (y < 3) && (grid < num_entries); y++){
       bool active = ((grid - Browser::grid_start) == Browser::active_gallery);
       Entry* entry = &(Browser::entries[grid]);
+      //printf("Render - %s - %s - %s - %s\n", entry->category.c_str(), entry->title.c_str(), entry->url.c_str(), entry->thumb.c_str());
       Browser::render_entry(entry, baseX + (x * incX), baseY + (y * incY), active);
       grid++;
     }
@@ -140,7 +144,7 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   // If image not loaded, stick in texture
   if(entry->thumb_loaded == 0){
     printf("Loading texture into memory\n");
-    entry->res = new Resource();
+    //entry->res = new Resource();
     entry->res->url = entry->thumb;
     ApiManager::request_res(entry->res);
     entry->thumb_loaded = 1;
