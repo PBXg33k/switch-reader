@@ -1,11 +1,16 @@
 #include "Api.hpp"
 #include "Browser.hpp"
+#include "Ui.hpp"
 #include <iostream>
 #include <cstring>
 #include <thread>
 #include <mutex>
+#include <unistd.h>
 
 static std::vector<Resource*> requests;
+static Resource* active_res = NULL;
+static Thread* res_thread = NULL;
+static Mutex* mutex = new Mutex;
 
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -43,6 +48,14 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 void ApiManager::init(){
   socketInitializeDefault();
   curl_global_init(CURL_GLOBAL_ALL);
+  // Declare static mutex
+  mutexInit(mutex);
+  mutexLock(mutex);
+  mutexUnlock(mutex);
+  res_thread = new Thread();
+
+  // Create render event
+
 }
 
 void ApiManager::close(){
@@ -50,26 +63,47 @@ void ApiManager::close(){
   socketExit();
 }
 
-void prompt_request_queue(){}
-
 void test_res(void *args){
   Resource* res = (Resource*) args;
 
-  //mutexLock(res->mutex);
+  mutexLock(mutex);
   ApiManager::get_res(res->mem, res->url);
-  //mutexUnlock(res->mutex);
+  res->done = 1;
+  mutexUnlock(mutex);
+}
+
+void ApiManager::update(){
+  // If requests are waiting, start request thread
+  if(active_res == NULL && requests.size() > 0){
+
+    printf("Starting request thread\n");
+    // Resource pointer
+    active_res = requests.back();
+    requests.pop_back();
+
+    threadCreate(res_thread, test_res, active_res, 5000, 0x2C, -2);
+    threadStart(res_thread);
+  } else if (active_res != NULL){
+    // Try and get lock on resource
+    if(mutexTryLock(mutex)){
+      // If done, load texture into memory, close thread
+      if(active_res->done){
+        printf("Request thread complete\n");
+        active_res->thumb_texture = Screen::load_texture(active_res->mem->memory, active_res->mem->size);
+
+        threadWaitForExit(res_thread);
+        threadClose(res_thread);
+        active_res = NULL;
+      }
+      mutexUnlock(mutex);
+    }
+  }
 }
 
 // Affordable wait resources
 void ApiManager::request_res(Resource* res){
-  Thread* resThread = new Thread();
+  requests.push_back(res);
 
-  threadCreate(resThread, test_res, res, 5000, 0x2C, -2);
-  threadStart(resThread);
-  threadWaitForExit(resThread);
-  threadClose(resThread);
-
-  //get_res(res->mem, res->url);
 }
 
 json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns){
@@ -149,9 +183,6 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url)
     curl_free(uri);
     curl_easy_cleanup(curl);
     printf("%zu bytes retrieved\n", chunk->size);
-    FILE *test = fopen("test2.jpg", "wb");
-    fwrite(chunk->memory, 4, chunk->size, test);
-    fclose(test);
   }
   curl_global_cleanup();
 }

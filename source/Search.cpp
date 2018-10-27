@@ -120,11 +120,8 @@ Handler SearchBrowser::on_event(int val){
     Browser::clear();
 
     // Do search
-    std::vector<Entry> result = HSearch::search_keywords(search_str.c_str(), 25, (int)search_flags);
-    for(auto entry : result){
-      printf("Returned %s\n", entry.url.c_str());
-      Browser::add_entry(entry);
-    }
+    HSearch::search_keywords(search_str.c_str(), 25, (int)search_flags);
+
 
     // Go back to Browser
     Browser::set_touch();

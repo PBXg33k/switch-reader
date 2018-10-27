@@ -24,9 +24,8 @@ xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath){
 
 
 
-std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResults, int categories){
+void HSearch::search_keywords(std::string keywords, size_t maxResults, int categories){
 
-  std::vector<Entry> result;
   xmlChar *path;
   xmlChar *url;
   xmlDocPtr doc;
@@ -84,7 +83,7 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
   // Search failed, return empty handed
   if(pageMem->size == 0){
     delete pageMem;
-    return result;
+    return;
   }
 
   doc = htmlReadMemory(pageMem->memory, pageMem->size, completeURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
@@ -117,17 +116,13 @@ std::vector<Entry> HSearch::search_keywords(std::string keywords, size_t maxResu
 
   // API Call failed, return empty handed
   if(json == NULL){
-    return result;
+    return;
   }
 
   for(size_t c = 0; c < gids.size(); c++){
-    Entry* entry = Browser::new_entry(json, c, urls[c]);
-    //printf("HSearch - %s - %s - %s - %s\n", entry->category.c_str(), entry->title.c_str(), entry->url.c_str(), entry->thumb.c_str());
-    result.push_back(*entry);
+    Browser::new_entry(json, c, urls[c]);
   }
 
   // Unmark as in use IMPORTANT
   json_object_put(json);
-
-  return result;
 }

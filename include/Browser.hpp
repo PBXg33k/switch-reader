@@ -13,14 +13,12 @@ struct Entry{
   int rating;
   std::string thumb;
   std::string url;
-  SDL_Texture* thumb_texture;
   int thumb_loaded;
   int pages;
 
   Resource* res;
   Entry(){
     res = new Resource();
-    thumb_texture = NULL;
   }
 };
 
@@ -30,7 +28,7 @@ class Browser {
     static void set_touch();
 
     static Entry* new_entry(json_object* json, int num, std::string url);
-    static void add_entry(Entry entry);
+    static void add_entry(Entry* entry);
     static void render_entry(Entry* entry, int x, int y, bool active);
     static void render();
     static void clear();
@@ -42,7 +40,7 @@ class Browser {
 
     static int active_gallery;
     static int grid_start;
-    static std::vector<Entry> entries;
+    static std::vector<Entry*> entries;
 };
 
 #endif

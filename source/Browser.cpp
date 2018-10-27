@@ -7,12 +7,12 @@
 
 int Browser::grid_start = 0;
 int Browser::active_gallery = -1;
-std::vector<Entry> Browser::entries = std::vector<Entry>();
+std::vector<Entry*> Browser::entries = std::vector<Entry*>();
 
 void Browser::close(){
   for(auto e : entries){
-    if(e.res->mem){
-      delete e.res->mem;
+    if(e->res->mem){
+      delete e->res->mem;
     }
   }
 }
@@ -76,11 +76,13 @@ Entry* Browser::new_entry(json_object* json, int num, std::string url)
   entry->url = url;
 
   entry->thumb_loaded = 0;
+
+  entries.push_back(entry);
   return entry;
 }
 
 // Add entry to list of entries
-void Browser::add_entry(Entry entry){
+void Browser::add_entry(Entry* entry){
   //entry.mutex = new Mutex();
   //mutexInit(entry.mutex);
   Browser::entries.push_back(entry);
@@ -105,7 +107,7 @@ void Browser::render(){
   for (int x = 0; x < 3; x++){
     for(int y = 0; (y < 3) && (grid < num_entries); y++){
       bool active = ((grid - Browser::grid_start) == Browser::active_gallery);
-      Entry* entry = &(Browser::entries[grid]);
+      Entry* entry = Browser::entries[grid];
       //printf("Render - %s - %s - %s - %s\n", entry->category.c_str(), entry->title.c_str(), entry->url.c_str(), entry->thumb.c_str());
       Browser::render_entry(entry, baseX + (x * incX), baseY + (y * incY), active);
       grid++;
@@ -126,10 +128,10 @@ Handler Browser::on_event(int val){
   if(val >= 0 && val < 10){
     Browser::active_gallery = val;
   } else if(Browser::active_gallery >= 0 && val == 10){
-    Entry entry = Browser::entries[active_gallery];
-    printf("URL %s\n", entry.url.c_str());
+    Entry* entry = Browser::entries[active_gallery];
+    printf("URL %s\n", entry->url.c_str());
     GalleryBrowser::set_touch();
-    GalleryBrowser::load_gallery(&entry);
+    GalleryBrowser::load_gallery(entry);
     return Handler::Gallery;
   } else if (val == 11) {
     SearchBrowser::set_touch();
@@ -143,8 +145,9 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
 {
   // If image not loaded, stick in texture
   if(entry->thumb_loaded == 0){
-    printf("Loading texture into memory\n");
+    printf("Requesting thumb texture\n");
     //entry->res = new Resource();
+    //mutexInit(mutex);
     entry->res->url = entry->thumb;
     ApiManager::request_res(entry->res);
     entry->thumb_loaded = 1;
@@ -163,15 +166,8 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   Screen::draw_rect(x-5, y-5, maxw+10, maxh+10, imgFG);
   Screen::draw_rect(x + maxw+5, y-5, maxw+65, maxh+10, imgBG);
 
-  if(!entry->thumb_texture){
-    if(entry->res->mem->size != 0){
-      entry->thumb_texture = Screen::load_texture(entry->res->mem->memory, entry->res->mem->size);
-      delete entry->res->mem;
-    }
-  }
-
-  if(entry->thumb_texture){
-    Screen::draw_adjusted_mem(entry->thumb_texture, x, y, maxw, maxh);
+  if(entry->res->thumb_texture){
+    Screen::draw_adjusted_mem(entry->res->thumb_texture, x, y, maxw, maxh);
   }
 
   Screen::draw_text(new_title, x + maxw + 10, y + 5, ThemeText, Screen::gallery_info);

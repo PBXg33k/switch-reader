@@ -7,8 +7,9 @@
 #include <vector>
 #include <mutex>
 #include <switch.h>
+#include <SDL2/SDL.h>
 
-typedef struct MemoryStruct {
+struct MemoryStruct {
   char *memory;
   size_t size;
   MemoryStruct(){
@@ -18,15 +19,19 @@ typedef struct MemoryStruct {
   ~MemoryStruct(){
     delete memory;
   }
-}MemoryStruct;
+};
 
 
 struct Resource{
   MemoryStruct* mem;
+  SDL_Texture* thumb_texture;
   std::string url;
-  //Mutex* mutex;
+  int done;
+  void* mutexPtr;
   Resource(){
+    thumb_texture = NULL;
     mem = new MemoryStruct();
+    done = 0;
   }
 };
 
@@ -34,6 +39,7 @@ class ApiManager {
 	public:
 		static void init();
 		static void close();
+    static void update();
 		static void api_test();
     static void request_res(Resource* res);
 		static void get_res(MemoryStruct* mem, std::string url);
