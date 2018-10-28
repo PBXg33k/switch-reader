@@ -1,5 +1,5 @@
-#ifndef TOUCHMANAGER_HPP
-#define TOUCHMANAGER_HPP
+#ifndef TOUCH_HPP
+#define TOUCH_HPP
 
 #include "SDL2/SDL.h"
 #include <vector>

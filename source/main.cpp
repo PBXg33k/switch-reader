@@ -4,10 +4,11 @@
 #include "Shared.hpp"
 #include "Api.hpp"
 #include "Browser.hpp"
-#include "TouchManager.hpp"
+#include "Touch.hpp"
 #include "Gallery.hpp"
 #include "HSearch.hpp"
 #include "Search.hpp"
+#include "Config.hpp"
 
 static SDL_Event* event;
 
@@ -20,6 +21,8 @@ int main(int argc, char **argv)
   ApiManager::init();
 
   nxlinkStdio();
+
+  ConfigManager::init();
 
   Uint32 renderEvent = SDL_RegisterEvents(1);
   event = new SDL_Event();

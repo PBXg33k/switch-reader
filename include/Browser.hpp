@@ -13,12 +13,14 @@ struct Entry{
   int rating;
   std::string thumb;
   std::string url;
-  int thumb_loaded;
   int pages;
 
   Resource* res;
   Entry(){
     res = new Resource();
+  }
+  ~Entry(){
+    delete res;
   }
 };
 

@@ -1,7 +1,7 @@
 #include "Ui.hpp"
 #include "Api.hpp"
 #include "Browser.hpp"
-#include "TouchManager.hpp"
+#include "Touch.hpp"
 #include "Gallery.hpp"
 #include "Search.hpp"
 
@@ -87,6 +87,9 @@ void Browser::add_entry(Entry* entry){
 }
 
 void Browser::clear(){
+  for(auto entry : entries){
+    delete entry;
+  }
   Browser::entries.clear();
 }
 

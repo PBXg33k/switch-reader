@@ -1,6 +1,6 @@
 #include "Search.hpp"
 #include "Ui.hpp"
-#include "TouchManager.hpp"
+#include "Touch.hpp"
 #include "HSearch.hpp"
 #include <tgmath.h>
 
@@ -84,7 +84,10 @@ Handler SearchBrowser::on_event(int val){
 
   // Number row, A-Z and , and .
   if(val >= 0 && val < 40){
-    search_str.append(std::string(1,alphabet[val]));
+    if(caps_lock)
+      search_str.append(std::string(1,altAlphabet[val]));
+    else
+      search_str.append(std::string(1,alphabet[val]));
   }
 
   // Special characters
@@ -121,7 +124,6 @@ Handler SearchBrowser::on_event(int val){
 
     // Do search
     HSearch::search_keywords(search_str.c_str(), 25, (int)search_flags);
-
 
     // Go back to Browser
     Browser::set_touch();

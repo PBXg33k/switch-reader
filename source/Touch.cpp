@@ -1,4 +1,4 @@
-#include "TouchManager.hpp"
+#include "Touch.hpp"
 
 vector<pair<SDL_Rect, int>> TouchManager::bounds = vector<pair<SDL_Rect, int>>();
 

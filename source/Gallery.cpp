@@ -1,5 +1,5 @@
 #include "Gallery.hpp"
-#include "TouchManager.hpp"
+#include "Touch.hpp"
 #include "Api.hpp"
 #include "Ui.hpp"
 #include "Browser.hpp"

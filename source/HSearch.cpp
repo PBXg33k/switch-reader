@@ -46,8 +46,7 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
   // TODO: Implement Tags
   //completeURL.append("?f_doujinshi=1&f_manga=1&f_artistcg=1&f_gamecg=1&f_western=1&f_non-h=1&f_imageset=1&f_cosplay=1&f_asianporn=1&f_misc=1");
 
-  // Add selected categories to url
-
+  // Add selected categories to url using flags
   if (categories & (int) Category::Doujinshi) completeURL.append("?f_doujinshi=1"); else completeURL.append("?f_doujinshi=0");
   if (categories & (int) Category::Manga) completeURL.append("&f_manga=1"); else completeURL.append("&f_manga=0");
   if (categories & (int) Category::ArtistCg) completeURL.append("&f_artistcg=1"); else completeURL.append("&f_artistcg=0");
@@ -108,9 +107,14 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
     }
   }
 
+  // Free up page memory
   xmlFreeDoc(doc);
   xmlCleanupParser();
   delete pageMem;
+
+  // Nothing found, return empty handed
+  if(gids.empty())
+    return;
 
   json_object* json = ApiManager::get_galleries(gids, gtkns);
 

@@ -25,3 +25,16 @@ SDL_Color ThemePanelSelectedLight = COLOR_PALERED;
 SDL_Color ThemeText = COLOR_GRAY;
 SDL_Color ThemeOptionSelected = COLOR_PALEWHITE;
 SDL_Color ThemeOptionUnselected = COLOR_VLIGHTGRAY;
+
+static void set_theme(int theme){
+  switch(theme){
+    // Light
+    case 0:
+      ThemeBG = COLOR_PALEYELLOW;
+      ThemeButton = COLOR_PALEWHITE;
+      ThemeButtonQuit = COLOR_RED;
+      ThemeButtonText = COLOR_LIGHTGRAY;
+      ThemeButtonBorder = COLOR_LIGHTGRAY;
+      ThemePanelDark = COLOR_PALEISHYELLOW;
+  }
+}
