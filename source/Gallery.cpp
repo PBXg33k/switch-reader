@@ -14,13 +14,14 @@ int GalleryBrowser::cur_page = 0;
 const int GalleryBrowser::buffer_size = 2; // 1 - 1 Page, 2 - 3 pages, 3 - 5 pages...
 std::vector<Resource*> GalleryBrowser::img_buffer;
 
+
 void GalleryBrowser::close(){
   if(active_gallery){
     delete active_gallery;
   }
 
   for(auto res : img_buffer){
-    Screen::cleanup_texture(res->texture);
+    ApiManager::cleanup_resource(res);
   }
 
   img_buffer.clear();
@@ -28,27 +29,25 @@ void GalleryBrowser::close(){
 
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
+  // Debug readout
   printf("-- LOADING GALLERY --\nTitle: %s\nURL: %s\nPages:%d\n", entry->title.c_str(), entry->url.c_str(), entry->pages);
   active_gallery = new Gallery();
   active_gallery->title = entry->title;
   active_gallery->index = entry->url;
   active_gallery->total_pages = entry->pages;
 
-  // Null all buffer pages
+  // Create all buffer pages
   for(int i = 0; i < active_gallery->total_pages; i++){
     Resource* res = new Resource;
     img_buffer.push_back(res);
   }
 
-  GalleryBrowser::load_urls(0);
-
-  // Populate buffer
-
-  // Loads last first, TODO CHANGE API HANDLING FIRST
-  for(int i = buffer_size - 1; i >= 0; i--){
+  // Populate image buffer area
+  for(int i = 0; i < active_gallery->total_pages && i < buffer_size; i++){
     GalleryBrowser::load_page(i);
   }
 
+  // Set current page to start of gallery
   cur_page = 0;
 }
 
@@ -57,17 +56,27 @@ void GalleryBrowser::load_gallery(Entry* entry){
 void GalleryBrowser::set_touch(){
   TouchManager::clear();
 
-  // Forwards
-  TouchManager::add_bounds(screen_width-90, (screen_height/2) - 40, 80, 80, 1);
-
-  // Back
-  TouchManager::add_bounds(10, (screen_height/2) - 40, 80, 80, 2);
-
   // Browser
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
+
+  // Forwards
+  TouchManager::add_bounds(screen_width-400, 0, 400, screen_height, 1);
+
+  // Back
+  TouchManager::add_bounds(0, 0, 400, screen_height, 2);
 }
 
 void GalleryBrowser::load_page(int page){
+
+  Resource* res = img_buffer[page];
+
+
+  // If resource already has a URL set, skip finding src, request immediately
+  if(res->populated){
+    printf("Requesting page %d\n", page);
+    ApiManager::request_res(res);
+    return;
+  }
 
   // Load more URLs if needed - 40 on each page
   if(page >= (int) active_gallery->pages.size()){
@@ -81,8 +90,6 @@ void GalleryBrowser::load_page(int page){
   xmlXPathObjectPtr result;
   xmlDocPtr doc;
   xmlNodeSetPtr nodeset;
-
-  printf("Loading page %d\n", page);
 
   // Get html page
   MemoryStruct* pageMem = new MemoryStruct();
@@ -104,12 +111,12 @@ void GalleryBrowser::load_page(int page){
     keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
   }
 
-  // Request image to be loaded
+  // Load URL into resource, then request
   if(keyword){
-    img_buffer[page]->url = (char*)keyword;
-    img_buffer[page]->requested = 1;
-    printf("Requesting %s\n", img_buffer[page]->url.c_str());
-    ApiManager::request_res(img_buffer[page]);
+    printf("Requesting page %d\n", page);
+    res->url = (char*)keyword;
+    res->populated = 1;
+    ApiManager::request_res(res);
   }
 
   xmlFree(keyword);
@@ -121,38 +128,44 @@ void GalleryBrowser::load_page(int page){
 Handler GalleryBrowser::on_event(int val){
   // Next page
   if(val == 1 && cur_page < (active_gallery->total_pages - 1)){
-    int to_remove = cur_page - buffer_size;
     int to_add = cur_page + buffer_size;
     cur_page++;
+    int to_remove = cur_page - buffer_size;
 
     // Unload oldest page
     if(to_remove >= 0){
-      img_buffer[to_remove]->requested = 0;
-      img_buffer[to_remove]->done = 0;
-      Screen::cleanup_texture(img_buffer[to_remove]->texture);
+      Resource* removing = img_buffer[to_remove];
+      removing->requested = 0;
+
+      if(removing->texture)
+        Screen::cleanup_texture(img_buffer[to_remove]->texture);
+      removing->texture = NULL;
     }
 
-    // Load next page
-    if(to_add < active_gallery->total_pages - 1){
+    // Load furthest page
+    if(to_add <= active_gallery->total_pages - 1){
       GalleryBrowser::load_page(to_add);
     }
   }
 
   // Previous page
   if(val == 2 && cur_page > 0){
-    int to_remove = cur_page + buffer_size;
     int to_add = cur_page - buffer_size;
     cur_page--;
+    int to_remove = cur_page + buffer_size;
 
     // Unload oldest page
-    if(to_remove >= 0){
-      img_buffer[to_remove]->requested = 0;
-      img_buffer[to_remove]->done = 0;
-      Screen::cleanup_texture(img_buffer[to_remove]->texture);
+    if(to_remove <= active_gallery->total_pages - 1){
+      Resource* removing = img_buffer[to_remove];
+      removing->requested = 0;
+
+      if(removing->texture)
+        Screen::cleanup_texture(img_buffer[to_remove]->texture);
+      removing->texture = NULL;
     }
 
-    // Load next page
-    if(to_add < active_gallery->total_pages - 1){
+    // Load furthest page
+    if(to_add >= 0){
       GalleryBrowser::load_page(to_add);
     }
   }
@@ -191,10 +204,7 @@ void GalleryBrowser::load_urls(size_t page){
   indexCopy.append(std::to_string(page));
   printf("Fetching %s\n", indexCopy.c_str());
   MemoryStruct* index = new MemoryStruct();
-  printf("Made struct\n");
   ApiManager::get_res(index, indexCopy);
-
-  printf("Loaded page\n");
 
   // Load to xml
   xmlDocPtr doc = htmlReadMemory(index->memory, index->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
@@ -224,10 +234,13 @@ void GalleryBrowser::render(){
   Screen::clear(ThemeBG);
   // Image (If loaded)
   if(img_buffer[cur_page]->texture)
-    Screen::draw_adjusted_mem(img_buffer[cur_page]->texture, 100, 0, screen_width - 100, screen_height);
+    Screen::draw_adjusted_mem(img_buffer[cur_page]->texture, 0, 0, screen_width, screen_height);
+
+  // Page Number
+  Screen::draw_text("Page " + std::to_string(cur_page+1), 30, 30, ThemeText, Screen::large);
   // Right side button (next and kill)
-  Screen::draw_button(screen_width-90, (screen_height/2) - 40, 80, 80, ThemeButton, ThemeButtonBorder, 4);
+  //Screen::draw_button(screen_width-90, (screen_height/2) - 40, 80, 80, ThemeButton, ThemeButtonBorder, 4);
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
   // Left side button (prev)
-  Screen::draw_button(10, (screen_height/2) - 40, 80, 80, ThemeButton, ThemeButtonBorder, 4);
+  //Screen::draw_button(10, (screen_height/2) - 40, 80, 80, ThemeButton, ThemeButtonBorder, 4);
 }

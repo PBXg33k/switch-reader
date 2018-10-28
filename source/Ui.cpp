@@ -110,21 +110,37 @@ void Screen::draw_image_mem(SDL_Texture* texture, int x, int y){
   fit_image(texture, x, y);
 }
 
-void Screen::draw_adjusted_mem(SDL_Texture* texture, int x, int y, int maxw, int maxh){
+void Screen::draw_adjusted_mem(SDL_Texture* texture, int x, int y, int maxw, int maxh, int rot){
   if(texture){
     int w, h;
     SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-    float scaler = maxh / ((float)(h));
+    float scaler;
     SDL_Rect rect;
-    rect.w = (int)(w * scaler);
-    rect.h = (int)(h * scaler);
-    rect.x = x;
-    rect.y = y;
 
-    scaler = maxw / ((float)(rect.w));
-    if(scaler < 1){
-      rect.w *= scaler;
-      rect.h *= scaler;
+    if(!(rot % 2)){
+      scaler = maxh / ((float)(h));
+      rect.w = (int)(w * scaler);
+      rect.h = (int)(h * scaler);
+      rect.x = x;
+      rect.y = y;
+
+      scaler = maxw / ((float)(rect.w));
+      if(scaler < 1){
+        rect.w *= scaler;
+        rect.h *= scaler;
+      }
+    } else {
+      scaler = maxh / ((float)(w));
+      rect.w = (int)(w * scaler);
+      rect.h = (int)(h * scaler);
+      rect.x = x;
+      rect.y = y;
+
+      scaler = maxw / ((float)(rect.h));
+      if(scaler < 1){
+        rect.w *= scaler;
+        rect.h *= scaler;
+      }
     }
 
     // Centre Image Vertically
@@ -133,7 +149,7 @@ void Screen::draw_adjusted_mem(SDL_Texture* texture, int x, int y, int maxw, int
     // Centre Image Horizontally
     rect.x = x + ((maxw - rect.w)/2);
 
-    SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
+    SDL_RenderCopyEx(Screen::renderer, texture, NULL, &rect, rot * 90, NULL, SDL_FLIP_NONE);
   }
 }
 

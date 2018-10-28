@@ -6,8 +6,10 @@
 #include <thread>
 #include <mutex>
 #include <unistd.h>
+#include <deque>
 
-static std::vector<Resource*> requests;
+static std::deque<Resource*> requests;
+static std::vector<Resource*> cleanup;
 static Resource* active_res = NULL;
 static Thread* res_thread = NULL;
 static Mutex* mutex = new Mutex;
@@ -50,8 +52,6 @@ void ApiManager::init(){
   curl_global_init(CURL_GLOBAL_ALL);
   // Declare static mutex
   mutexInit(mutex);
-  mutexLock(mutex);
-  mutexUnlock(mutex);
   res_thread = new Thread();
 
   // Create render event
@@ -63,7 +63,18 @@ void ApiManager::close(){
   socketExit();
 }
 
-void test_res(void *args){
+void ApiManager::cleanup_resource(Resource* res){
+  if(active_res != res)
+    delete res;
+  else {
+    mutexLock(mutex);
+    delete res;
+    active_res = NULL;
+    mutexUnlock(mutex);
+  }
+}
+
+void load_res_thread(void *args){
   Resource* res = (Resource*) args;
 
   mutexLock(mutex);
@@ -76,33 +87,43 @@ void ApiManager::update(){
   // If requests are waiting, start request thread
   if(active_res == NULL && !requests.empty()){
 
-    printf("Starting request thread\n");
-    // Resource pointer
+    // Ignore cancelled requests
     while(!requests.empty()){
-      active_res = requests.back();
-      requests.pop_back();
+      active_res = requests.front();
+      requests.pop_front();
 
       if(active_res->requested)
         break;
     }
 
-    if(!active_res->requested)
+    // If all cancelled, set to none
+    if(!active_res->requested){
+      active_res = NULL;
       return;
+    }
 
-    threadCreate(res_thread, test_res, active_res, 5000, 0x2C, -2);
+    threadCreate(res_thread, load_res_thread, active_res, 5000, 0x2C, -2);
     threadStart(res_thread);
+
   } else if (active_res != NULL){
-    // Try and get lock on resource
+    // Try and get lock on active_res
     if(mutexTryLock(mutex)){
       // If done, load texture into memory, close thread
       if(active_res->done){
-        printf("Request thread complete\n");
-        active_res->texture = Screen::load_texture(active_res->mem->memory, active_res->mem->size);
+        // If cancelled, don't load texture
+        if(active_res->requested)
+          active_res->texture = Screen::load_texture(active_res->mem->memory, active_res->mem->size);
 
+        // Reset memory struct
+        //delete active_res->mem;
+        active_res->mem = new MemoryStruct();
+
+        // Cleanup thread
         threadWaitForExit(res_thread);
         threadClose(res_thread);
         active_res = NULL;
       }
+
       mutexUnlock(mutex);
     }
   }
@@ -116,8 +137,12 @@ void ApiManager::cancel_all_requests(){
   requests.clear();
 }
 
-// Affordable wait resources
+// Threaded image loading
 void ApiManager::request_res(Resource* res){
+  // Active_res is loaded in thread - Don't touch done.
+  if(active_res != res)
+    res->done = 0;
+  res->requested = 1;
   requests.push_back(res);
 
 }
@@ -179,7 +204,7 @@ void ApiManager::api_test()
 void ApiManager::get_res(MemoryStruct* chunk, std::string url)
 {
   CURL *curl;
-  const char *host = "http://192.168.0.12:5000/?url=";
+  const char *host = "http://35.205.50.155:5000/?url=";
 
   curl = curl_easy_init();
   char *uri = curl_easy_escape(curl, url.c_str(), strlen(url.c_str()));
@@ -198,7 +223,7 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url)
   	curl_easy_perform(curl);
     curl_free(uri);
     curl_easy_cleanup(curl);
-    printf("%zu bytes retrieved\n", chunk->size);
+    //printf("%zu bytes retrieved\n", chunk->size);
   }
   curl_global_cleanup();
 }
@@ -211,7 +236,7 @@ json_object* ApiManager::post_api(char* payload)
   curl = curl_easy_init();
 
   if(curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.0.12:5000/");
+    curl_easy_setopt(curl, CURLOPT_URL, "http://35.205.50.155:5000/");
     //curl_easy_setopt(curl, CURLOPT_URL, "https://api.e-hentai.org/api.php");
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
