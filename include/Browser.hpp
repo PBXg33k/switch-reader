@@ -27,19 +27,21 @@ class Browser {
   public:
     static void close();
     static void set_touch();
+    static void quit_app();
 
     static Entry* new_entry(json_object* json, int num, std::string url);
     static void add_entry(Entry* entry);
     static void render_entry(Entry* entry, int x, int y, bool active);
     static void render();
     static void clear();
+    static void scroll(float dx);
     static Handler on_event(int val);
 
     static const int maxw = 128; // Thumb width
     static const int maxh = 181; // Thumb height
     static const int maxw2 = 128 + 128 + 5 + 65; // Full width#
 
+    static float scroll_pos;
     static int active_gallery;
-    static int grid_start;
     static std::vector<Entry*> entries;
 };

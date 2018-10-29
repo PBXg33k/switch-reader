@@ -41,12 +41,6 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
     return size * nmemb;
 }
 
-static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
-{
-  size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
-  return written;
-}
-
 void ApiManager::init(){
   socketInitializeDefault();
   curl_global_init(CURL_GLOBAL_ALL);
@@ -169,37 +163,6 @@ json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vecto
   printf("%s\n",data);
   return ApiManager::post_api(data);
 }
-
-void ApiManager::api_test()
-{
-  CURL *curl;
-  FILE *testfile;
-  FILE *logfile;
-
-  logfile = fopen("/switch/logtest.txt", "wb");
-
-  curl = curl_easy_init();
-
-  if(curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, "http://barryis.fun:5000/");
-    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-    curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"method\": \"gdata\",\"gidlist\": [[618395,\"0439fa3666\"]],\"namespace\": 1}");
-    curl_easy_setopt(curl, CURLOPT_STDERR, logfile);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-
-    testfile = fopen("/switch/testfile", "wb");
-
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, testfile);
-  	curl_easy_perform(curl);
-  	fclose(testfile);
-    fclose(logfile);
-    curl_easy_cleanup(curl);
-  }
-  curl_global_cleanup();
-}
-
-
 
 void ApiManager::get_res(MemoryStruct* chunk, std::string url)
 {

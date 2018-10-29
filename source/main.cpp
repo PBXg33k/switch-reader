@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <iostream>
 
 #include "Ui.hpp"
 #include "Shared.hpp"
@@ -10,7 +11,13 @@
 #include "Search.hpp"
 #include "Config.hpp"
 
-static SDL_Event* event;
+static SDL_Event* customEvent;
+static int state;
+const int joy_val[24] = {102, 101, 110, 0, 0, 0, 0, 0, 103, 104, 0, 0, 123, 120, 121, 122, 123, 120, 121, 122, 0, 0, 0, 0};
+
+void Browser::quit_app(){
+  state = 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -24,27 +31,41 @@ int main(int argc, char **argv)
   ConfigManager::init();
   ConfigManager::save();
 
+  // Custom SDL event for timer
   Uint32 renderEvent = SDL_RegisterEvents(1);
-  event = new SDL_Event();
-  SDL_memset(event, 0, sizeof(SDL_Event));
-  event->type = renderEvent;
-  event->user.code = 0;
-  event->user.data1 = 0;
-  event->user.data2 = 0;
+  customEvent = new SDL_Event();
+  SDL_memset(customEvent, 0, sizeof(SDL_Event));
+  customEvent->type = renderEvent;
+  customEvent->user.code = 0;
+  customEvent->user.data1 = 0;
+  customEvent->user.data2 = 0;
+
+  // Set up joycons
+  for (int i = 0; i < 2; i++) {
+    if (SDL_JoystickOpen(i) == NULL) {
+      SDL_Log("SDL_JoystickOpen: %s\n", SDL_GetError());
+      SDL_Quit();
+      return -1;
+    }
+  }
 
   Browser::set_touch();
 
-  int state = 1;
   unsigned int last_time = 0, current_time;
 
   HSearch::search_keywords("", 25, (int)Category::NonH);
 
-  SDL_Event polled;
+  state = 1;
+
+  SDL_Event event;
   while(state){
-    while(SDL_PollEvent(&polled)){
+    while(SDL_PollEvent(&event)){
       int val = -1;
       int x, y;
-      switch (polled.type) {
+      switch (event.type) {
+        case SDL_JOYBUTTONDOWN:
+          val = joy_val[event.jbutton.button];
+          break;
         case SDL_MOUSEBUTTONDOWN:
           SDL_GetMouseState(&x, &y);
           val = TouchManager::get_value(x, y);
@@ -52,24 +73,25 @@ int main(int argc, char **argv)
             state = 0;
           break;
         case SDL_FINGERDOWN:
-          val = TouchManager::get_value(polled.tfinger.x*1280, polled.tfinger.y*720);
+          val = TouchManager::get_value(event.tfinger.x*1280, event.tfinger.y*720);
           if(val == 100)
             state = 0;
           break;
-        case SDL_KEYDOWN:
-          state = 0;
+        // Browser scrolling
+        case SDL_FINGERMOTION:
+          Browser::scroll(event.tfinger.dx);
           break;
-        case SDL_JOYBUTTONDOWN:
+        case SDL_KEYDOWN:
           state = 0;
           break;
         default:
           break;
       }
       if(val > -1){
-        printf("Event : %d\n", val);
+        std::cout << "Event: " << val << std::endl;
       }
 
-      // Post Event
+      // Post Event to active handler
       switch(handler){
         case Handler::Browser:
           handler = Browser::on_event(val);
@@ -84,7 +106,7 @@ int main(int argc, char **argv)
           break;
       }
 
-      // render
+      // Render to active handler
       switch(handler){
         case Handler::Browser:
           Browser::render();
@@ -98,15 +120,18 @@ int main(int argc, char **argv)
         default:
           break;
       }
+
+      // Check for image thread updates
       ApiManager::update();
+
       Screen::render();
     }
 
-    // Update 10Hz
+    // Update Rate 10Hz - Keeps checks on image thread running
     current_time = SDL_GetTicks();
     if(current_time > last_time + 100){
       last_time = current_time;
-      SDL_PushEvent(event);
+      SDL_PushEvent(customEvent);
     }
   }
 

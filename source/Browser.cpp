@@ -4,9 +4,10 @@
 #include "Touch.hpp"
 #include "Gallery.hpp"
 #include "Search.hpp"
+#include <iostream>
 
-int Browser::grid_start = 0;
 int Browser::active_gallery = -1;
+float Browser::scroll_pos = 0;
 std::vector<Entry*> Browser::entries = std::vector<Entry*>();
 
 void Browser::close(){
@@ -45,11 +46,11 @@ void Browser::set_touch(){
   }
 
   // Search
-  TouchManager::add_bounds(screen_width-190, (screen_height/2) - 190, 180, 80, 11);
+  TouchManager::add_bounds(screen_width-190, (screen_height/2) - 190, 180, 80, 110);
   // Load Gallery
-  TouchManager::add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 10);
-  // Quit
-  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 100);
+  TouchManager::add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
+  // Quit app
+  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
 }
 
 Entry* Browser::new_entry(json_object* json, int num, std::string url)
@@ -75,14 +76,16 @@ Entry* Browser::new_entry(json_object* json, int num, std::string url)
 
   entry->url = url;
 
-  entries.push_back(entry);
+  add_entry(entry);
   return entry;
 }
 
 // Add entry to list of entries
 void Browser::add_entry(Entry* entry){
-  //entry.mutex = new Mutex();
-  //mutexInit(entry.mutex);
+  // Select first gallery by default
+  if(entries.empty())
+    active_gallery = 0;
+
   Browser::entries.push_back(entry);
 }
 
@@ -100,21 +103,23 @@ void Browser::render(){
   int baseY = 30;
   int incX = (Browser::maxw2 + 30);
   int incY = (Browser::maxh + 30);
-  int grid = Browser::grid_start;
-  int num_entries = Browser::entries.size() - Browser::grid_start;
+  // Index to start from
+  int idx = scroll_pos / ((incX * 3) - incX);
+  int num_entries = Browser::entries.size();
 
 
-  // Render upto 3X3 grid, based on start point.
-  for (int x = 0; x < 3; x++){
-    for(int y = 0; (y < 3) && (grid < num_entries); y++){
-      bool active = ((grid - Browser::grid_start) == Browser::active_gallery);
-      Entry* entry = Browser::entries[grid];
-      //printf("Render - %s - %s - %s - %s\n", entry->category.c_str(), entry->title.c_str(), entry->url.c_str(), entry->thumb.c_str());
-      Browser::render_entry(entry, baseX + (x * incX), baseY + (y * incY), active);
-      grid++;
+  // Render upto 4X3 grid, based on start point.
+  for (int x = 0; x < 4; x++){
+    for(int y = 0; (y < 3) && (idx < num_entries); y++){
+      bool active_gal = (idx == Browser::active_gallery);
+      Entry* entry = Browser::entries[idx];
+      Browser::render_entry(entry, baseX + (x * incX), baseY + (y * incY), active_gal);
+      idx++;
     }
   }
 
+  // Clean background for buttons
+  Screen::draw_rect(screen_width - 200, 0, 200, screen_height, ThemeBG);
   // Search button
   Screen::draw_button(screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButton, ThemeButtonBorder, 4);
   Screen::draw_text_centered("Search", screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButtonText, Screen::normal);
@@ -123,27 +128,6 @@ void Browser::render(){
   Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
   // Quit button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
-}
-
-Handler Browser::on_event(int val){
-  // Select Gallery
-  if(val >= 0 && val < 10){
-    Browser::active_gallery = val;
-  // Change to Gallery
-  } else if(Browser::active_gallery >= 0 && val == 10){
-    Entry* entry = Browser::entries[active_gallery];
-    printf("URL %s\n", entry->url.c_str());
-    ApiManager::cancel_all_requests();
-    GalleryBrowser::set_touch();
-    GalleryBrowser::load_gallery(entry);
-    return Handler::Gallery;
-  // Change to Search
-  } else if (val == 11) {
-    SearchBrowser::set_touch();
-    return Handler::Search;
-  }
-
-  return Handler::Browser;
 }
 
 void Browser::render_entry(Entry* entry, int x, int y, bool active)
@@ -179,4 +163,64 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   Screen::draw_text(entry->category, x + maxw + 10, y + 30, ThemeText, Screen::gallery_info);
   Screen::draw_text(std::to_string(entry->pages).c_str(), x + maxw + 10, y + 50, ThemeText, Screen::gallery_info);
   Screen::draw_text("Pages", x + maxw + 70, y + 50, ThemeText, Screen::gallery_info);
+}
+
+Handler Browser::on_event(int val){
+  // Select Gallery
+  if(val >= 0 && val < 10){
+    Browser::active_gallery = val;
+  // Change to Gallery
+  } else if(Browser::active_gallery >= 0 && val == 102){
+    Entry* entry = Browser::entries[active_gallery];
+    printf("URL %s\n", entry->url.c_str());
+    ApiManager::cancel_all_requests();
+    GalleryBrowser::set_touch();
+    GalleryBrowser::load_gallery(entry);
+    return Handler::Gallery;
+  // Change to Search
+  } else if (val == 110) {
+    active_gallery = -1;
+    SearchBrowser::set_touch();
+    return Handler::Search;
+  // Gallery selection
+  } else if (val >= 120 && val < 130 && active_gallery >= 0){
+    // O - Up, clockwise rot
+    int dir = val - 120;
+
+    switch(dir){
+      case 0:
+        if(active_gallery % 3 > 0)
+          active_gallery--;
+      case 1:
+        // TODO : Make > 9 page searches for scrolling
+        if(active_gallery < 6)
+          active_gallery += 3;
+        break;
+      case 2:
+        if(active_gallery % 3 != 2)
+          active_gallery++;
+        break;
+      case 3:
+        if(active_gallery > 2)
+          active_gallery -= 3;
+        break;
+      default:
+        break;
+    }
+  } else if (val == 101){
+    quit_app();
+  }
+
+  return Handler::Browser;
+}
+
+// Scrolls based on a normalized float - Screen moves left as number rises
+void Browser::scroll(float dx){
+  float amount = screen_width * dx;
+  if(scroll_pos - amount >= 0){
+    scroll_pos -= amount;
+  } else {
+    scroll_pos = 0;
+  }
+  std::cout << scroll_pos << std::endl;
 }

@@ -60,10 +60,10 @@ void GalleryBrowser::set_touch(){
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
 
   // Forwards
-  TouchManager::add_bounds(screen_width-400, 0, 400, screen_height, 1);
+  TouchManager::add_bounds(screen_width-400, 0, 400, screen_height, 104);
 
   // Back
-  TouchManager::add_bounds(0, 0, 400, screen_height, 2);
+  TouchManager::add_bounds(0, 0, 400, screen_height, 103);
 }
 
 void GalleryBrowser::load_page(int page){
@@ -127,10 +127,13 @@ void GalleryBrowser::load_page(int page){
 
 Handler GalleryBrowser::on_event(int val){
   // Next page
-  if(val == 1 && cur_page < (active_gallery->total_pages - 1)){
+  if(val == 104 && cur_page < (active_gallery->total_pages - 1)){
     int to_add = cur_page + buffer_size;
     cur_page++;
     int to_remove = cur_page - buffer_size;
+
+    // Immediate page switch
+    render();
 
     // Unload oldest page
     if(to_remove >= 0){
@@ -149,10 +152,13 @@ Handler GalleryBrowser::on_event(int val){
   }
 
   // Previous page
-  if(val == 2 && cur_page > 0){
+  if(val == 103 && cur_page > 0){
     int to_add = cur_page - buffer_size;
     cur_page--;
     int to_remove = cur_page + buffer_size;
+
+    // Immediate page switch
+    render();
 
     // Unload oldest page
     if(to_remove <= active_gallery->total_pages - 1){

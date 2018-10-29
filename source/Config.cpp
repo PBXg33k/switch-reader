@@ -63,6 +63,8 @@ int ConfigManager::init(){
     return 1;
   }
 
+  configFile.close();
+
   set_theme(stoi(get_value("theme")));
 
   return 0;
@@ -79,7 +81,9 @@ void ConfigManager::save(){
   for(auto pair : configPairs){
     configFile << pair.first + "=" + pair.second + "\n";
   }
-    printf("Saved config file\n");
+
+  configFile.close();
+  printf("Saved config file\n");
 }
 
 void ConfigManager::set_pair(std::string key, std::string value){
@@ -93,4 +97,41 @@ std::string ConfigManager::get_value(std::string key){
     }
   }
   return NULL;
+}
+
+void ConfigManager::set_theme(int theme){
+  switch(theme){
+    // Light
+    case 0:
+      ThemeBG = COLOR_PALEYELLOW;
+      ThemeButton = COLOR_PALEWHITE;
+      ThemeButtonQuit = COLOR_RED;
+      ThemeButtonText = COLOR_LIGHTGRAY;
+      ThemeButtonBorder = COLOR_LIGHTGRAY;
+      ThemePanelDark = COLOR_PALEISHYELLOW;
+      ThemePanelLight = COLOR_PALEWHITE;
+      ThemePanelSelectedDark = COLOR_PALEISHRED;
+      ThemePanelSelectedLight = COLOR_PALERED;
+      ThemeText = COLOR_GRAY;
+      ThemeOptionSelected = COLOR_PALEWHITE;
+      ThemeOptionUnselected = COLOR_VLIGHTGRAY;
+      break;
+    // Dark
+    case 1:
+      ThemeBG = COLOR_SHADEDBLACK;
+      ThemeButton = COLOR_SHADEDBLACK;
+      ThemeButtonQuit = COLOR_RED;
+      ThemeButtonText = COLOR_YELLOWWHITE;
+      ThemeButtonBorder = COLOR_TRUEGRAY;
+      ThemePanelDark = COLOR_DARKISH;
+      ThemePanelLight = COLOR_PALEBLACK;
+      ThemePanelSelectedDark = COLOR_PALEISHRED;
+      ThemePanelSelectedLight = COLOR_PALERED;
+      ThemeText = COLOR_SUPERGRAY;
+      ThemeOptionSelected = COLOR_PALEBLACK;
+      ThemeOptionUnselected = COLOR_SHADEDBLACK;
+      break;
+    default:
+      break;
+  }
 }
