@@ -6,18 +6,21 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "Config.hpp"
+#include "Shared.hpp"
 
 #define configDir "/switch/Reader"
 #define configPath "/switch/Reader/config"
 
 static std::vector<std::pair<std::string, std::string>> configPairs;
 
+// Create default, clear pairs to check read back
 void create_config_default(){
-  configPairs.push_back(std::make_pair("theme","light"));
+  configPairs.push_back(std::make_pair("theme","0")); // 0 - Light, 1 - Dark
   configPairs.push_back(std::make_pair("rotation","0"));
   configPairs.push_back(std::make_pair("user", "NONE"));
   configPairs.push_back(std::make_pair("pass", "NONE"));
   ConfigManager::save();
+  configPairs.clear();
 }
 
 int ConfigManager::init(){
@@ -34,9 +37,9 @@ int ConfigManager::init(){
   if(stat(configPath, &info)){
     printf("Creating default config file\n");
     create_config_default();
-    return 0;
   }
 
+  // Read back config
   std::ifstream configFile (configPath);
   if (configFile.is_open()){
     printf("Loading config file\n");
@@ -60,9 +63,12 @@ int ConfigManager::init(){
     return 1;
   }
 
+  set_theme(stoi(get_value("theme")));
+
   return 0;
 }
 
+// Save config file
 void ConfigManager::save(){
   std::ofstream configFile;
   configFile.open(configPath);
@@ -70,11 +76,10 @@ void ConfigManager::save(){
   if(!configFile.is_open())
     return;
 
-  printf("Saved config file\n");
-
   for(auto pair : configPairs){
     configFile << pair.first + "=" + pair.second + "\n";
   }
+    printf("Saved config file\n");
 }
 
 void ConfigManager::set_pair(std::string key, std::string value){

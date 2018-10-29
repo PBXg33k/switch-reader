@@ -1,5 +1,4 @@
-#ifndef GALLERY_HPP
-#define GALLERY_HPP
+#pragma once
 
 #include "RegexHelper.hpp"
 #include "Browser.hpp"
@@ -35,5 +34,3 @@ class GalleryBrowser {
   private:
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
 };
-
-#endif

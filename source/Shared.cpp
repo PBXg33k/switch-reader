@@ -13,6 +13,13 @@ SDL_Color COLOR_PALEYELLOW = {224, 222, 211};
 SDL_Color COLOR_PALEWHITE = {237, 235, 223};
 SDL_Color COLOR_VLIGHTGRAY = {150, 150, 150};
 
+SDL_Color COLOR_PALEBLACK = {79, 83, 91};
+SDL_Color COLOR_SHADEDBLACK = {52, 53, 59};
+SDL_Color COLOR_YELLOWWHITE = {241, 235, 206};
+SDL_Color COLOR_TRUEGRAY = {141, 141, 141};
+SDL_Color COLOR_DARKISH = {64, 69, 75};
+SDL_Color COLOR_SUPERGRAY = {221, 221, 221};
+
 SDL_Color ThemeBG = COLOR_PALEYELLOW;
 SDL_Color ThemeButton = COLOR_PALEWHITE;
 SDL_Color ThemeButtonQuit = COLOR_RED;
@@ -26,7 +33,7 @@ SDL_Color ThemeText = COLOR_GRAY;
 SDL_Color ThemeOptionSelected = COLOR_PALEWHITE;
 SDL_Color ThemeOptionUnselected = COLOR_VLIGHTGRAY;
 
-static void set_theme(int theme){
+void set_theme(int theme){
   switch(theme){
     // Light
     case 0:
@@ -36,5 +43,29 @@ static void set_theme(int theme){
       ThemeButtonText = COLOR_LIGHTGRAY;
       ThemeButtonBorder = COLOR_LIGHTGRAY;
       ThemePanelDark = COLOR_PALEISHYELLOW;
+      ThemePanelLight = COLOR_PALEWHITE;
+      ThemePanelSelectedDark = COLOR_PALEISHRED;
+      ThemePanelSelectedLight = COLOR_PALERED;
+      ThemeText = COLOR_GRAY;
+      ThemeOptionSelected = COLOR_PALEWHITE;
+      ThemeOptionUnselected = COLOR_VLIGHTGRAY;
+      break;
+    // Dark
+    case 1:
+      ThemeBG = COLOR_SHADEDBLACK;
+      ThemeButton = COLOR_SHADEDBLACK;
+      ThemeButtonQuit = COLOR_RED;
+      ThemeButtonText = COLOR_YELLOWWHITE;
+      ThemeButtonBorder = COLOR_TRUEGRAY;
+      ThemePanelDark = COLOR_DARKISH;
+      ThemePanelLight = COLOR_PALEBLACK;
+      ThemePanelSelectedDark = COLOR_PALEISHRED;
+      ThemePanelSelectedLight = COLOR_PALERED;
+      ThemeText = COLOR_SUPERGRAY;
+      ThemeOptionSelected = COLOR_PALEBLACK;
+      ThemeOptionUnselected = COLOR_SHADEDBLACK;
+      break;
+    default:
+      break;
   }
 }

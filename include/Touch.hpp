@@ -1,5 +1,4 @@
-#ifndef TOUCH_HPP
-#define TOUCH_HPP
+#pragma once
 
 #include "SDL2/SDL.h"
 #include <vector>
@@ -15,5 +14,3 @@ class TouchManager {
   private:
     static vector<pair<SDL_Rect, int>> bounds;
 };
-
-#endif

@@ -7,7 +7,6 @@
 #include <regex>
 #include "RegexHelper.hpp"
 
-
 #define searchURL "https://e-hentai.org/"
 #define apiURL "https://g.e-hentai.org/api.php"
 #define idRegex "(.+?)(?=\\/)"
@@ -21,8 +20,6 @@ xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath){
     result = xmlXPathEvalExpression(xpath, context);
     return result;
 }
-
-
 
 void HSearch::search_keywords(std::string keywords, size_t maxResults, int categories){
 
@@ -43,9 +40,6 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
   std::string completeURL = searchURL;
   char* safeKeywords;
 
-  // TODO: Implement Tags
-  //completeURL.append("?f_doujinshi=1&f_manga=1&f_artistcg=1&f_gamecg=1&f_western=1&f_non-h=1&f_imageset=1&f_cosplay=1&f_asianporn=1&f_misc=1");
-
   // Add selected categories to url using flags
   if (categories & (int) Category::Doujinshi) completeURL.append("?f_doujinshi=1"); else completeURL.append("?f_doujinshi=0");
   if (categories & (int) Category::Manga) completeURL.append("&f_manga=1"); else completeURL.append("&f_manga=0");
@@ -58,7 +52,7 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
   if (categories & (int) Category::AsianPorn) completeURL.append("&f_asianporn=1"); else completeURL.append("&f_asianporn=0");
   if (categories & (int) Category::Misc) completeURL.append("&f_misc=1"); else completeURL.append("&f_misc=0");
 
-  // Format keywords for URL
+  // Convert to URI (Mostly because of search keywords)
   CURL* curl;
   curl = curl_easy_init();
   safeKeywords = curl_easy_escape(curl, keywords.c_str(), strlen(keywords.c_str()));
@@ -73,8 +67,6 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
 
   curl_easy_cleanup(curl);
 
-  // XML //
-
   // Get html page
   MemoryStruct* pageMem = new MemoryStruct();
   ApiManager::get_res(pageMem, completeURL.c_str());
@@ -87,7 +79,7 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
 
   doc = htmlReadMemory(pageMem->memory, pageMem->size, completeURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
-  // Get node list matching XPath for table rows, print first rows content
+  // Find each gallerys URL in page
   path = (xmlChar*) listXPath;
   results = get_node_set(doc, path);
   if(results){
@@ -123,6 +115,7 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
     return;
   }
 
+  // Push all results to Browser entries
   for(size_t c = 0; c < gids.size(); c++){
     Browser::new_entry(json, c, urls[c]);
   }

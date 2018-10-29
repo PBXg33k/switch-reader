@@ -17,12 +17,12 @@ int main(int argc, char **argv)
   Handler handler = Handler::Browser;
 
   Screen::init();
-
   ApiManager::init();
 
   nxlinkStdio();
 
   ConfigManager::init();
+  ConfigManager::save();
 
   Uint32 renderEvent = SDL_RegisterEvents(1);
   event = new SDL_Event();

@@ -1,5 +1,4 @@
-#ifndef BROWSER_HPP
-#define BROWSER_HPP
+#pragma once
 
 #include <json-c/json.h>
 #include <vector>
@@ -44,5 +43,3 @@ class Browser {
     static int grid_start;
     static std::vector<Entry*> entries;
 };
-
-#endif

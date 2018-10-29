@@ -32,6 +32,9 @@ void Screen::init()
   SDL_Surface* surf = IMG_Load("romfs:/failed.png");
   s_refresh = SDL_CreateTextureFromSurface(Screen::renderer, surf);
   SDL_FreeSurface(surf);
+
+  //Screen::draw_rect(0,0,1280,720,ThemeBG);
+  //Screen::render();
 }
 
 void Screen::cleanup_texture(SDL_Texture* texture){

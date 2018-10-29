@@ -1,5 +1,4 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
 
 #include <string>
 
@@ -10,5 +9,3 @@ class ConfigManager {
     static void set_pair(std::string key, std::string pair);
     static std::string get_value(std::string key);
 };
-
-#endif

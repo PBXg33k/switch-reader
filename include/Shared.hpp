@@ -1,7 +1,12 @@
-#ifndef SHARED_HPP
-#define SHARED_HPP
+#pragma once
+
 #include <SDL2/SDL.h>
-enum class Handler { Browser, Search, Gallery };
+
+enum class Handler { Browser,
+                     Search,
+                     Gallery,
+                     Settings };
+
 enum class Category { Doujinshi=1,
                       Manga=2,
                       ArtistCg=4,
@@ -42,6 +47,4 @@ extern SDL_Color COLOR_VLIGHTGRAY;
 static const int screen_width = 1280;
 static const int screen_height = 720;
 
-//static void set_theme(int theme);
-
-#endif
+void set_theme(int theme);

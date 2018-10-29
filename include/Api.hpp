@@ -1,5 +1,4 @@
-#ifndef API_HPP
-#define API_HPP
+#pragma once
 
 #include <curl/curl.h>
 #include <json-c/json.h>
@@ -59,5 +58,3 @@ class ApiManager {
 
 		static json_object* get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns);
 };
-
-#endif

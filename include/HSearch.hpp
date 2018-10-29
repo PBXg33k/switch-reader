@@ -1,5 +1,4 @@
-#ifndef HSEARCH_HPP
-#define HSEARCH_HPP
+#pragma once
 
 #include "Browser.hpp"
 #include "Api.hpp"
@@ -10,5 +9,3 @@ class HSearch{
     static void search_keywords(std::string keywords, size_t maxResults, int categories);
 
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SEARCH_HPP
-#define SEARCH_HPP
+#pragma once
 
 #include "Shared.hpp"
 #include <string>
@@ -19,5 +18,3 @@ class SearchBrowser {
     static std::string search_str;
     static int search_flags;
 };
-
-#endif

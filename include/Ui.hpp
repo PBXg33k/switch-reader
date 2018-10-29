@@ -1,5 +1,4 @@
-#ifndef UI_HPP
-#define UI_HPP
+#pragma once
 
 #include <string>
 #include <switch.h>
@@ -33,5 +32,3 @@ class Screen {
     static inline TTF_Font *normal;
     static inline TTF_Font *large;
 };
-
-#endif
