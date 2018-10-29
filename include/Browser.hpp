@@ -39,9 +39,13 @@ class Browser {
 
     static const int maxw = 128; // Thumb width
     static const int maxh = 181; // Thumb height
-    static const int maxw2 = 128 + 128 + 5 + 65; // Full width#
+    static const int maxw2 = 128 + 128 + 5 + 65; // Full width of a panel
 
+    static int numOfResults;
+    static std::string currentUrl;
     static float scroll_pos;
     static int active_gallery;
     static std::vector<Entry*> entries;
+  private:
+    static void load_urls();
 };

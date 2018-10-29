@@ -2,6 +2,8 @@
 #include "Ui.hpp"
 #include "Touch.hpp"
 #include "HSearch.hpp"
+#include "Browser.hpp"
+#include "Api.hpp"
 #include <tgmath.h>
 
 int SearchBrowser::box_size = 75;

@@ -2,12 +2,15 @@
 #include "Api.hpp"
 #include "Browser.hpp"
 #include "Touch.hpp"
+#include "HSearch.hpp"
 #include "Gallery.hpp"
 #include "Search.hpp"
 #include <iostream>
 #include <math.h>
 
 int Browser::active_gallery = -1;
+std::string Browser::currentUrl;
+int Browser::numOfResults = 0;
 float Browser::scroll_pos = 0;
 std::vector<Entry*> Browser::entries = std::vector<Entry*>();
 
@@ -114,13 +117,16 @@ void Browser::render(){
   idx -= (idx % 3);
 
   int offset = ((int) scroll_pos) % incX;
-  int num_entries = Browser::entries.size();
 
-  //printf("Index - %d - Offset %d\n", idx, offset);
+  // Load more if not enough
+
+  if(idx + 11 >= (int) entries.size()){
+    load_urls();
+  }
 
   // Render upto 4X3 grid, based on start point.
   for (int x = 0; x < 4; x++){
-    for(int y = 0; (y < 3) && (idx < num_entries); y++){
+    for(int y = 0; (y < 3) && (idx < (int) entries.size()); y++){
       bool active_gal = (idx == Browser::active_gallery);
       Entry* entry = Browser::entries[idx];
       Browser::render_entry(entry, baseX + (x * incX) - offset, baseY + (y * incY), active_gal);
@@ -144,7 +150,7 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
 {
   // If image not loaded, stick in texture
   if(entry->res->requested == 0){
-    printf("Requesting thumb texture\n");
+    //printf("Requesting thumb texture\n");
     //entry->res = new Resource();
     //mutexInit(mutex);
     entry->res->url = entry->thumb;
@@ -206,8 +212,7 @@ Handler Browser::on_event(int val){
         if(active_gallery % 3 > 0)
           active_gallery--;
       case 1:
-        // TODO : Make > 9 page searches for scrolling
-        if(active_gallery < 6)
+        if(active_gallery < numOfResults - 2)
           active_gallery += 3;
         break;
       case 2:
@@ -239,4 +244,11 @@ void Browser::scroll(float dx){
   }
 
   set_touch();
+}
+
+void Browser::load_urls(){
+  if(entries.size() < (size_t) numOfResults){
+    int page = entries.size() / 25;
+    HSearch::expand_search(currentUrl, page);
+  }
 }

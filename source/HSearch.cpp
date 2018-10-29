@@ -2,15 +2,19 @@
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
+#include <vector>
 #include <libxml/HTMLparser.h>
 #include <libxml/xpath.h>
 #include <regex>
 #include "RegexHelper.hpp"
+#include "Browser.hpp"
+#include "Api.hpp"
 
 #define searchURL "https://e-hentai.org/"
 #define apiURL "https://g.e-hentai.org/api.php"
 #define idRegex "(.+?)(?=\\/)"
 #define listXPath "//div[@class='it5']/a"
+#define pagesXPath "//p[@class='ip']"
 
 xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath){
     xmlXPathContextPtr context;
@@ -21,6 +25,77 @@ xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath){
     return result;
 }
 
+void HSearch::expand_search(std::string completeURL, int page){
+  xmlChar *path;
+  xmlChar *url;
+  xmlDocPtr doc;
+  xmlXPathObjectPtr results;
+  xmlNodeSetPtr nodeset;
+  std::vector<std::string> idMatches;
+
+  std::vector<std::string> gids;
+  std::vector<std::string> gtkns;
+  std::vector<std::string> urls;
+
+  std::regex idPattern(idRegex);
+
+  completeURL += "&page=" + std::to_string(page);
+
+
+  // Get html page
+  MemoryStruct* pageMem = new MemoryStruct();
+  ApiManager::get_res(pageMem, completeURL.c_str());
+
+  // Search failed, return empty handed
+  if(pageMem->size == 0){
+    delete pageMem;
+    return;
+  }
+
+  doc = htmlReadMemory(pageMem->memory, pageMem->size, completeURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+
+  // Find each gallerys URL in page
+  path = (xmlChar*) listXPath;
+  results = get_node_set(doc, path);
+  if(results){
+    nodeset = results->nodesetval;
+    printf("Matched %d results\n", nodeset->nodeNr);
+    // Push each gallery link found onto stack
+    for(int c = 0; c < nodeset->nodeNr; c++)
+    {
+      // Get URL from Href
+      url = xmlGetProp(nodeset->nodeTab[c], (xmlChar*) "href");
+      urls.push_back((char*)url);
+      // Grab GID and GTokens from URL (Used for API call)
+      idMatches = RegexHelper::search(idPattern, (char*)url);
+      gids.push_back(idMatches[4].substr(1));
+      gtkns.push_back(idMatches[5].substr(1));
+      xmlFree(url);
+    }
+  }
+
+  // Free up page memory
+  xmlFreeDoc(doc);
+  xmlCleanupParser();
+  delete pageMem;
+
+  // Nothing found, return empty handed
+  if(gids.empty())
+    return;
+
+  json_object* json = ApiManager::get_galleries(gids, gtkns);
+
+  // API Call failed, return empty handed
+  if(json == NULL){
+    return;
+  }
+
+  // Push all results to Browser entries
+  for(size_t c = 0; c < gids.size(); c++){
+    Browser::new_entry(json, c, urls[c]);
+  }
+}
+
 void HSearch::search_keywords(std::string keywords, size_t maxResults, int categories){
 
   xmlChar *path;
@@ -29,6 +104,7 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
   xmlXPathObjectPtr results;
   xmlNodeSetPtr nodeset;
   std::vector<std::string> idMatches;
+  int resultsNum = 0;
 
   std::vector<std::string> gids;
   std::vector<std::string> gtkns;
@@ -64,6 +140,7 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
   completeURL.append(searchParams);
 
   printf("Search URL : %s\n", completeURL.c_str());
+  Browser::currentUrl = completeURL;
 
   curl_easy_cleanup(curl);
 
@@ -97,6 +174,23 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
       gtkns.push_back(idMatches[5].substr(1));
       xmlFree(url);
     }
+  }
+
+  path = (xmlChar*) pagesXPath;
+  results = get_node_set(doc, path);
+  if(results){
+    nodeset = results->nodesetval;
+    xmlChar* pagesStr = xmlNodeListGetString(doc, nodeset->nodeTab[0]->xmlChildrenNode, 1);
+    std::string content = (char*) pagesStr;
+    // Remove commas, take last word/num
+    content.erase(std::remove(content.begin(), content.end(), ','), content.end());
+    content = content.substr(content.rfind(' ') + 1);
+
+    resultsNum = atoi(content.c_str());
+    std::cout << resultsNum << std::endl;
+    Browser::numOfResults = resultsNum;
+  } else {
+    Browser::numOfResults = 0;
   }
 
   // Free up page memory
