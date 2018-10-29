@@ -79,6 +79,7 @@ int main(int argc, char **argv)
           break;
         // Browser scrolling
         case SDL_FINGERMOTION:
+          // Don't move on press
           Browser::scroll(event.tfinger.dx);
           break;
         case SDL_KEYDOWN:

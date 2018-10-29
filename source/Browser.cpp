@@ -5,6 +5,7 @@
 #include "Gallery.hpp"
 #include "Search.hpp"
 #include <iostream>
+#include <math.h>
 
 int Browser::active_gallery = -1;
 float Browser::scroll_pos = 0;
@@ -30,20 +31,6 @@ json_object* get_json_obj(json_object* root, const char* key)
 // Set up bounding boxes with paired values
 void Browser::set_touch(){
   TouchManager::clear();
-  int baseX = 30;
-  int baseY = 30;
-  int incX = (Browser::maxw2 + 30);
-  int incY = (Browser::maxh + 30);
-  int val = 0;
-
-  for (int x = 0; x < 3; x++){
-    for (int y = 0; y < 3; y++){
-      int newX = baseX + (x * incX);
-      int newY = baseY + (y * incY);
-      TouchManager::add_bounds(newX, newY, Browser::maxw2, Browser::maxh, val);
-      val++;
-    }
-  }
 
   // Search
   TouchManager::add_bounds(screen_width-190, (screen_height/2) - 190, 180, 80, 110);
@@ -51,6 +38,24 @@ void Browser::set_touch(){
   TouchManager::add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
   // Quit app
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
+  // Stop pressing in button backgrounds
+  TouchManager::add_bounds(screen_width-200, 0, 200, screen_height, 1000);
+
+  int baseX = 30;
+  int baseY = 30;
+  int incX = (Browser::maxw2 + 30);
+  int incY = (Browser::maxh + 30);
+  int val = 0;
+  int offset = ((int) scroll_pos) % incX;
+
+  for (int x = 0; x < 4; x++){
+    for (int y = 0; y < 3; y++){
+      int newX = baseX + (x * incX) - offset;
+      int newY = baseY + (y * incY);
+      TouchManager::add_bounds(newX, newY, Browser::maxw2, Browser::maxh, val);
+      val++;
+    }
+  }
 }
 
 Entry* Browser::new_entry(json_object* json, int num, std::string url)
@@ -90,6 +95,7 @@ void Browser::add_entry(Entry* entry){
 }
 
 void Browser::clear(){
+  scroll_pos = 0;
   for(auto entry : entries){
     delete entry;
   }
@@ -104,16 +110,20 @@ void Browser::render(){
   int incX = (Browser::maxw2 + 30);
   int incY = (Browser::maxh + 30);
   // Index to start from
-  int idx = scroll_pos / ((incX * 3) - incX);
+  int idx = (scroll_pos / incX) * 3;
+  idx -= (idx % 3);
+
+  int offset = ((int) scroll_pos) % incX;
   int num_entries = Browser::entries.size();
 
+  //printf("Index - %d - Offset %d\n", idx, offset);
 
   // Render upto 4X3 grid, based on start point.
   for (int x = 0; x < 4; x++){
     for(int y = 0; (y < 3) && (idx < num_entries); y++){
       bool active_gal = (idx == Browser::active_gallery);
       Entry* entry = Browser::entries[idx];
-      Browser::render_entry(entry, baseX + (x * incX), baseY + (y * incY), active_gal);
+      Browser::render_entry(entry, baseX + (x * incX) - offset, baseY + (y * incY), active_gal);
       idx++;
     }
   }
@@ -166,9 +176,13 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
 }
 
 Handler Browser::on_event(int val){
+  int offset;
   // Select Gallery
-  if(val >= 0 && val < 10){
-    Browser::active_gallery = val;
+  if(val >= 0 && val < 13){
+    offset = (scroll_pos / (maxw2 + 30)) * 3;
+    offset -= (offset % 3);
+    printf("Real %d - Adjusted %d\n", val, val + offset);
+    Browser::active_gallery = val + offset;
   // Change to Gallery
   } else if(Browser::active_gallery >= 0 && val == 102){
     Entry* entry = Browser::entries[active_gallery];
@@ -217,10 +231,12 @@ Handler Browser::on_event(int val){
 // Scrolls based on a normalized float - Screen moves left as number rises
 void Browser::scroll(float dx){
   float amount = screen_width * dx;
+
   if(scroll_pos - amount >= 0){
     scroll_pos -= amount;
   } else {
     scroll_pos = 0;
   }
-  std::cout << scroll_pos << std::endl;
+
+  set_touch();
 }
