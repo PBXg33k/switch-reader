@@ -13,7 +13,7 @@
 
 static SDL_Event* customEvent;
 static int state;
-const int joy_val[24] = {102, 101, 110, 0, 0, 0, 0, 0, 103, 104, 0, 0, 123, 120, 121, 122, 123, 120, 121, 122, 0, 0, 0, 0};
+const int joy_val[24] = {102, 101, 110, 111, 0, 0, 0, 0, 103, 104, 0, 0, 123, 120, 121, 122, 123, 120, 121, 122, 0, 0, 0, 0};
 
 void Browser::quit_app(){
   state = 0;
@@ -80,7 +80,8 @@ int main(int argc, char **argv)
         // Browser scrolling
         case SDL_FINGERMOTION:
           // Don't move on press
-          Browser::scroll(event.tfinger.dx);
+          if(handler == Handler::Browser)
+            Browser::scroll(event.tfinger.dx);
           break;
         case SDL_KEYDOWN:
           state = 0;

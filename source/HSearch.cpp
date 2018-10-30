@@ -2,12 +2,10 @@
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
-#include <vector>
 #include <libxml/HTMLparser.h>
 #include <libxml/xpath.h>
 #include <regex>
 #include "RegexHelper.hpp"
-#include "Browser.hpp"
 #include "Api.hpp"
 
 #define searchURL "https://e-hentai.org/"
@@ -23,6 +21,42 @@ xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath){
     context = xmlXPathNewContext(doc);
     result = xmlXPathEvalExpression(xpath, context);
     return result;
+}
+
+json_object* get_json_obj2(json_object* root, const char* key)
+{
+  json_object* ret;
+  if (json_object_object_get_ex(root, key, &ret)){
+    return ret;
+  }
+  return NULL;
+}
+
+void HSearch::fill_tags(Entry* entry, json_object* json){
+  json_object* holder;
+  int numOfTags;
+  std::string tag;
+
+  json = get_json_obj2(json, "tags");
+  numOfTags = json_object_array_length(json);
+
+  for(int i = 0; i < numOfTags; i++){
+    holder = json_object_array_get_idx(json, i);
+    tag = json_object_get_string(holder);
+
+    if(tag.find(':') != std::string::npos){
+      Tag t( tag.substr(0, tag.find(':')), tag.erase(0, tag.find(':') + 1) );
+      if(t.category == "lang" || t.category == "language"){
+        t.tag[0] = std::toupper(t.tag[0]);
+        printf("Lang Found : %s\n", t.tag.c_str());
+        entry->language = t.tag;
+      }
+      entry->tags.push_back(t);
+    } else {
+      Tag t( "misc", tag );
+      entry->tags.push_back(t);
+    }
+  }
 }
 
 void HSearch::expand_search(std::string completeURL, int page){
@@ -203,6 +237,7 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
     return;
 
   json_object* json = ApiManager::get_galleries(gids, gtkns);
+  json = get_json_obj2(json, "gmetadata");
 
   // API Call failed, return empty handed
   if(json == NULL){
@@ -211,9 +246,15 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
 
   // Push all results to Browser entries
   for(size_t c = 0; c < gids.size(); c++){
-    Browser::new_entry(json, c, urls[c]);
+    Entry* e = Browser::new_entry(json, c, urls[c]);
+    fill_tags(e, json_object_array_get_idx(json, c));
   }
 
   // Unmark as in use IMPORTANT
   json_object_put(json);
+}
+
+std::vector<std::pair<std::string,std::string>> HSearch::get_tags(json_object* json){
+  std::vector<std::pair<std::string,std::string>> tagPairs;
+  return tagPairs;
 }

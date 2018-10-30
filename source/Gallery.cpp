@@ -1,4 +1,5 @@
 #include "Gallery.hpp"
+#include "Config.hpp"
 #include "Touch.hpp"
 #include "Api.hpp"
 #include "Ui.hpp"
@@ -13,6 +14,7 @@ Gallery* GalleryBrowser::active_gallery;
 int GalleryBrowser::cur_page = 0;
 const int GalleryBrowser::buffer_size = 2; // 1 - 1 Page, 2 - 3 pages, 3 - 5 pages...
 std::vector<Resource*> GalleryBrowser::img_buffer;
+static int rotation = 0;
 
 
 void GalleryBrowser::close(){
@@ -29,6 +31,8 @@ void GalleryBrowser::close(){
 
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
+  rotation = atoi(ConfigManager::get_value("rotation").c_str());
+
   // Debug readout
   printf("-- LOADING GALLERY --\nTitle: %s\nURL: %s\nPages:%d\n", entry->title.c_str(), entry->url.c_str(), entry->pages);
   active_gallery = new Gallery();
@@ -59,11 +63,22 @@ void GalleryBrowser::set_touch(){
   // Browser
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
 
-  // Forwards
-  TouchManager::add_bounds(screen_width-400, 0, 400, screen_height, 104);
+  // Portrait
+  if(rotation == 1){
+    // Forwards
+    TouchManager::add_bounds(0, screen_height * 0.7, screen_width, screen_width * 0.3, 104);
 
-  // Back
-  TouchManager::add_bounds(0, 0, 400, screen_height, 103);
+    // Back
+    TouchManager::add_bounds(0, 0, screen_width, screen_height * 0.3, 103);
+  } 
+  // Landscape
+  else {
+    // Forwards
+    TouchManager::add_bounds(screen_width * 0.7, 0, screen_width * 0.3, screen_height, 104);
+
+    // Back
+    TouchManager::add_bounds(0, 0, screen_width * 0.3, screen_height, 103);
+  }
 }
 
 void GalleryBrowser::load_page(int page){
@@ -178,10 +193,20 @@ Handler GalleryBrowser::on_event(int val){
 
   // Back to browser
   if(val == 101){
-    close();
+    ConfigManager::set_pair("resource", std::to_string(rotation));
+    GalleryBrowser::close();
     Browser::set_touch();
     return Handler::Browser;
   }
+
+  // Rotate Image
+  if(val == 110){
+    rotation++;
+    if(rotation > 1)
+      rotation = 0;
+    GalleryBrowser::set_touch();
+  }
+
   return Handler::Gallery;
 }
 
@@ -240,7 +265,7 @@ void GalleryBrowser::render(){
   Screen::clear(ThemeBG);
   // Image (If loaded)
   if(img_buffer[cur_page]->texture)
-    Screen::draw_adjusted_mem(img_buffer[cur_page]->texture, 0, 0, screen_width, screen_height);
+    Screen::draw_adjusted_mem(img_buffer[cur_page]->texture, 0, 0, screen_width, screen_height, rotation);
 
   // Page Number
   Screen::draw_text("Page " + std::to_string(cur_page+1), 30, 30, ThemeText, Screen::large);

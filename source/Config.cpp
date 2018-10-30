@@ -34,11 +34,11 @@ int ConfigManager::init(){
   }
 
   // If config missing, create default
-  if(stat(configPath, &info)){
-    printf("Creating default config file\n");
+  //if(stat(configPath, &info)){
+    //printf("Creating default config file\n");
     create_config_default();
-  }
-
+  //}
+  
   // Read back config
   std::ifstream configFile (configPath);
   if (configFile.is_open()){
@@ -64,6 +64,7 @@ int ConfigManager::init(){
   }
 
   configFile.close();
+  configFile.clear();
 
   set_theme(stoi(get_value("theme")));
 
@@ -83,11 +84,18 @@ void ConfigManager::save(){
   }
 
   configFile.close();
+  configFile.clear();
+
   printf("Saved config file\n");
 }
 
 void ConfigManager::set_pair(std::string key, std::string value){
-
+  for(auto pair : configPairs){
+    if(pair.first == key){
+      pair.second = value;
+      return;
+    }
+  }
 }
 
 std::string ConfigManager::get_value(std::string key){

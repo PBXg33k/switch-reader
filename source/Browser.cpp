@@ -67,7 +67,6 @@ Entry* Browser::new_entry(json_object* json, int num, std::string url)
   Entry* entry = new Entry;
 
   // Populate entry
-  json = get_json_obj(json, "gmetadata");
   json = json_object_array_get_idx(json, num);
 
   holder = get_json_obj(json, "title");
@@ -175,10 +174,13 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
     Screen::draw_adjusted_mem(entry->res->texture, x, y, maxw, maxh);
   }
 
+  // Title -> Category -> Pages -> Language
   Screen::draw_text(new_title, x + maxw + 10, y + 5, ThemeText, Screen::gallery_info);
   Screen::draw_text(entry->category, x + maxw + 10, y + 30, ThemeText, Screen::gallery_info);
   Screen::draw_text(std::to_string(entry->pages).c_str(), x + maxw + 10, y + 50, ThemeText, Screen::gallery_info);
   Screen::draw_text("Pages", x + maxw + 70, y + 50, ThemeText, Screen::gallery_info);
+  if(!entry->language.empty())
+    Screen::draw_text(entry->language.c_str(), x + maxw + 10, maxh - 20, ThemeText, Screen::gallery_info);
 }
 
 Handler Browser::on_event(int val){
@@ -194,8 +196,8 @@ Handler Browser::on_event(int val){
     Entry* entry = Browser::entries[active_gallery];
     printf("URL %s\n", entry->url.c_str());
     ApiManager::cancel_all_requests();
-    GalleryBrowser::set_touch();
     GalleryBrowser::load_gallery(entry);
+    GalleryBrowser::set_touch();
     return Handler::Gallery;
   // Change to Search
   } else if (val == 110) {
