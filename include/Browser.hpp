@@ -19,7 +19,7 @@ struct Entry{
   std::string title;
   std::string category;
   std::string language;
-  int rating;
+  double rating;
   std::string thumb;
   std::string url;
   int pages;

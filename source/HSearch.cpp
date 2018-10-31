@@ -47,9 +47,11 @@ void HSearch::fill_tags(Entry* entry, json_object* json){
     if(tag.find(':') != std::string::npos){
       Tag t( tag.substr(0, tag.find(':')), tag.erase(0, tag.find(':') + 1) );
       if(t.category == "lang" || t.category == "language"){
-        t.tag[0] = std::toupper(t.tag[0]);
-        printf("Lang Found : %s\n", t.tag.c_str());
-        entry->language = t.tag;
+        if(t.tag != "translated" && t.tag != "speechless"){
+          t.tag[0] = std::toupper(t.tag[0]);
+          printf("Lang Found : %s\n", t.tag.c_str());
+          entry->language = t.tag;
+        }
       }
       entry->tags.push_back(t);
     } else {
@@ -118,6 +120,7 @@ void HSearch::expand_search(std::string completeURL, int page){
     return;
 
   json_object* json = ApiManager::get_galleries(gids, gtkns);
+  json = get_json_obj2(json, "gmetadata");
 
   // API Call failed, return empty handed
   if(json == NULL){
@@ -126,7 +129,8 @@ void HSearch::expand_search(std::string completeURL, int page){
 
   // Push all results to Browser entries
   for(size_t c = 0; c < gids.size(); c++){
-    Browser::new_entry(json, c, urls[c]);
+    Entry* e = Browser::new_entry(json, c, urls[c]);
+    fill_tags(e, json_object_array_get_idx(json, c));
   }
 }
 

@@ -2,6 +2,7 @@
 #include "Shared.hpp"
 
 static SDL_Texture* s_refresh;
+SDL_Texture* Screen::s_stars;
 
 void Screen::init()
 {
@@ -32,6 +33,9 @@ void Screen::init()
   SDL_Surface* surf = IMG_Load("romfs:/failed.png");
   s_refresh = SDL_CreateTextureFromSurface(Screen::renderer, surf);
   SDL_FreeSurface(surf);
+
+  surf = IMG_Load("romfs:/stars.png");
+  s_stars = SDL_CreateTextureFromSurface(Screen::renderer, surf);
 
   //Screen::draw_rect(0,0,1280,720,ThemeBG);
   //Screen::render();
@@ -167,6 +171,27 @@ void Screen::draw_rect(int x, int y, int w, int h, SDL_Color color){
   SDL_SetRenderDrawColor(Screen::renderer, color.r, color.g, color.b, color.a);
   SDL_RenderFillRect(Screen::renderer, &rect);
 
+}
+
+void Screen::draw_partial(int x, int y, double percentW, double percentH, SDL_Texture* texture){
+  if(texture){
+    int w, h;
+    SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+    SDL_Rect rect;
+    SDL_Rect pos;
+
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = percentW * w;
+    rect.h = percentH * w;
+
+    pos.x = x;
+    pos.y = y;
+    pos.w = rect.w;
+    pos.h = rect.h;
+
+    SDL_RenderCopy(Screen::renderer, texture, &rect, &pos);
+  }
 }
 
 void Screen::draw_button(int x, int y, int w, int h, SDL_Color fore, SDL_Color back, int border){

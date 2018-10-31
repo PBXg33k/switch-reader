@@ -75,6 +75,9 @@ Entry* Browser::new_entry(json_object* json, int num, std::string url)
   holder = get_json_obj(json, "category");
   entry->category = json_object_get_string(holder);
 
+  holder = get_json_obj(json, "rating");
+  entry->rating = json_object_get_double(holder);
+
   holder = get_json_obj(json, "thumb");
   entry->thumb = json_object_get_string(holder);
 
@@ -174,13 +177,17 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
     Screen::draw_adjusted_mem(entry->res->texture, x, y, maxw, maxh);
   }
 
-  // Title -> Category -> Pages -> Language
+  // Title -> Category -> Pages -> -> Rating -> Language
   Screen::draw_text(new_title, x + maxw + 10, y + 5, ThemeText, Screen::gallery_info);
-  Screen::draw_text(entry->category, x + maxw + 10, y + 30, ThemeText, Screen::gallery_info);
-  Screen::draw_text(std::to_string(entry->pages).c_str(), x + maxw + 10, y + 50, ThemeText, Screen::gallery_info);
-  Screen::draw_text("Pages", x + maxw + 70, y + 50, ThemeText, Screen::gallery_info);
+
+  Screen::draw_text(entry->category, x + maxw + 10, y + 35, ThemeText, Screen::normal);
+  
+  Screen::draw_text((std::to_string(entry->pages) + " Pages").c_str(), x + maxw + 10, y + 65, ThemeText, Screen::normal);
+
+  Screen::draw_partial(x + maxw + 10, y + 95, entry->rating / (double) 5, 1, Screen::s_stars);
+
   if(!entry->language.empty())
-    Screen::draw_text(entry->language.c_str(), x + maxw + 10, maxh - 20, ThemeText, Screen::gallery_info);
+    Screen::draw_text(entry->language.c_str(), x + maxw + 10, y + (maxh - 24), ThemeText, Screen::normal);
 }
 
 Handler Browser::on_event(int val){
@@ -238,12 +245,47 @@ Handler Browser::on_event(int val){
 // Scrolls based on a normalized float - Screen moves left as number rises
 void Browser::scroll(float dx){
   float amount = screen_width * dx;
+  int incX = (Browser::maxw2 + 30);
+  int new_pos;
+  Entry* entry;
+  int i;
 
   if(scroll_pos - amount >= 0){
-    scroll_pos -= amount;
+    new_pos = scroll_pos - amount;
   } else {
-    scroll_pos = 0;
+    new_pos = 0;
   }
+
+  int cur_idx = (scroll_pos / incX) * 3;
+  cur_idx -= (cur_idx % 3);
+  int new_idx = (new_pos / incX) * 3;
+  new_idx -= (new_idx % 3);
+
+  // Scrolled backwards
+  if(new_idx < cur_idx){
+    for(i = new_idx + 12; i < (int)entries.size() && i < new_idx + 16; i++){
+      entry = entries[i];
+      entry->res->requested = 0;
+      if(entry->res->texture){
+        SDL_DestroyTexture(entry->res->texture);
+        entry->res->texture = NULL;
+      }
+    }
+  }
+
+  // Scrolled forwards
+  else if(new_idx > cur_idx){
+    for(i = new_idx - 3; i < (int)entries.size() && i < new_idx; i++){
+      entry = entries[i];
+      entry->res->requested = 0;
+      if(entry->res->texture){
+        SDL_DestroyTexture(entry->res->texture);
+        entry->res->texture = NULL;
+      }
+    }
+  }
+
+  scroll_pos = new_pos;
 
   set_touch();
 }

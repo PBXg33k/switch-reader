@@ -123,15 +123,19 @@ int main(int argc, char **argv)
           break;
       }
 
+      uint64_t memoryUsed = 0;
+      svcGetInfo(&memoryUsed, 7, 0xffff8001, 0);
+      Screen::draw_text_centered(std::to_string(memoryUsed), screen_width / 2, screen_height - 30, 400, 30, ThemeText, Screen::gallery_info);
+
       // Check for image thread updates
       ApiManager::update();
 
       Screen::render();
     }
 
-    // Update Rate 10Hz - Keeps checks on image thread running
+    // Update Rate 20Hz - Keeps checks on image thread running
     current_time = SDL_GetTicks();
-    if(current_time > last_time + 100){
+    if(current_time > last_time + 50){
       last_time = current_time;
       SDL_PushEvent(customEvent);
     }

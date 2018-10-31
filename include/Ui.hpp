@@ -14,6 +14,7 @@ class Screen {
     static SDL_Texture* load_stored_texture(int id);
     static void cleanup_texture(SDL_Texture* texture);
     static void draw_image_mem(SDL_Texture* texture, int x, int y);
+    static void draw_partial(int x, int y, double percentX, double percentY, SDL_Texture* texture);
     static void draw_adjusted_mem(SDL_Texture* texture, int x, int y, int maxw, int maxy, int rot = 0);
     static void draw_text(std::string text, int x, int y, SDL_Color color);
     static void draw_text(std::string text, int x, int y, SDL_Color color, TTF_Font* font);
@@ -31,4 +32,6 @@ class Screen {
     static inline TTF_Font *gallery_info;
     static inline TTF_Font *normal;
     static inline TTF_Font *large;
+
+    static SDL_Texture* s_stars;
 };

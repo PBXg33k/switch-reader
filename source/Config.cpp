@@ -15,7 +15,7 @@ static std::vector<std::pair<std::string, std::string>> configPairs;
 
 // Create default, clear pairs to check read back
 void create_config_default(){
-  configPairs.push_back(std::make_pair("theme","0")); // 0 - Light, 1 - Dark
+  configPairs.push_back(std::make_pair("theme","1")); // 0 - Light, 1 - Dark
   configPairs.push_back(std::make_pair("rotation","0"));
   configPairs.push_back(std::make_pair("user", "NONE"));
   configPairs.push_back(std::make_pair("pass", "NONE"));
@@ -33,6 +33,8 @@ int ConfigManager::init(){
     mkdir(configDir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   }
 
+  // TODO : Not forget I commented this out because I guarantee I'll forget why it isn't working.
+  
   // If config missing, create default
   //if(stat(configPath, &info)){
     //printf("Creating default config file\n");
