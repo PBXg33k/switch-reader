@@ -6,34 +6,6 @@
 #include "Api.hpp"
 #include "Shared.hpp"
 
-struct Tag{
-  std::string category;
-  std::string tag;
-  Tag(std::string c, std::string t){
-    category = c;
-    tag = t;
-  }
-};
-
-struct Entry{
-  std::string title;
-  std::string category;
-  std::string language;
-  double rating;
-  std::string thumb;
-  std::string url;
-  int pages;
-  std::vector<Tag> tags;
-
-  Resource* res;
-  Entry(){
-    res = new Resource();
-  }
-  ~Entry(){
-    delete res;
-  }
-};
-
 class Browser {
   public:
     static void close();

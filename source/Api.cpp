@@ -1,12 +1,18 @@
 #include "Api.hpp"
 #include "Browser.hpp"
 #include "Ui.hpp"
+#include "Gallery.hpp"
+
 #include <iostream>
 #include <cstring>
 #include <thread>
 #include <mutex>
 #include <unistd.h>
 #include <deque>
+#include <iostream>
+#include <fstream>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 static std::deque<Resource*> requests;
 static std::vector<Resource*> cleanup;
@@ -77,6 +83,25 @@ void load_res_thread(void *args){
   ApiManager::get_res(res->mem, res->url);
   res->done = 1;
   mutexUnlock(mutex);
+}
+
+void ApiManager::download_gallery(Entry* entry, float* percent){
+  struct stat info;
+  std::string path = "/switch/Reader/" + std::to_string(entry->id);
+
+  // Create gallery directory
+  stat(path.c_str(), &info);
+  if(!(info.st_mode & S_IFDIR)){
+    printf("Creating gallery directory\n");
+    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  }
+
+  // Save thumbnail
+  ApiManager::get_res(nullptr, entry->thumb, 1, path + "/thumb.jpg");
+
+  GalleryBrowser::load_gallery(entry);
+  GalleryBrowser::save_all_pages(path);
+
 }
 
 void ApiManager::update(){
@@ -169,9 +194,10 @@ json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vecto
   return json;
 }
 
-void ApiManager::get_res(MemoryStruct* chunk, std::string url)
+void ApiManager::get_res(MemoryStruct* chunk, std::string url, int save, std::string path)
 {
   CURL *curl;
+  FILE* file;
   const char *host = "http://35.189.200.42:5000/?url=";
 
   curl = curl_easy_init();
@@ -181,18 +207,29 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url)
   strcpy(link, host);
   strcat(link, uri);
 
+  // Saving locally, open file
+  if(save){
+    file = fopen(path.c_str(), "w");
+  }
+
   if(curl) {
     //curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_URL, link);
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) chunk);
+    if(save){
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
+    } else {
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) chunk);
+    }
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
   	curl_easy_perform(curl);
     curl_free(uri);
     curl_easy_cleanup(curl);
     //printf("%zu bytes retrieved\n", chunk->size);
   }
+  if(save)
+    fclose(file);
   free(link);
   curl_global_cleanup();
 }

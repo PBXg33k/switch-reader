@@ -22,6 +22,7 @@ class GalleryBrowser {
 
     static void load_page(int page);
     static void load_urls(size_t page);
+    static void save_all_pages(std::string dir);
 
     static Handler on_event(int val);
 

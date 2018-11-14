@@ -261,6 +261,64 @@ void GalleryBrowser::load_urls(size_t page){
   delete index;
 }
 
+void GalleryBrowser::save_all_pages(std::string dir){
+  // Load all URLs
+  int url_page = 1;
+  while(active_gallery->pages.size() < active_gallery->total_pages){
+    load_urls(url_page);
+    url_page++;
+  }
+
+  for(int page = 0; page < active_gallery->pages.size(); page++){
+    // Update progress
+    int progress = ((float) page / (float) active_gallery->total_pages) * ((screen_width / 2) - 10);
+
+    Screen::clear(ThemeBG);
+    Screen::draw_text_centered("Downloading Gallery...", 0, (screen_height / 2) - 100, screen_width, 100, ThemeText, Screen::large);
+    Screen::draw_rect(screen_width / 4, screen_height / 2, screen_width / 2, 150, ThemePanelDark);
+    Screen::draw_rect(screen_width / 4 + 5, (screen_height / 2) + 5, progress, 140, ThemePanelLight);
+    Screen::render();
+
+    xmlChar *path;
+    xmlChar *keyword = NULL;
+    xmlXPathObjectPtr result;
+    xmlDocPtr doc;
+    xmlNodeSetPtr nodeset;
+
+    // Get html page
+    MemoryStruct* pageMem = new MemoryStruct();
+    ApiManager::get_res(pageMem, active_gallery->pages[page].c_str());
+
+    // If page failed to load, return failure image
+    if(pageMem->size == 0){
+      delete pageMem;
+      img_buffer[page]->texture = Screen::load_stored_texture(0);
+    }
+
+    doc = htmlReadMemory(pageMem->memory, pageMem->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+
+    // Get node list matching XPath for direct image url
+    path = (xmlChar*) imageXPath;
+    result = get_node_set(doc, path);
+    if(result){
+      nodeset = result->nodesetval;
+      keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
+    }
+
+    // Save image
+    if(keyword){
+      printf("Saving page %d\n", page);
+      ApiManager::get_res(NULL, (char*) keyword, 1, dir + "/page" + std::to_string(page) + ".jpg");
+    }
+
+    xmlFree(keyword);
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
+    delete pageMem;
+
+  }
+}
+
 void GalleryBrowser::render(){
   Screen::clear(ThemeBG);
   // Image (If loaded)

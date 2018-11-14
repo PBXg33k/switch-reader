@@ -1,3 +1,8 @@
+#include <iostream>
+#include <fstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "Preview.hpp"
 #include "Shared.hpp"
 #include "Gallery.hpp"
@@ -23,22 +28,33 @@ void GalleryPreview::set_touch(){
 
   // Load Gallery
   TouchManager::add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
+
+  // Download/Delete Gallery
+  TouchManager::add_bounds(screen_width-190, (screen_height/2) + 110, 180, 80, 111);
 }
 
 Handler GalleryPreview::on_event(int val){
-    if(val == 102){
-      printf("URL %s\n", entry->url.c_str());
-      ApiManager::cancel_all_requests();
-      GalleryBrowser::load_gallery(entry);
-      GalleryBrowser::set_touch();
-      return Handler::Gallery;
-    }
+  // Load Gallery
+  if(val == 102){
+    printf("URL %s\n", entry->url.c_str());
+    ApiManager::cancel_all_requests();
+    GalleryBrowser::load_gallery(entry);
+    GalleryBrowser::set_touch();
+    return Handler::Gallery;
+  }
 
-    if(val == 101){
-      return Handler::Browser;
-    }
+  // Download Gallery
+  if(val == 111){
+    printf("Downloading Gallery\n");
+    ApiManager::download_gallery(entry, nullptr);
+  }
 
-    return Handler::Preview;
+  // Exit to Browser
+  if(val == 101){
+    return Handler::Browser;
+  }
+
+  return Handler::Preview;
 }
 
 void render_tag(Tag tag){
@@ -65,6 +81,14 @@ void GalleryPreview::render(){
   // Load Gallery button
   Screen::draw_button(screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButton, ThemeButtonBorder, 4);
   Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
+
+  // Download/Delete Gallery button
+  Screen::draw_button(screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  if(entry->local)
+    Screen::draw_text_centered("Delete", screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButtonText, Screen::normal);
+  else
+    Screen::draw_text_centered("Download", screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButtonText, Screen::normal);
+
   // Back button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
 

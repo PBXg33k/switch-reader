@@ -73,6 +73,9 @@ Entry* Browser::new_entry(json_object* json, int num, std::string url)
   // Populate entry
   json = json_object_array_get_idx(json, num);
 
+  holder = get_json_obj(json, "gid");
+  entry->id = json_object_get_int(holder);
+
   holder = get_json_obj(json, "title");
   entry->title = json_object_get_string(holder);
 
