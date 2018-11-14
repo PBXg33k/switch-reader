@@ -5,6 +5,7 @@
 enum class Handler { Browser,
                      Search,
                      Gallery,
+                     Preview,
                      Settings };
 
 enum class Category : int { Doujinshi=1,

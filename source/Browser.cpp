@@ -4,7 +4,9 @@
 #include "Touch.hpp"
 #include "HSearch.hpp"
 #include "Gallery.hpp"
+#include "Preview.hpp"
 #include "Search.hpp"
+#include "Settings.hpp"
 #include <iostream>
 #include <math.h>
 
@@ -35,6 +37,8 @@ json_object* get_json_obj(json_object* root, const char* key)
 void Browser::set_touch(){
   TouchManager::clear();
 
+  // Settings
+  TouchManager::add_bounds(screen_width-190, (screen_height/2) + 110, 180, 80, 111);
   // Search
   TouchManager::add_bounds(screen_width-190, (screen_height/2) - 190, 180, 80, 110);
   // Load Gallery
@@ -138,6 +142,9 @@ void Browser::render(){
 
   // Clean background for buttons
   Screen::draw_rect(screen_width - 200, 0, 200, screen_height, ThemeBG);
+  // Settings button
+  Screen::draw_button(screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Settings", screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButtonText, Screen::normal);
   // Search button
   Screen::draw_button(screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButton, ThemeButtonBorder, 4);
   Screen::draw_text_centered("Search", screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButtonText, Screen::normal);
@@ -184,7 +191,7 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   
   Screen::draw_text((std::to_string(entry->pages) + " Pages").c_str(), x + maxw + 10, y + 65, ThemeText, Screen::normal);
 
-  Screen::draw_partial(x + maxw + 10, y + 95, entry->rating / (double) 5, 1, Screen::s_stars);
+  Screen::draw_partial(x + maxw + 10, y + 108, entry->rating / (double) 5, 1, Screen::s_stars);
 
   if(!entry->language.empty())
     Screen::draw_text(entry->language.c_str(), x + maxw + 10, y + (maxh - 24), ThemeText, Screen::normal);
@@ -203,9 +210,12 @@ Handler Browser::on_event(int val){
     Entry* entry = Browser::entries[active_gallery];
     printf("URL %s\n", entry->url.c_str());
     ApiManager::cancel_all_requests();
-    GalleryBrowser::load_gallery(entry);
-    GalleryBrowser::set_touch();
-    return Handler::Gallery;
+    GalleryPreview::load_gallery(entry);
+    GalleryPreview::set_touch();
+    return Handler::Preview;
+    // GalleryBrowser::load_gallery(entry);
+    // GalleryBrowser::set_touch();
+    // return Handler::Gallery;
   // Change to Search
   } else if (val == 110) {
     active_gallery = -1;
@@ -235,6 +245,9 @@ Handler Browser::on_event(int val){
       default:
         break;
     }
+  } else if (val == 111){
+    Settings::set_touch();
+    return Handler::Settings;
   } else if (val == 101){
     quit_app();
   }

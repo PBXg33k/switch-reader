@@ -7,9 +7,11 @@
 #include "Browser.hpp"
 #include "Touch.hpp"
 #include "Gallery.hpp"
+#include "Preview.hpp"
 #include "HSearch.hpp"
 #include "Search.hpp"
 #include "Config.hpp"
+#include "Settings.hpp"
 
 static SDL_Event* customEvent;
 static int state;
@@ -104,6 +106,12 @@ int main(int argc, char **argv)
         case Handler::Gallery:
           handler = GalleryBrowser::on_event(val);
           break;
+        case Handler::Settings:
+          handler = Settings::on_event(val);
+          break;
+        case Handler::Preview:
+          handler = GalleryPreview::on_event(val);
+          break;
         default:
           break;
       }
@@ -118,6 +126,12 @@ int main(int argc, char **argv)
           break;
         case Handler::Gallery:
           GalleryBrowser::render();
+          break;
+        case Handler::Settings:
+          Settings::render();
+          break;
+        case Handler::Preview:
+          GalleryPreview::render();
           break;
         default:
           break;

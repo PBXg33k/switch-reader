@@ -42,6 +42,8 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
 }
 
 void ApiManager::init(){
+  printf("Initializing API Manager...\n");
+
   socketInitializeDefault();
   curl_global_init(CURL_GLOBAL_ALL);
   // Declare static mutex
@@ -155,19 +157,22 @@ json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vecto
     snprintf(buffer, size + 1, temp, gids[c].c_str(), gtkns[c].c_str());
     gallery_list.append(buffer);
     gallery_list.append(",");
+    free(buffer);
   }
   gallery_list.resize(gallery_list.size() - 1);
 
   char* data = (char*)malloc((strlen(gallery_list.c_str()) + 64) * sizeof(char));
   sprintf(data, "{\"method\": \"gdata\",\"gidlist\": [%s],\"namespace\": 1}", gallery_list.c_str());
   printf("%s\n",data);
-  return ApiManager::post_api(data);
+  json_object* json = ApiManager::post_api(data);
+  free(data);
+  return json;
 }
 
 void ApiManager::get_res(MemoryStruct* chunk, std::string url)
 {
   CURL *curl;
-  const char *host = "http://35.205.50.155:5000/?url=";
+  const char *host = "http://35.189.200.42:5000/?url=";
 
   curl = curl_easy_init();
   char *uri = curl_easy_escape(curl, url.c_str(), strlen(url.c_str()));
@@ -188,6 +193,7 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url)
     curl_easy_cleanup(curl);
     //printf("%zu bytes retrieved\n", chunk->size);
   }
+  free(link);
   curl_global_cleanup();
 }
 
@@ -199,7 +205,7 @@ json_object* ApiManager::post_api(char* payload)
   curl = curl_easy_init();
 
   if(curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, "http://35.205.50.155:5000/");
+    curl_easy_setopt(curl, CURLOPT_URL, "http://35.189.200.42:5000/");
     //curl_easy_setopt(curl, CURLOPT_URL, "https://api.e-hentai.org/api.php");
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_POST, 1L);

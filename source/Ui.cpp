@@ -6,6 +6,8 @@ SDL_Texture* Screen::s_stars;
 
 void Screen::init()
 {
+  printf("Initalizing Screen...\n");
+
   SDL_Init(SDL_INIT_EVERYTHING);
   IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
   TTF_Init();
@@ -29,6 +31,8 @@ void Screen::init()
   Screen::renderer = SDL_CreateRenderer(window, -1, 0);
   Screen::surface = SDL_GetWindowSurface(Screen::window);
 
+  romfsInit();
+
   // Load perm images
   SDL_Surface* surf = IMG_Load("romfs:/failed.png");
   s_refresh = SDL_CreateTextureFromSurface(Screen::renderer, surf);
@@ -36,6 +40,8 @@ void Screen::init()
 
   surf = IMG_Load("romfs:/stars.png");
   s_stars = SDL_CreateTextureFromSurface(Screen::renderer, surf);
+
+  romfsExit();
 
   //Screen::draw_rect(0,0,1280,720,ThemeBG);
   //Screen::render();
@@ -183,7 +189,7 @@ void Screen::draw_partial(int x, int y, double percentW, double percentH, SDL_Te
     rect.x = 0;
     rect.y = 0;
     rect.w = percentW * w;
-    rect.h = percentH * w;
+    rect.h = percentH * h;
 
     pos.x = x;
     pos.y = y;
@@ -233,4 +239,34 @@ void Screen::draw_text(std::string text, int x, int y, SDL_Color color, TTF_Font
 
 void Screen::draw_text(std::string text, int x, int y, SDL_Color color) {
   draw_text_internal(text, x, y, color, normal);
+}
+
+void draw_circle(SDL_Point center, int radius, SDL_Color color)
+{
+    SDL_SetRenderDrawColor(Screen::renderer, color.r, color.g, color.b, color.a);
+    for (int w = 0; w < radius * 2; w++)
+    {
+        for (int h = 0; h < radius * 2; h++)
+        {
+            int dx = radius - w; // horizontal offset
+            int dy = radius - h; // vertical offset
+            if ((dx*dx + dy*dy) <= (radius * radius))
+            {
+                SDL_RenderDrawPoint(Screen::renderer, center.x + dx, center.y + dy);
+            }
+        }
+    }
+}
+
+void Screen::draw_pill(int x, int y, int w, int h, SDL_Color color){
+  // Make h have a center
+  if(h % 2 == 0)
+    h += 1;
+
+  int radius = h / 2;
+  Screen::draw_rect(x + radius, y, w - (radius * 2), h, color);
+
+  // Draw 2 circles
+  draw_circle({x + radius, h / 2}, radius, color);
+  draw_circle({x + w - radius, h / 2}, radius, color);
 }

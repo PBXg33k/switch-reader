@@ -68,7 +68,7 @@ int ConfigManager::init(){
   configFile.close();
   configFile.clear();
 
-  set_theme(stoi(get_value("theme")));
+  set_theme();
 
   return 0;
 }
@@ -109,7 +109,8 @@ std::string ConfigManager::get_value(std::string key){
   return NULL;
 }
 
-void ConfigManager::set_theme(int theme){
+void ConfigManager::set_theme(){
+  int theme = stoi(get_value("theme"));
   switch(theme){
     // Light
     case 0:
