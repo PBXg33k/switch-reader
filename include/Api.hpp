@@ -7,6 +7,7 @@
 #include <mutex>
 #include <switch.h>
 #include <SDL2/SDL.h>
+#include <iostream>
 
 struct MemoryStruct {
   char *memory;
@@ -27,6 +28,11 @@ struct Tag{
     category = c;
     tag = t;
   }
+
+  friend std::ostream& operator<<(std::ostream& os, const Tag& tag){
+    os << tag.category << ":" << tag.tag;
+    return os;
+  };
 };
 
 struct Resource{
@@ -70,6 +76,13 @@ struct Entry{
   ~Entry(){
     delete res;
   }
+
+  friend std::ostream& operator<<(std::ostream& os, const Entry& entry){
+    os << entry.title << "\n" << entry.category << "\n" << entry.pages << "\n";
+    for(auto tag : entry.tags)
+      os << tag << "\n";
+    return os;
+  };
 };
 
 class ApiManager {
@@ -81,11 +94,15 @@ class ApiManager {
     static void cleanup_resource(Resource* res);
     static void cancel_all_requests();
     static void request_res(Resource* res);
-		static void get_res(MemoryStruct* mem, std::string url, int save=0, std::string path = std::string());
-		static json_object* post_api(char* payload);
+		static void get_res(MemoryStruct* mem, std::string url, CURL* curl=ApiManager::handle, int save=0, std::string path = std::string());
+		static json_object* post_api(char* payload, std::string url = "https://api.e-hentai.org/api.php");
     static void download_gallery(Entry* entry, float* percent);
+
+    static void login(std::string username, std::string password);
 
     static const std::string gallery_template;
 
 		static json_object* get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns);
+    static CURL* thread_handle;
+    static CURL* handle;
 };

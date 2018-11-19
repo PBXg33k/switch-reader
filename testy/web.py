@@ -13,7 +13,13 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         # Send response status code
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query)
+        cookies = ""
 
+        # Copy cookies from client to server
+        if 'Cookie' in self.headers:
+          cookies = self.headers.get('Cookie')
+        else:
+          print("No cookies sent\n");
 
         self.send_response(200)
 
@@ -23,35 +29,57 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         # Send message back to client
         if(len(params) > 0):
-            file = self.get_res(unquote(params['url'][0]))
+            file = self.get_res(unquote(params['url'][0]), cookies)
             # Write content as utf-8 data
             self.wfile.write(file)
         return
 
+    # /?url=<formatted_url>
     def do_POST(self):
-        self.send_response(200)
+        parsed = urlparse(self.path)
+        params = parse_qs(parsed.query);
         self.data_string = self.rfile.read(int(self.headers['Content-Length']))
-        self.send_header('Content-type','text/html')
+        print(self.data_string)
+        payload = eval(self.data_string.decode("utf-8"))
+
+        # JSON requests don't need decoded, pass normally
+        if('method' in payload):
+          message, cookies = self.post(self.data_string, unquote(params['url'][0]))
+        else:
+          message, cookies = self.post(payload, unquote(params['url'][0]))
+
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        
+        # Copy cookie sets
+        for k, v in cookies.items():
+          self.send_header('Set-Cookie', "{}={}".format(k,v))
+
         self.end_headers()
-        # Send message back to client
-        message = self.post_api(self.data_string);
+
         # Write content as utf-8 data
         self.wfile.write(bytes(message, "utf8"))
 
-    def post_api(self, payload):
-        ua = UserAgent()
-        headers = {
-            'User-Agent': ua.random
-        }
-        r = requests.post("https://api.e-hentai.org/api.php", data=payload, headers=headers)
-        return r.text;
 
-    def get_res(self, url):
+    def post(self, payload, url):
         ua = UserAgent()
         headers = {
             'User-Agent': ua.random
         }
-        r = requests.get(url, allow_redirects=True, headers=headers)
+        s = requests.session()
+        r = s.post(url, data=payload, headers=headers) 
+        return r.text, s.cookies
+
+    def get_res(self, url, cookies):
+        ua = UserAgent()
+        headers = {
+            'User-Agent': ua.random
+        }
+        if len(cookies) > 0:
+          headers["Cookie"] = cookies
+
+        s = requests.session()
+        r = s.get(url, allow_redirects=True, headers=headers)
         return r.content
 
 

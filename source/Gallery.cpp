@@ -6,7 +6,6 @@
 #include "Browser.hpp"
 #include <cstdlib>
 
-
 #define pagesXPath "//a[starts-with(@href, 'https://e-hentai.org/s/')]"
 #define imageXPath "//img[@id='img']"
 
@@ -15,7 +14,6 @@ int GalleryBrowser::cur_page = 0;
 const int GalleryBrowser::buffer_size = 2; // 1 - 1 Page, 2 - 3 pages, 3 - 5 pages...
 std::vector<Resource*> GalleryBrowser::img_buffer;
 static int rotation = 0;
-
 
 void GalleryBrowser::close(){
   if(active_gallery){
@@ -31,6 +29,8 @@ void GalleryBrowser::close(){
 
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
+  printf("Loading Gallery %s\n", entry->url.c_str());
+
   rotation = atoi(ConfigManager::get_value("rotation").c_str());
 
   // Debug readout
@@ -54,7 +54,6 @@ void GalleryBrowser::load_gallery(Entry* entry){
   // Set current page to start of gallery
   cur_page = 0;
 }
-
 
 // Set up touch controls
 void GalleryBrowser::set_touch(){
@@ -82,9 +81,7 @@ void GalleryBrowser::set_touch(){
 }
 
 void GalleryBrowser::load_page(int page){
-
   Resource* res = img_buffer[page];
-
 
   // If resource already has a URL set, skip finding src, request immediately
   if(res->populated){
@@ -308,7 +305,7 @@ void GalleryBrowser::save_all_pages(std::string dir){
     // Save image
     if(keyword){
       printf("Saving page %d\n", page);
-      ApiManager::get_res(NULL, (char*) keyword, 1, dir + "/page" + std::to_string(page) + ".jpg");
+      ApiManager::get_res(NULL, (char*) keyword, ApiManager::handle, 1, dir + "/page" + std::to_string(page) + ".jpg");
     }
 
     xmlFree(keyword);

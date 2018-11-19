@@ -13,12 +13,16 @@
 
 static std::vector<std::pair<std::string, std::string>> configPairs;
 
-// Create default, clear pairs to check read back
-void create_config_default(){
+void load_defaults(){
   configPairs.push_back(std::make_pair("theme","1")); // 0 - Light, 1 - Dark
   configPairs.push_back(std::make_pair("rotation","0"));
   configPairs.push_back(std::make_pair("user", "NONE"));
   configPairs.push_back(std::make_pair("pass", "NONE"));
+}
+
+// Create default, clear pairs to check read back
+void create_config_default(){
+  load_defaults();
   ConfigManager::save();
   configPairs.clear();
 }
@@ -61,7 +65,8 @@ int ConfigManager::init(){
     }
   } else {
     // Failed to load config
-    printf("Failed to load config\n");
+    printf("Failed to load config, using defaults\n");
+    load_defaults();
     return 1;
   }
 
@@ -145,4 +150,13 @@ void ConfigManager::set_theme(){
     default:
       break;
   }
+}
+
+void ConfigManager::save_entry_info(Entry* entry){
+  std::string path = "/switch/Reader/" + std::to_string(entry->id) + "/info";
+  std::ofstream f;
+
+  f.open(path.c_str());
+  f << entry << std::endl;
+  f.close();
 }

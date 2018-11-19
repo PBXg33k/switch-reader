@@ -211,7 +211,6 @@ Handler Browser::on_event(int val){
   // Change to Gallery
   } else if(Browser::active_gallery >= 0 && val == 102){
     Entry* entry = Browser::entries[active_gallery];
-    printf("URL %s\n", entry->url.c_str());
     ApiManager::cancel_all_requests();
     GalleryPreview::load_gallery(entry);
     GalleryPreview::set_touch();

@@ -14,6 +14,12 @@
 #define listXPath "//div[@class='it5']/a"
 #define pagesXPath "//p[@class='ip']"
 
+struct ResultsList{
+  std::vector<std::string> gids;
+  std::vector<std::string> gtkns;
+  std::vector<std::string> urls;
+};
+
 xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath){
     xmlXPathContextPtr context;
     xmlXPathObjectPtr result;
@@ -61,32 +67,16 @@ void HSearch::fill_tags(Entry* entry, json_object* json){
   }
 }
 
-void HSearch::expand_search(std::string completeURL, int page){
+ResultsList parse_page(MemoryStruct* pageMem, std::string completeURL){
   xmlChar *path;
   xmlChar *url;
   xmlDocPtr doc;
   xmlXPathObjectPtr results;
   xmlNodeSetPtr nodeset;
   std::vector<std::string> idMatches;
-
-  std::vector<std::string> gids;
-  std::vector<std::string> gtkns;
-  std::vector<std::string> urls;
-
+  int resultsNum = 0;
   std::regex idPattern(idRegex);
-
-  completeURL += "&page=" + std::to_string(page);
-
-
-  // Get html page
-  MemoryStruct* pageMem = new MemoryStruct();
-  ApiManager::get_res(pageMem, completeURL.c_str());
-
-  // Search failed, return empty handed
-  if(pageMem->size == 0){
-    delete pageMem;
-    return;
-  }
+  ResultsList rList;
 
   doc = htmlReadMemory(pageMem->memory, pageMem->size, completeURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
@@ -101,25 +91,64 @@ void HSearch::expand_search(std::string completeURL, int page){
     {
       // Get URL from Href
       url = xmlGetProp(nodeset->nodeTab[c], (xmlChar*) "href");
-      urls.push_back((char*)url);
+      rList.urls.push_back((char*)url);
       // Grab GID and GTokens from URL (Used for API call)
       idMatches = RegexHelper::search(idPattern, (char*)url);
-      gids.push_back(idMatches[4].substr(1));
-      gtkns.push_back(idMatches[5].substr(1));
+      rList.gids.push_back(idMatches[4].substr(1));
+      rList.gtkns.push_back(idMatches[5].substr(1));
       xmlFree(url);
     }
+  }
+
+  path = (xmlChar*) pagesXPath;
+  results = get_node_set(doc, path);
+  if(results){
+    nodeset = results->nodesetval;
+    xmlChar* pagesStr = xmlNodeListGetString(doc, nodeset->nodeTab[0]->xmlChildrenNode, 1);
+    std::string content = (char*) pagesStr;
+    // Remove commas, take last word/num
+    content.erase(std::remove(content.begin(), content.end(), ','), content.end());
+    content = content.substr(content.rfind(' ') + 1);
+
+    resultsNum = atoi(content.c_str());
+    std::cout << resultsNum << std::endl;
+    Browser::numOfResults = resultsNum;
+  } else {
+    Browser::numOfResults = 0;
   }
 
   // Free up page memory
   xmlFreeDoc(doc);
   xmlCleanupParser();
+
+  return rList;
+}
+
+void HSearch::expand_search(std::string completeURL, int page){
+
+  // Add page num
+  completeURL += "&page=" + std::to_string(page);
+
+
+  // Get html page
+  MemoryStruct* pageMem = new MemoryStruct();
+  ApiManager::get_res(pageMem, completeURL.c_str());
+
+  // Search failed, return empty handed
+  if(pageMem->size == 0){
+    delete pageMem;
+    return;
+  }
+
+  ResultsList rList = parse_page(pageMem, completeURL);
+
   delete pageMem;
 
   // Nothing found, return empty handed
-  if(gids.empty())
+  if(rList.gids.empty())
     return;
 
-  json_object* json = ApiManager::get_galleries(gids, gtkns);
+  json_object* json = ApiManager::get_galleries(rList.gids, rList.gtkns);
   json = get_json_obj2(json, "gmetadata");
 
   // API Call failed, return empty handed
@@ -128,28 +157,13 @@ void HSearch::expand_search(std::string completeURL, int page){
   }
 
   // Push all results to Browser entries
-  for(size_t c = 0; c < gids.size(); c++){
-    Entry* e = Browser::new_entry(json, c, urls[c]);
+  for(size_t c = 0; c < rList.gids.size(); c++){
+    Entry* e = Browser::new_entry(json, c, rList.urls[c]);
     fill_tags(e, json_object_array_get_idx(json, c));
   }
 }
 
 void HSearch::search_keywords(std::string keywords, size_t maxResults, int categories){
-
-  xmlChar *path;
-  xmlChar *url;
-  xmlDocPtr doc;
-  xmlXPathObjectPtr results;
-  xmlNodeSetPtr nodeset;
-  std::vector<std::string> idMatches;
-  int resultsNum = 0;
-
-  std::vector<std::string> gids;
-  std::vector<std::string> gtkns;
-  std::vector<std::string> urls;
-
-  std::regex idPattern(idRegex);
-
   // Build url
   std::string completeURL = searchURL;
   char* safeKeywords;
@@ -192,55 +206,11 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
     return;
   }
 
-  doc = htmlReadMemory(pageMem->memory, pageMem->size, completeURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+  ResultsList rList = parse_page(pageMem, completeURL);
 
-  // Find each gallerys URL in page
-  path = (xmlChar*) listXPath;
-  results = get_node_set(doc, path);
-  if(results){
-    nodeset = results->nodesetval;
-    printf("Matched %d results\n", nodeset->nodeNr);
-    // Push each gallery link found onto stack
-    for(int c = 0; c < nodeset->nodeNr; c++)
-    {
-      // Get URL from Href
-      url = xmlGetProp(nodeset->nodeTab[c], (xmlChar*) "href");
-      urls.push_back((char*)url);
-      // Grab GID and GTokens from URL (Used for API call)
-      idMatches = RegexHelper::search(idPattern, (char*)url);
-      gids.push_back(idMatches[4].substr(1));
-      gtkns.push_back(idMatches[5].substr(1));
-      xmlFree(url);
-    }
-  }
-
-  path = (xmlChar*) pagesXPath;
-  results = get_node_set(doc, path);
-  if(results){
-    nodeset = results->nodesetval;
-    xmlChar* pagesStr = xmlNodeListGetString(doc, nodeset->nodeTab[0]->xmlChildrenNode, 1);
-    std::string content = (char*) pagesStr;
-    // Remove commas, take last word/num
-    content.erase(std::remove(content.begin(), content.end(), ','), content.end());
-    content = content.substr(content.rfind(' ') + 1);
-
-    resultsNum = atoi(content.c_str());
-    std::cout << resultsNum << std::endl;
-    Browser::numOfResults = resultsNum;
-  } else {
-    Browser::numOfResults = 0;
-  }
-
-  // Free up page memory
-  xmlFreeDoc(doc);
-  xmlCleanupParser();
   delete pageMem;
 
-  // Nothing found, return empty handed
-  if(gids.empty())
-    return;
-
-  json_object* json = ApiManager::get_galleries(gids, gtkns);
+  json_object* json = ApiManager::get_galleries(rList.gids, rList.gtkns);
   json = get_json_obj2(json, "gmetadata");
 
   // API Call failed, return empty handed
@@ -249,8 +219,8 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
   }
 
   // Push all results to Browser entries
-  for(size_t c = 0; c < gids.size(); c++){
-    Entry* e = Browser::new_entry(json, c, urls[c]);
+  for(size_t c = 0; c < rList.gids.size(); c++){
+    Entry* e = Browser::new_entry(json, c, rList.urls[c]);
     fill_tags(e, json_object_array_get_idx(json, c));
   }
 
@@ -261,4 +231,8 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
 std::vector<std::pair<std::string,std::string>> HSearch::get_tags(json_object* json){
   std::vector<std::pair<std::string,std::string>> tagPairs;
   return tagPairs;
+}
+
+void HSearch::search_favourites(size_t maxResults){
+
 }

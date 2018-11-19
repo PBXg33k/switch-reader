@@ -36,7 +36,6 @@ void GalleryPreview::set_touch(){
 Handler GalleryPreview::on_event(int val){
   // Load Gallery
   if(val == 102){
-    printf("URL %s\n", entry->url.c_str());
     ApiManager::cancel_all_requests();
     GalleryBrowser::load_gallery(entry);
     GalleryBrowser::set_touch();

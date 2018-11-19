@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "Browser.hpp"
 
 class ConfigManager {
   public:
@@ -9,4 +10,7 @@ class ConfigManager {
     static void set_pair(std::string key, std::string pair);
     static std::string get_value(std::string key);
     static void set_theme();
+
+    static void save_entry_info(Entry* entry);
+    static void load_entry(Entry* entry);
 };
