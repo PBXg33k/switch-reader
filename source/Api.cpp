@@ -293,7 +293,6 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
 
   	curl_easy_perform(curl);
 
-    printf("PERFORMED\n");
     curl_free(uri);
     curl_easy_reset(curl);
   }

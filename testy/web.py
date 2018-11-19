@@ -18,6 +18,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         # Copy cookies from client to server
         if 'Cookie' in self.headers:
           cookies = self.headers.get('Cookie')
+          print("Got cookies {}\n".format(cookies));
         else:
           print("No cookies sent\n");
 
@@ -25,12 +26,18 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
 
         # Send headers
         self.send_header('Content-type','image/jpg')
-        self.end_headers()
 
         # Send message back to client
         if(len(params) > 0):
-            file = self.get_res(unquote(params['url'][0]), cookies)
+            file, cookies = self.get_res(unquote(params['url'][0]), cookies)
             # Write content as utf-8 data
+
+            # Copy cookie sets
+            for k, v in cookies.items():
+              self.send_header('Set-Cookie', "{}={}".format(k,v))
+
+            self.end_headers()
+
             self.wfile.write(file)
         return
 
@@ -78,9 +85,11 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         if len(cookies) > 0:
           headers["Cookie"] = cookies
 
+        print("Headers \n{}\n".format(headers))
+
         s = requests.session()
         r = s.get(url, allow_redirects=True, headers=headers)
-        return r.content
+        return r.content, s.cookies
 
 
 def run():

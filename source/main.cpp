@@ -58,10 +58,6 @@ int main(int argc, char **argv)
   unsigned int last_time = 0, current_time;
 
   HSearch::search_keywords("", 25, (int)Category::NonH);
-  MemoryStruct* test = new MemoryStruct;
-  ApiManager::get_res(test, "https://ehgt.org/40/a6/40a674504b0da1309d02b46afca444900cf38909-1861673-2148-3037-jpg_l.jpg");
-  printf("Test worked\n");
-  delete test;
 
   state = 1;
 

@@ -29,6 +29,7 @@ class Browser {
     static float scroll_pos;
     static int active_gallery;
     static std::vector<Entry*> entries;
+    static int loadedPages;
   private:
     static void load_urls();
 };

@@ -38,6 +38,24 @@ json_object* get_json_obj2(json_object* root, const char* key)
   return NULL;
 }
 
+void HSearch::json_entries(std::vector<std::string> gids, std::vector<std::string> gtkns, std::vector<std::string> urls){
+  json_object* json = ApiManager::get_galleries(gids, gtkns);
+  json = get_json_obj2(json, "gmetadata");
+
+  // API Call failed, return empty handed
+  if(json == NULL){
+    return;
+  }
+
+  // Push all results to Browser entries
+  for(size_t c = 0; c < gids.size(); c++){
+    Entry* e = Browser::new_entry(json, c, urls[c]);
+    fill_tags(e, json_object_array_get_idx(json, c));
+  }
+
+  json_object_put(json);
+} 
+
 void HSearch::fill_tags(Entry* entry, json_object* json){
   json_object* holder;
   int numOfTags;
@@ -80,6 +98,9 @@ ResultsList parse_page(MemoryStruct* pageMem, std::string completeURL){
 
   doc = htmlReadMemory(pageMem->memory, pageMem->size, completeURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
+  printf("Loaded as html\n");
+
+
   // Find each gallerys URL in page
   path = (xmlChar*) listXPath;
   results = get_node_set(doc, path);
@@ -100,6 +121,8 @@ ResultsList parse_page(MemoryStruct* pageMem, std::string completeURL){
     }
   }
 
+  printf("Checking for page results\n");
+
   path = (xmlChar*) pagesXPath;
   results = get_node_set(doc, path);
   if(results){
@@ -111,7 +134,7 @@ ResultsList parse_page(MemoryStruct* pageMem, std::string completeURL){
     content = content.substr(content.rfind(' ') + 1);
 
     resultsNum = atoi(content.c_str());
-    std::cout << resultsNum << std::endl;
+    printf("Results found : %d\n", resultsNum);
     Browser::numOfResults = resultsNum;
   } else {
     Browser::numOfResults = 0;
@@ -144,23 +167,11 @@ void HSearch::expand_search(std::string completeURL, int page){
 
   delete pageMem;
 
-  // Nothing found, return empty handed
+  // Nothing found, return emptypageMem handed
   if(rList.gids.empty())
     return;
 
-  json_object* json = ApiManager::get_galleries(rList.gids, rList.gtkns);
-  json = get_json_obj2(json, "gmetadata");
-
-  // API Call failed, return empty handed
-  if(json == NULL){
-    return;
-  }
-
-  // Push all results to Browser entries
-  for(size_t c = 0; c < rList.gids.size(); c++){
-    Entry* e = Browser::new_entry(json, c, rList.urls[c]);
-    fill_tags(e, json_object_array_get_idx(json, c));
-  }
+  json_entries(rList.gids, rList.gtkns, rList.urls);
 }
 
 void HSearch::search_keywords(std::string keywords, size_t maxResults, int categories){
@@ -193,6 +204,7 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
 
   printf("Search URL : %s\n", completeURL.c_str());
   Browser::currentUrl = completeURL;
+  Browser::loadedPages = 0;
 
   curl_easy_cleanup(curl);
 
@@ -206,26 +218,13 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
     return;
   }
 
+
+
   ResultsList rList = parse_page(pageMem, completeURL);
 
   delete pageMem;
 
-  json_object* json = ApiManager::get_galleries(rList.gids, rList.gtkns);
-  json = get_json_obj2(json, "gmetadata");
-
-  // API Call failed, return empty handed
-  if(json == NULL){
-    return;
-  }
-
-  // Push all results to Browser entries
-  for(size_t c = 0; c < rList.gids.size(); c++){
-    Entry* e = Browser::new_entry(json, c, rList.urls[c]);
-    fill_tags(e, json_object_array_get_idx(json, c));
-  }
-
-  // Unmark as in use IMPORTANT
-  json_object_put(json);
+  json_entries(rList.gids, rList.gtkns, rList.urls);
 }
 
 std::vector<std::pair<std::string,std::string>> HSearch::get_tags(json_object* json){
@@ -233,6 +232,48 @@ std::vector<std::pair<std::string,std::string>> HSearch::get_tags(json_object* j
   return tagPairs;
 }
 
-void HSearch::search_favourites(size_t maxResults){
+void HSearch::search_favourites(){
+  std::string completeURL = "https://e-hentai.org/favorites.php";
 
+  // Generate s cookie
+  MemoryStruct* pageMem = new MemoryStruct();
+  ApiManager::get_res(pageMem, completeURL.c_str());
+  delete pageMem;
+
+  // The real request
+  pageMem = new MemoryStruct();
+  ApiManager::get_res(pageMem, completeURL.c_str());
+
+  // Search failed, return empty handed
+  if(pageMem->size == 0){
+    delete pageMem;
+    return;
+  }
+
+  printf("Loaded Favourites\n");
+
+  ResultsList rList = parse_page(pageMem, completeURL);
+
+  delete pageMem;
+
+  Browser::currentUrl = completeURL;
+  Browser::loadedPages = 0;
+
+  if(rList.gids.size() > 25){
+    printf("Making subvectors\n");
+    std::vector<std::string> subGids(rList.gids.begin(), rList.gids.begin() + 24);
+    std::vector<std::string> subGtkns(rList.gtkns.begin(), rList.gtkns.begin() + 24);
+    std::vector<std::string> subUrls(rList.urls.begin(), rList.urls.begin() + 24);
+    printf("Subs made\n");
+
+    json_entries(subGids, subGtkns, subUrls);
+
+    std::vector<std::string> subGids2(rList.gids.begin() + 25, rList.gids.end());
+    std::vector<std::string> subGtkns2(rList.gtkns.begin() + 25, rList.gtkns.end());
+    std::vector<std::string> subUrls2(rList.urls.begin() + 25, rList.urls.end()); 
+
+    json_entries(subGids2, subGtkns2, subUrls2);
+  } else {
+    json_entries(rList.gids, rList.gtkns, rList.urls);
+  }
 }

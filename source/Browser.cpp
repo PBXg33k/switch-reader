@@ -13,6 +13,7 @@
 int Browser::active_gallery = -1;
 std::string Browser::currentUrl;
 int Browser::numOfResults = 0;
+int Browser::loadedPages = 0;
 float Browser::scroll_pos = 0;
 std::vector<Entry*> Browser::entries = std::vector<Entry*>();
 
@@ -38,11 +39,13 @@ void Browser::set_touch(){
   TouchManager::clear();
 
   // Settings
-  TouchManager::add_bounds(screen_width-190, (screen_height/2) + 110, 180, 80, 111);
+  TouchManager::add_bounds(screen_width-190, (screen_height/2) + 140, 180, 80, 111);
   // Search
   TouchManager::add_bounds(screen_width-190, (screen_height/2) - 190, 180, 80, 110);
   // Load Gallery
   TouchManager::add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
+  // Favourites
+  TouchManager::add_bounds(screen_width-190, (screen_height/2) + 50, 180, 80, 115);
   // Quit app
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
   // Stop pressing in button backgrounds
@@ -78,6 +81,8 @@ Entry* Browser::new_entry(json_object* json, int num, std::string url)
 
   holder = get_json_obj(json, "title");
   entry->title = json_object_get_string(holder);
+
+  printf("Adding Entry %s\n", entry->title.c_str());
 
   holder = get_json_obj(json, "category");
   entry->category = json_object_get_string(holder);
@@ -146,14 +151,17 @@ void Browser::render(){
   // Clean background for buttons
   Screen::draw_rect(screen_width - 200, 0, 200, screen_height, ThemeBG);
   // Settings button
-  Screen::draw_button(screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButton, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Settings", screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButtonText, Screen::normal);
+  Screen::draw_button(screen_width-190, (screen_height/2) + 140, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Settings", screen_width-190, (screen_height/2) + 140, 180, 80, ThemeButtonText, Screen::normal);
   // Search button
   Screen::draw_button(screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButton, ThemeButtonBorder, 4);
   Screen::draw_text_centered("Search", screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButtonText, Screen::normal);
   // Load Gallery button
   Screen::draw_button(screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButton, ThemeButtonBorder, 4);
   Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
+  // Favourites button
+  Screen::draw_button(screen_width-190, (screen_height/2) + 50, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Favourites", screen_width-190, (screen_height/2) + 50, 180, 80, ThemeButtonText, Screen::normal);
   // Quit button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
 }
@@ -223,6 +231,13 @@ Handler Browser::on_event(int val){
     active_gallery = -1;
     SearchBrowser::set_touch();
     return Handler::Search;
+  // Favourites
+  } else if (val == 115){
+    active_gallery = -1;
+    scroll_pos = 0;
+    ApiManager::cancel_all_requests();
+    clear();
+    HSearch::search_favourites();
   // Gallery selection
   } else if (val >= 120 && val < 130 && active_gallery >= 0){
     // O - Up, clockwise rot
@@ -307,7 +322,7 @@ void Browser::scroll(float dx){
 
 void Browser::load_urls(){
   if(entries.size() < (size_t) numOfResults){
-    int page = entries.size() / 25;
-    HSearch::expand_search(currentUrl, page);
+    loadedPages++;
+    HSearch::expand_search(currentUrl, loadedPages);
   }
 }
