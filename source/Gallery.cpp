@@ -216,7 +216,6 @@ Handler GalleryBrowser::on_event(int val){
   return Handler::Gallery;
 }
 
-
 xmlXPathObjectPtr GalleryBrowser::get_node_set(xmlDocPtr doc, xmlChar *xpath){
     xmlXPathContextPtr context;
     xmlXPathObjectPtr result;

@@ -28,9 +28,7 @@ int main(int argc, char **argv)
   Screen::init();
   ApiManager::init();
 
-  nxlinkStdio();
-
-  ApiManager::login("colin969", "madmad");
+  //ApiManager::login("colin969", "madmad");
 
   ConfigManager::init();
   ConfigManager::save();
@@ -138,10 +136,6 @@ int main(int argc, char **argv)
         default:
           break;
       }
-
-      uint64_t memoryUsed = 0;
-      svcGetInfo(&memoryUsed, 7, 0xffff8001, 0);
-      Screen::draw_text_centered(std::to_string(memoryUsed), screen_width / 2, screen_height - 30, 400, 30, ThemeText, Screen::gallery_info);
 
       // Check for image thread updates
       ApiManager::update();

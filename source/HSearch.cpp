@@ -8,7 +8,6 @@
 #include "RegexHelper.hpp"
 #include "Api.hpp"
 
-#define searchURL "https://e-hentai.org/"
 #define apiURL "https://g.e-hentai.org/api.php"
 #define idRegex "(.+?)(?=\\/)"
 #define listXPath "//div[@class='it5']/a"
@@ -191,8 +190,9 @@ void HSearch::expand_search(std::string completeURL, int page){
 
 void HSearch::search_keywords(std::string keywords, size_t maxResults, int categories){
   // Build url
-  std::string completeURL = searchURL;
+  std::string completeURL = SearchURL;
   char* safeKeywords;
+  Browser::numOfResults = 0;
 
   // Add selected categories to url using flags
   if (categories & (int) Category::Doujinshi) completeURL.append("?f_doujinshi=1"); else completeURL.append("?f_doujinshi=0");
@@ -248,7 +248,8 @@ std::vector<std::pair<std::string,std::string>> HSearch::get_tags(json_object* j
 }
 
 void HSearch::search_favourites(){
-  std::string completeURL = "https://e-hentai.org/favorites.php";
+  std::string completeURL = FavouritesURL;
+  Browser::numOfResults = 0;
 
   // Generate s cookie
   MemoryStruct* pageMem = new MemoryStruct();

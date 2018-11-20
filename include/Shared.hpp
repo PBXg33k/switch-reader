@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include <string>
 
 enum class Handler { Browser,
                      Search,
@@ -18,7 +19,11 @@ enum class Category : int { Doujinshi=1,
                       Cosplay=128,
                       AsianPorn=256,
                       Misc=512 };
-                      
+
+extern std::string SearchURL;
+extern std::string ApiURL;
+extern std::string FavouritesURL;
+
 extern SDL_Color ThemeBG;
 extern SDL_Color ThemeButton;
 extern SDL_Color ThemeButtonQuit;

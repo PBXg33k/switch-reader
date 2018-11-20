@@ -19,6 +19,7 @@ void load_defaults(){
   configPairs.insert(std::make_pair("rotation","0"));
   configPairs.insert(std::make_pair("user", "NONE"));
   configPairs.insert(std::make_pair("pass", "NONE"));
+  configPairs.insert(std::make_pair("mode", "E-hentai"));
 }
 
 // Create default, clear pairs to check read back

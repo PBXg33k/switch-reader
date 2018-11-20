@@ -1,5 +1,9 @@
 #include "Shared.hpp"
 
+std::string SearchURL = "https://e-hentai.org/";
+std::string FavouritesURL = "https://e-hentai.org/favorites.php";
+std::string ApiURL = "https://api.e-hentai.org/api.php";
+
 SDL_Color COLOR_WHITE = {255,255,255};
 SDL_Color COLOR_BLACK = {0,0,0};
 SDL_Color COLOR_LIGHTGRAY = {50,50,50};

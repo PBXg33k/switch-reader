@@ -24,7 +24,7 @@ class ApiManager {
     static void cancel_all_requests();
     static void request_res(Resource* res);
 		static void get_res(MemoryStruct* mem, std::string url, CURL* curl=ApiManager::handle, int save=0, std::string path = std::string());
-		static json_object* post_api(char* payload, std::string url = "https://api.e-hentai.org/api.php");
+		static json_object* post_api(char* payload, std::string url);
     static void download_gallery(Entry* entry, float* percent);
 
     static void login(std::string username, std::string password);

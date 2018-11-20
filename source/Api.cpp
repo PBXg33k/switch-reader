@@ -3,6 +3,7 @@
 #include "Ui.hpp"
 #include "Gallery.hpp"
 #include "Config.hpp"
+#include "Shared.hpp"
 
 #include <iostream>
 #include <cstring>
@@ -62,9 +63,11 @@ static void unlock_cb(CURL* curl, curl_lock_data data, void *userptr){
 }
 
 void ApiManager::init(){
-  printf("Initializing API Manager...\n");
 
   socketInitializeDefault();
+  nxlinkStdio();
+
+  printf("Initializing API Manager...\n");
   curl_global_init(CURL_GLOBAL_ALL);
   // Declare static mutex
   mutexInit(mutex);
@@ -82,12 +85,30 @@ void ApiManager::init(){
   curl_easy_setopt(handle, CURLOPT_SHARE, shared);
   curl_easy_setopt(thread_handle, CURLOPT_SHARE, shared);
 
-  curl_easy_setopt(handle, CURLOPT_COOKIEJAR, "/switch/Reader/cookies");
-  curl_easy_setopt(handle, CURLOPT_COOKIEFILE, "/switch/Reader/cookies");
+  curl_easy_setopt(handle, CURLOPT_COOKIEFILE, "cookies");
+  curl_easy_setopt(handle, CURLOPT_COOKIELIST, "RELOAD");
+  curl_easy_perform(handle);
+  curl_easy_reset(handle);
+
+  printf("Loaded Cookies\n");
+  struct curl_slist *cookies;
+  curl_easy_getinfo(handle, CURLINFO_COOKIELIST, &cookies);
+  while(cookies != nullptr){
+    printf("%s\n", cookies->data);
+    cookies = cookies->next;
+  }
+  curl_slist_free_all(cookies);
 
 }
 
 void ApiManager::close(){
+  curl_easy_setopt(handle, CURLOPT_COOKIEJAR, "cookies");
+  curl_easy_setopt(handle, CURLOPT_COOKIELIST, "FLUSH");
+  curl_easy_perform(handle);
+  
+  curl_easy_cleanup(handle);
+  curl_easy_cleanup(thread_handle);
+  curl_share_cleanup(shared);
   curl_global_cleanup();
   socketExit();
 }
@@ -139,6 +160,7 @@ void ApiManager::login(std::string username, std::string password){
     // Cookies
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
+    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 
   	curl_easy_perform(curl);
     curl_easy_reset(curl);
@@ -245,6 +267,9 @@ json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vecto
 
   printf("Making string\n");
 
+  if(gids.size() == 0)
+    return NULL;
+
   for(size_t c = 0; c < gids.size(); c++){
     size = snprintf(NULL, 0, temp, gids[c].c_str(), gtkns[c].c_str());
     buffer = (char*) malloc(size + 1);
@@ -253,12 +278,13 @@ json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vecto
     gallery_list.append(",");
     free(buffer);
   }
+
   gallery_list.resize(gallery_list.size() - 1);
 
   char* data = (char*)malloc((strlen(gallery_list.c_str()) + 64) * sizeof(char));
   sprintf(data, "{\"method\": \"gdata\",\"gidlist\": [%s],\"namespace\": 1}", gallery_list.c_str());
   printf("%s\n",data);
-  json_object* json = ApiManager::post_api(data);
+  json_object* json = ApiManager::post_api(data, ApiURL);
   free(data);
   return json;
 }
@@ -284,7 +310,7 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
     printf("Getting Link - %s\n", link);
 
     // Cookies
-    curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "/switch/Reader/cookies");
+    //curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "/switch/Reader/cookies");
 
     // Check if saving locally or to memory
     if(save){
@@ -293,6 +319,7 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
     } else {
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) chunk);
+      //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
     }
 
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
@@ -332,6 +359,7 @@ json_object* ApiManager::post_api(char* payload, std::string url)
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
   	curl_easy_perform(curl);
     curl_easy_cleanup(curl);
     // Mark json as in use - caller must put later
