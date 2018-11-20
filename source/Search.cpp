@@ -1,4 +1,5 @@
 #include "Search.hpp"
+#include "Keyboard.hpp"
 #include "Ui.hpp"
 #include "Touch.hpp"
 #include "HSearch.hpp"
@@ -16,48 +17,14 @@ int SearchBrowser::caps_lock = 0;
 std::string SearchBrowser::search_str;
 int SearchBrowser::search_flags = (int)Category::NonH;
 
-std::vector<char> alphabet = { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '=', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.' };
-std::vector<char> altAlphabet = { '!', '"', '#', '$', '%', '^', '&', '*', '(', ')', '+', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>' };
-
 void SearchBrowser::set_touch(){
-  int letter = 0;
-  int i;
-
   TouchManager::clear();
-
-  // Number row
-  for(i = 0; i < 11; i++){
-    TouchManager::add_bounds(keyboard_x + (i * (box_size + gap)), keyboard_y - 4*(box_size + gap), box_size, box_size, letter);
-    letter++;
-  }
-
-  // Top row
-  for(i = 0; i < 10; i++){
-    TouchManager::add_bounds(keyboard_x + (box_size / 2) + (i * (box_size + gap)), keyboard_y - 3*(box_size + gap), box_size, box_size, letter);
-    letter++;
-  }
-
-  // Middle row
-  for(i = 0; i < 9; i++){
-    TouchManager::add_bounds(keyboard_x + box_size + ((box_size + gap) * i), keyboard_y - 2*(box_size + gap), box_size, box_size, letter);
-    letter++;
-  }
-
-  // Bottom row
-  for(i = 0; i < 9; i++){
-    TouchManager::add_bounds(keyboard_x + (box_size*1.5) + ((box_size + gap) * i), keyboard_y - (box_size + gap), box_size, box_size, letter);
-    letter++;
-  }
-  // Backspace
-  TouchManager::add_bounds(1280 - (40 + (box_size*2)), (screen_height - (40 + 4*(box_size + gap))), box_size * 2, box_size, 40);
-  // Caps Lock
-  TouchManager::add_bounds(1280 - (40 + (box_size*2)), (screen_height - (40 + 3*(box_size + gap))), box_size * 2, box_size, 41);
-  // Space
-  TouchManager::add_bounds(1280 - (40 + (box_size*2)), (screen_height - (40 + 2*(box_size + gap))), box_size * 2, box_size, 42);
 
   // Return to Browser
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
 
+  // Open Text Entry
+  TouchManager::add_bounds(keyboard_x, 60, 680, 100, 102);
 
   // All 10 Categorys
   TouchManager::add_bounds(keyboard_x + 680 + 30, 10, 200, 50, 50);
@@ -84,33 +51,6 @@ void SearchBrowser::set_touch(){
 
 Handler SearchBrowser::on_event(int val){
 
-  // Number row, A-Z and , and .
-  if(val >= 0 && val < 40){
-    if(caps_lock)
-      search_str.append(std::string(1,altAlphabet[val]));
-    else
-      search_str.append(std::string(1,alphabet[val]));
-  }
-
-  // Special characters
-  switch(val){
-    // Backspace
-    case 40:
-      if(!search_str.empty())
-        search_str.resize(search_str.size() - 1);
-      break;
-    // Caps lock
-    case 41:
-      caps_lock = !caps_lock;
-      break;
-    // Space
-    case 42:
-      search_str.append(" ");
-      break;
-    default:
-      break;
-  }
-
   // > 50 leaves 40-49 for special characters, if desired later
   if(val >= 50 && val < 60){
     int flag = (int)(pow(2, val%50));
@@ -131,62 +71,30 @@ Handler SearchBrowser::on_event(int val){
     Browser::set_touch();
     return Handler::Browser;
   }
+
+  // Open keyboard
+  if(val == 102){
+    Keyboard::setup(Handler::Search, search_str);
+    Keyboard::set_touch();
+    return Handler::Keyboard;
+  }
+
+  // Returned from Keyboard
+  if(val == Shared::KeyboardReturn){
+    set_touch();
+    search_str = Keyboard::text;
+  }
+
   return Handler::Search;
 }
 
 void SearchBrowser::render(){
   Screen::clear(ThemeBG);
-  int i;
-  int letter = 0;
-  std::vector<char> alpha = alphabet;
-  if(caps_lock)
-    alpha = altAlphabet;
-
-  // Number row keys
-  for(i = 0; i < 11; i++){
-    Screen::draw_button(keyboard_x + (i * (box_size + gap)), keyboard_y - 4*(box_size + gap), box_size, box_size, ThemeButton, ThemeButtonBorder, 5);
-    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + (i * (box_size + gap)), keyboard_y - 4*(box_size + gap), box_size, box_size, ThemeButtonText, Screen::normal);
-    letter++;
-  }
-
-  // Top row keys
-  for(i = 0; i < 10; i++){
-    Screen::draw_button(keyboard_x + (box_size / 2) + (i * (box_size + gap)), keyboard_y - 3*(box_size + gap), box_size, box_size, ThemeButton, ThemeButtonBorder, 5);
-    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + (box_size / 2) + (i * (box_size + gap)), keyboard_y - 3*(box_size + gap), box_size, box_size, ThemeButtonText, Screen::normal);
-    letter++;
-  }
-
-  // Middle row
-  for(i = 0; i < 9; i++){
-    Screen::draw_button(keyboard_x + box_size + ((box_size + gap) * i), keyboard_y - 2*(box_size + gap), box_size, box_size, ThemeButton, ThemeButtonBorder, 5);
-    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + box_size + ((box_size + gap) * i), keyboard_y - 2*(box_size + gap), box_size, box_size, ThemeButtonText, Screen::normal);
-    letter++;
-  }
-
-  // Bottom row
-  for(i = 0; i < 9; i++){
-    Screen::draw_button(keyboard_x + (box_size*1.5) + ((box_size + gap) * i), keyboard_y - (box_size + gap), box_size, box_size, ThemeButton, ThemeButtonBorder, 5);
-    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + (box_size*1.5) + ((box_size + gap) * i), keyboard_y - (box_size + gap), box_size, box_size, ThemeButtonText, Screen::normal);
-    letter++;
-  }
-  // Backspace
-  Screen::draw_button(1280 - (40 + (box_size*2)), (screen_height - (40 + 4*(box_size + gap))), box_size * 2, box_size, ThemeButton, ThemeButtonBorder, 5);
-  Screen::draw_text_centered("Backspace", 1280 - (40 + (box_size*2)), (screen_height - (40 + 4*(box_size + gap))), box_size * 2, box_size, ThemeButtonText, Screen::normal);
-
-  // Caps Lock
-  Screen::draw_button(1280 - (40 + (box_size*2)), (screen_height - (40 + 3*(box_size + gap))), box_size * 2, box_size, ThemeButton, ThemeButtonBorder, 5);
-  Screen::draw_text_centered("Caps Lock", 1280 - (40 + (box_size*2)), (screen_height - (40 + 3*(box_size + gap))), box_size * 2, box_size, ThemeButtonText, Screen::normal);
-
-  // Space
-  Screen::draw_button(1280 - (40 + (box_size*2)), (screen_height - (40 + 2*(box_size + gap))), box_size * 2, box_size, ThemeButton, ThemeButtonBorder, 5);
-  Screen::draw_text_centered("Space", 1280 - (40 + (box_size*2)), (screen_height - (40 + 2*(box_size + gap))), box_size * 2, box_size, ThemeButtonText, Screen::normal);
-
-  // TODO Render fields
 
   // Render search string
-  Screen::draw_button(keyboard_x, 110, 680, 100, ThemeButton, ThemeButtonBorder, 6);
+  Screen::draw_button(keyboard_x, 60, 680, 100, ThemeButton, ThemeButtonBorder, 6);
   if(!search_str.empty())
-    Screen::draw_text_centered(search_str, 110, 100, 680, 120, ThemeButtonText, Screen::large);
+    Screen::draw_text_centered(search_str, keyboard_x, 50, 680, 100, ThemeButtonText, Screen::large);
 
   // Back button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);

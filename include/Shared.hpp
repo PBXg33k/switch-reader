@@ -7,7 +7,8 @@ enum class Handler { Browser,
                      Search,
                      Gallery,
                      Preview,
-                     Settings };
+                     Settings,
+                     Keyboard };
 
 enum class Category : int { Doujinshi=1,
                       Manga=2,
@@ -19,6 +20,12 @@ enum class Category : int { Doujinshi=1,
                       Cosplay=128,
                       AsianPorn=256,
                       Misc=512 };
+
+class Shared{
+  public:
+    static Handler do_event(Handler handler, int val);
+    static const int KeyboardReturn = 9999;
+};
 
 extern std::string SearchURL;
 extern std::string ApiURL;

@@ -12,6 +12,7 @@
 #include "Search.hpp"
 #include "Config.hpp"
 #include "Settings.hpp"
+#include "Keyboard.hpp"
 
 static SDL_Event* customEvent;
 static int state;
@@ -19,6 +20,33 @@ const int joy_val[24] = {102, 101, 110, 111, 0, 0, 0, 0, 103, 104, 0, 0, 123, 12
 
 void Browser::quit_app(){
   state = 0;
+}
+
+Handler Shared::do_event(Handler handler, int val){
+  switch(handler){
+    case Handler::Browser:
+      handler = Browser::on_event(val);
+      break;
+    case Handler::Search:
+      handler = SearchBrowser::on_event(val);
+      break;
+    case Handler::Gallery:
+      handler = GalleryBrowser::on_event(val);
+      break;
+    case Handler::Settings:
+      handler = Settings::on_event(val);
+      break;
+    case Handler::Preview:
+      handler = GalleryPreview::on_event(val);
+      break;
+    case Handler::Keyboard:
+      handler = Keyboard::on_event(val);
+      break;
+    default:
+      break;
+  }
+
+  return handler;
 }
 
 int main(int argc, char **argv)
@@ -95,26 +123,8 @@ int main(int argc, char **argv)
         std::cout << "Event: " << val << std::endl;
       }
 
-      // Post Event to active handler
-      switch(handler){
-        case Handler::Browser:
-          handler = Browser::on_event(val);
-          break;
-        case Handler::Search:
-          handler = SearchBrowser::on_event(val);
-          break;
-        case Handler::Gallery:
-          handler = GalleryBrowser::on_event(val);
-          break;
-        case Handler::Settings:
-          handler = Settings::on_event(val);
-          break;
-        case Handler::Preview:
-          handler = GalleryPreview::on_event(val);
-          break;
-        default:
-          break;
-      }
+      // Post event to handler
+      handler = Shared::do_event(handler, val);
 
       // Render to active handler
       switch(handler){
@@ -132,6 +142,9 @@ int main(int argc, char **argv)
           break;
         case Handler::Preview:
           GalleryPreview::render();
+          break;
+        case Handler::Keyboard:
+          Keyboard::render();
           break;
         default:
           break;
@@ -153,8 +166,8 @@ int main(int argc, char **argv)
 
   //Browser::close();
   //GalleryBrowser::close();
-  Screen::close();
   ApiManager::close();
+  Screen::close();
 
   return 0;
 }

@@ -1,6 +1,5 @@
 #include "Api.hpp"
 #include "Browser.hpp"
-#include "Ui.hpp"
 #include "Gallery.hpp"
 #include "Config.hpp"
 #include "Shared.hpp"
@@ -102,14 +101,25 @@ void ApiManager::init(){
 }
 
 void ApiManager::close(){
+  if(active_res != nullptr){
+    printf("Closing open thread\n");
+    threadWaitForExit(res_thread);
+    threadClose(res_thread);
+  } else {
+    printf("No thread open\n");
+  }
+
+  printf("Flushing cookies\n");
+
   curl_easy_setopt(handle, CURLOPT_COOKIEJAR, "cookies");
   curl_easy_setopt(handle, CURLOPT_COOKIELIST, "FLUSH");
   curl_easy_perform(handle);
-  
-  curl_easy_cleanup(handle);
-  curl_easy_cleanup(thread_handle);
-  curl_share_cleanup(shared);
+
+  printf("Curl cleanup\n");
+
   curl_global_cleanup();
+
+  printf("Socket close\n");
   socketExit();
 }
 
@@ -195,7 +205,7 @@ void ApiManager::download_gallery(Entry* entry, float* percent){
 
 void ApiManager::update(){
   // If requests are waiting, start request thread
-  if(active_res == NULL && !requests.empty()){
+  if(active_res == nullptr && !requests.empty()){
 
     // Ignore cancelled requests
     while(!requests.empty()){
@@ -322,7 +332,7 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
       //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
     }
 
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);
 
   	curl_easy_perform(curl);
 

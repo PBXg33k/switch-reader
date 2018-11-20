@@ -9,6 +9,8 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 
+#include "Ui.hpp"
+
 struct MemoryStruct;
 struct Tag;
 struct Resource;
@@ -70,7 +72,7 @@ struct Resource{
   int requested;
   int populated;
   Resource(){
-    texture = NULL;
+    texture = Screen::s_loading;
     mem = new MemoryStruct();
     done = 0;
     requested = 0;
@@ -78,7 +80,7 @@ struct Resource{
   }
   ~Resource(){
     if(texture)
-      SDL_DestroyTexture(texture);
+      Screen::cleanup_texture(texture);
     delete mem;
   }
 };

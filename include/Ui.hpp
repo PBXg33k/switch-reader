@@ -35,4 +35,5 @@ class Screen {
     static inline TTF_Font *large;
 
     static SDL_Texture* s_stars;
+    static SDL_Texture* s_loading;
 };

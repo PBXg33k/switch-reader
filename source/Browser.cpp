@@ -300,8 +300,8 @@ void Browser::scroll(float dx){
       entry = entries[i];
       entry->res->requested = 0;
       if(entry->res->texture){
-        SDL_DestroyTexture(entry->res->texture);
-        entry->res->texture = NULL;
+        Screen::cleanup_texture(entry->res->texture);
+        entry->res->texture = Screen::s_loading;
       }
     }
   }
@@ -312,8 +312,8 @@ void Browser::scroll(float dx){
       entry = entries[i];
       entry->res->requested = 0;
       if(entry->res->texture){
-        SDL_DestroyTexture(entry->res->texture);
-        entry->res->texture = NULL;
+        Screen::cleanup_texture(entry->res->texture);
+        entry->res->texture = Screen::s_loading;
       }
     }
   }

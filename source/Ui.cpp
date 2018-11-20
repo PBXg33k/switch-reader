@@ -3,6 +3,7 @@
 
 static SDL_Texture* s_refresh;
 SDL_Texture* Screen::s_stars;
+SDL_Texture* Screen::s_loading;
 
 void Screen::init()
 {
@@ -33,13 +34,18 @@ void Screen::init()
 
   romfsInit();
 
-  // Load perm images
+  // Load perm images   static SDL_Texture* loading;
   SDL_Surface* surf = IMG_Load("romfs:/failed.png");
   s_refresh = SDL_CreateTextureFromSurface(Screen::renderer, surf);
   SDL_FreeSurface(surf);
 
   surf = IMG_Load("romfs:/stars.png");
   s_stars = SDL_CreateTextureFromSurface(Screen::renderer, surf);
+  SDL_FreeSurface(surf);
+
+  surf = IMG_Load("romfs:/loading.png");
+  s_loading = SDL_CreateTextureFromSurface(Screen::renderer, surf);
+  SDL_FreeSurface(surf);
 
   romfsExit();
 
@@ -49,7 +55,7 @@ void Screen::init()
 
 void Screen::cleanup_texture(SDL_Texture* texture){
   if(texture != NULL){
-    if(texture != s_refresh){
+    if(texture != s_refresh && texture != s_stars && texture != s_loading){
       SDL_DestroyTexture(texture);
     }
     texture = NULL;
@@ -66,6 +72,8 @@ void Screen::close()
 
   // Textures
   SDL_DestroyTexture(s_refresh);
+  SDL_DestroyTexture(s_stars);
+  SDL_DestroyTexture(s_loading);
   IMG_Quit();
 
   // Windows
@@ -92,6 +100,10 @@ SDL_Texture* Screen::load_stored_texture(int id){
   switch(id){
     case 0:
       return s_refresh;
+    case 1:
+      return s_stars;
+    case 2:
+      return s_loading;
     default:
       break;
   }
