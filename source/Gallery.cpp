@@ -198,7 +198,7 @@ Handler GalleryBrowser::on_event(int val){
 
   // Back to browser
   if(val == 101){
-    ConfigManager::set_pair("resource", std::to_string(rotation));
+    ConfigManager::set_pair("rotation", std::to_string(rotation));
     ApiManager::cancel_all_requests();
     GalleryBrowser::close();
     Browser::set_touch();

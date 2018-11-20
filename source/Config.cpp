@@ -1,4 +1,5 @@
-#include <vector>
+#include <map>
+#include <string>
 #include <utility>
 #include <algorithm>
 #include <iostream>
@@ -11,13 +12,13 @@
 #define configDir "/switch/Reader"
 #define configPath "/switch/Reader/config"
 
-static std::vector<std::pair<std::string, std::string>> configPairs;
+static std::map<std::string, std::string> configPairs;
 
 void load_defaults(){
-  configPairs.push_back(std::make_pair("theme","1")); // 0 - Light, 1 - Dark
-  configPairs.push_back(std::make_pair("rotation","0"));
-  configPairs.push_back(std::make_pair("user", "NONE"));
-  configPairs.push_back(std::make_pair("pass", "NONE"));
+  configPairs.insert(std::make_pair("theme","1")); // 0 - Light, 1 - Dark
+  configPairs.insert(std::make_pair("rotation","0"));
+  configPairs.insert(std::make_pair("user", "NONE"));
+  configPairs.insert(std::make_pair("pass", "NONE"));
 }
 
 // Create default, clear pairs to check read back
@@ -61,7 +62,7 @@ int ConfigManager::init(){
       auto value = line.substr(delimiterPos + 1);
 
       printf("Loaded pair ( %s , %s )\n", key.c_str(), value.c_str());
-      configPairs.push_back(std::make_pair(key, value));
+      configPairs.insert(std::make_pair(key, value));
     }
   } else {
     // Failed to load config
@@ -97,20 +98,20 @@ void ConfigManager::save(){
 }
 
 void ConfigManager::set_pair(std::string key, std::string value){
-  for(auto pair : configPairs){
-    if(pair.first == key){
-      pair.second = value;
-      return;
-    }
+  auto item = configPairs.find(key);
+
+  if(item != configPairs.end()){
+    item->second = value;
   }
 }
 
 std::string ConfigManager::get_value(std::string key){
-  for(auto pair : configPairs){
-    if(pair.first == key){
-      return pair.second;
-    }
+  auto item = configPairs.find(key);
+
+  if(item != configPairs.end()){
+    return item->second;
   }
+
   return NULL;
 }
 
