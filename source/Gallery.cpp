@@ -14,6 +14,7 @@ int GalleryBrowser::cur_page = 0;
 const int GalleryBrowser::buffer_size = 2; // 1 - 1 Page, 2 - 3 pages, 3 - 5 pages...
 std::vector<Resource*> GalleryBrowser::img_buffer;
 static int rotation = 0;
+static int block_size;
 
 void GalleryBrowser::close(){
   if(active_gallery){
@@ -29,6 +30,8 @@ void GalleryBrowser::close(){
 
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
+  block_size = 1;
+
   printf("Loading Gallery %s\n", entry->url.c_str());
 
   rotation = atoi(ConfigManager::get_value("rotation").c_str());
@@ -90,9 +93,9 @@ void GalleryBrowser::load_page(int page){
     return;
   }
 
-  // Load more URLs if needed - 40 on each page
+  // Load more URLs if needed - block_size on each page
   if(page >= (int) active_gallery->pages.size()){
-    int block = (active_gallery->pages.size()/40);
+    int block = (active_gallery->pages.size()/block_size);
     printf("Loading page block %d\n", block);
     load_urls(block);
   }
@@ -114,6 +117,11 @@ void GalleryBrowser::load_page(int page){
   }
 
   doc = htmlReadMemory(pageMem->memory, pageMem->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+
+  if(doc == nullptr){
+    xmlCleanupParser();
+    return;
+  }
 
   // Get node list matching XPath for direct image url
   path = (xmlChar*) imageXPath;
@@ -191,6 +199,7 @@ Handler GalleryBrowser::on_event(int val){
   // Back to browser
   if(val == 101){
     ConfigManager::set_pair("resource", std::to_string(rotation));
+    ApiManager::cancel_all_requests();
     GalleryBrowser::close();
     Browser::set_touch();
     return Handler::Browser;
@@ -234,8 +243,18 @@ void GalleryBrowser::load_urls(size_t page){
   MemoryStruct* index = new MemoryStruct();
   ApiManager::get_res(index, indexCopy);
 
+  if(index->size == 0){
+    delete index;
+    return;
+  }
+
   // Load to xml
   xmlDocPtr doc = htmlReadMemory(index->memory, index->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+
+  if(doc == nullptr){
+    xmlCleanupParser();
+    return;
+  }
 
   // Get node list matching XPath
   xmlXPathObjectPtr result = get_node_set(doc, path);
@@ -244,6 +263,9 @@ void GalleryBrowser::load_urls(size_t page){
   if(result) {
     xmlNodeSetPtr nodeset = result->nodesetval;
     printf("Found %d entries\n", nodeset->nodeNr);
+    if(block_size == 1)
+      block_size = nodeset->nodeNr;
+
     for (i=0; i < nodeset->nodeNr; i++) {
 			keyword = xmlGetProp(nodeset->nodeTab[i], (xmlChar*) "href");
   		printf("Page %d: %s\n", i, keyword);
@@ -261,12 +283,12 @@ void GalleryBrowser::load_urls(size_t page){
 void GalleryBrowser::save_all_pages(std::string dir){
   // Load all URLs
   int url_page = 1;
-  while(active_gallery->pages.size() < active_gallery->total_pages){
+  while((int) active_gallery->pages.size() < active_gallery->total_pages){
     load_urls(url_page);
     url_page++;
   }
 
-  for(int page = 0; page < active_gallery->pages.size(); page++){
+  for(int page = 0; page < (int) active_gallery->pages.size(); page++){
     // Update progress
     int progress = ((float) page / (float) active_gallery->total_pages) * ((screen_width / 2) - 10);
 

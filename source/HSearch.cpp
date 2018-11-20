@@ -40,6 +40,10 @@ json_object* get_json_obj2(json_object* root, const char* key)
 
 void HSearch::json_entries(std::vector<std::string> gids, std::vector<std::string> gtkns, std::vector<std::string> urls){
   json_object* json = ApiManager::get_galleries(gids, gtkns);
+
+  if(json == NULL)
+    return;
+
   json = get_json_obj2(json, "gmetadata");
 
   // API Call failed, return empty handed
@@ -98,13 +102,19 @@ ResultsList parse_page(MemoryStruct* pageMem, std::string completeURL){
 
   doc = htmlReadMemory(pageMem->memory, pageMem->size, completeURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
 
-  printf("Loaded as html\n");
-
+  if(doc == nullptr)
+    return rList;
 
   // Find each gallerys URL in page
   path = (xmlChar*) listXPath;
   results = get_node_set(doc, path);
-  if(results){
+
+  if(xmlXPathNodeSetIsEmpty(results->nodesetval)){
+    xmlXPathFreeObject(results);
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
+    return rList;
+  } else {
     nodeset = results->nodesetval;
     printf("Matched %d results\n", nodeset->nodeNr);
     // Push each gallery link found onto stack
@@ -119,13 +129,17 @@ ResultsList parse_page(MemoryStruct* pageMem, std::string completeURL){
       rList.gtkns.push_back(idMatches[5].substr(1));
       xmlFree(url);
     }
+    xmlXPathFreeObject(results);
   }
 
   printf("Checking for page results\n");
 
   path = (xmlChar*) pagesXPath;
   results = get_node_set(doc, path);
-  if(results){
+  if(xmlXPathNodeSetIsEmpty(results->nodesetval)){
+    xmlXPathFreeObject(results);
+    Browser::numOfResults = 0;
+  } else {
     nodeset = results->nodesetval;
     xmlChar* pagesStr = xmlNodeListGetString(doc, nodeset->nodeTab[0]->xmlChildrenNode, 1);
     std::string content = (char*) pagesStr;
@@ -136,8 +150,6 @@ ResultsList parse_page(MemoryStruct* pageMem, std::string completeURL){
     resultsNum = atoi(content.c_str());
     printf("Results found : %d\n", resultsNum);
     Browser::numOfResults = resultsNum;
-  } else {
-    Browser::numOfResults = 0;
   }
 
   // Free up page memory
@@ -149,8 +161,11 @@ ResultsList parse_page(MemoryStruct* pageMem, std::string completeURL){
 
 void HSearch::expand_search(std::string completeURL, int page){
 
-  // Add page num
-  completeURL += "&page=" + std::to_string(page);
+  // Add page num - & if parameters already exist
+  if(completeURL.find('?') != std::string::npos)
+    completeURL += "&page=" + std::to_string(page);
+  else
+    completeURL += "?page=" + std::to_string(page);
 
 
   // Get html page

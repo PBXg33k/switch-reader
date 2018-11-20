@@ -134,7 +134,8 @@ void Browser::render(){
 
   // Load more if not enough
 
-  if(idx + 11 >= (int) entries.size()){
+  if(idx + 11 >= (int) entries.size() && (int) entries.size()+1 < numOfResults){
+    printf("Loading from %d of %d\n", (int) entries.size()+1, numOfResults);
     load_urls();
   }
 
@@ -223,21 +224,21 @@ Handler Browser::on_event(int val){
     GalleryPreview::load_gallery(entry);
     GalleryPreview::set_touch();
     return Handler::Preview;
-    // GalleryBrowser::load_gallery(entry);
-    // GalleryBrowser::set_touch();
-    // return Handler::Gallery;
   // Change to Search
   } else if (val == 110) {
     active_gallery = -1;
+    scroll_pos = 0;
+    ApiManager::cancel_all_requests();
     SearchBrowser::set_touch();
     return Handler::Search;
-  // Favourites
+  // Load Favourites
   } else if (val == 115){
     active_gallery = -1;
     scroll_pos = 0;
     ApiManager::cancel_all_requests();
-    clear();
+    Browser::clear();
     HSearch::search_favourites();
+    return Handler::Browser;
   // Gallery selection
   } else if (val >= 120 && val < 130 && active_gallery >= 0){
     // O - Up, clockwise rot
@@ -262,9 +263,11 @@ Handler Browser::on_event(int val){
       default:
         break;
     }
+  // Settings
   } else if (val == 111){
     Settings::set_touch();
     return Handler::Settings;
+  // Quit app
   } else if (val == 101){
     quit_app();
   }

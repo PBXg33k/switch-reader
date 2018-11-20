@@ -93,12 +93,16 @@ void ApiManager::close(){
 }
 
 void ApiManager::cleanup_resource(Resource* res){
-  if(active_res != res)
+  if(active_res != res){
     delete res;
-  else {
+    res = nullptr;
+  } else {
     mutexLock(mutex);
-    delete res;
-    active_res = NULL;
+    delete active_res;
+    active_res = nullptr;
+    res = nullptr;
+    threadWaitForExit(res_thread);
+    threadClose(res_thread);
     mutexUnlock(mutex);
   }
 }
@@ -176,20 +180,21 @@ void ApiManager::update(){
       active_res = requests.front();
       requests.pop_front();
 
-      if(active_res->requested)
-        break;
+      if(active_res != nullptr)
+        if(active_res->requested)
+          break;
     }
 
     // If all cancelled, set to none
     if(!active_res->requested){
-      active_res = NULL;
+      active_res = nullptr;
       return;
     }
 
     threadCreate(res_thread, load_res_thread, active_res, 5000, 0x2C, -2);
     threadStart(res_thread);
 
-  } else if (active_res != NULL){
+  } else if (active_res != nullptr){
     // Try and get lock on active_res
     if(mutexTryLock(mutex)){
       // If done, load texture into memory, close thread
@@ -199,13 +204,13 @@ void ApiManager::update(){
           active_res->texture = Screen::load_texture(active_res->mem->memory, active_res->mem->size);
 
         // Reset memory struct
-        //delete active_res->mem;
+        delete active_res->mem;
         active_res->mem = new MemoryStruct();
 
         // Cleanup thread
         threadWaitForExit(res_thread);
         threadClose(res_thread);
-        active_res = NULL;
+        active_res = nullptr;
       }
 
       mutexUnlock(mutex);
@@ -216,7 +221,8 @@ void ApiManager::update(){
 // Cancel all requests queued to be loaded request thread
 void ApiManager::cancel_all_requests(){
   for(auto res : requests){
-    res->requested = 0;
+    if(res != nullptr)
+      res->requested = 0;
   }
   requests.clear();
 }

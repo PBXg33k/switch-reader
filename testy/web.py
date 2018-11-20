@@ -18,9 +18,6 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         # Copy cookies from client to server
         if 'Cookie' in self.headers:
           cookies = self.headers.get('Cookie')
-          print("Got cookies {}\n".format(cookies));
-        else:
-          print("No cookies sent\n");
 
         self.send_response(200)
 
@@ -46,7 +43,6 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         params = parse_qs(parsed.query);
         self.data_string = self.rfile.read(int(self.headers['Content-Length']))
-        print(self.data_string)
         payload = eval(self.data_string.decode("utf-8"))
 
         # JSON requests don't need decoded, pass normally
@@ -84,8 +80,6 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         }
         if len(cookies) > 0:
           headers["Cookie"] = cookies
-
-        print("Headers \n{}\n".format(headers))
 
         s = requests.session()
         r = s.get(url, allow_redirects=True, headers=headers)
