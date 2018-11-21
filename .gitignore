@@ -1,5 +1,6 @@
 # Custom
 *.nro
+*.nacp
 *.pfs0
 *.nso
 *.elf
