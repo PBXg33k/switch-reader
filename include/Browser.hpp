@@ -12,6 +12,7 @@ class Browser {
     static void set_touch();
     static void quit_app();
 
+    static void load_username();
     static Entry* new_entry(json_object* json, int num, std::string url);
     static void add_entry(Entry* entry);
     static void render_entry(Entry* entry, int x, int y, bool active);
@@ -30,6 +31,7 @@ class Browser {
     static int active_gallery;
     static std::vector<Entry*> entries;
     static int loadedPages;
+    static std::string username;
   private:
     static void load_urls();
 };

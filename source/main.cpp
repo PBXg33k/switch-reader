@@ -53,13 +53,10 @@ int main(int argc, char **argv)
 {
   Handler handler = Handler::Browser;
 
+  ConfigManager::init();
   Screen::init();
   ApiManager::init();
-
-  //ApiManager::login("colin969", "madmad");
-
-  ConfigManager::init();
-  ConfigManager::save();
+  Browser::load_username();
 
   // Custom SDL event for timer
   Uint32 renderEvent = SDL_RegisterEvents(1);
@@ -164,10 +161,9 @@ int main(int argc, char **argv)
     }
   }
 
-  //Browser::close();
-  //GalleryBrowser::close();
   ApiManager::close();
   Screen::close();
+  ConfigManager::save();
 
   return 0;
 }

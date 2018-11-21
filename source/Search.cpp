@@ -94,7 +94,7 @@ void SearchBrowser::render(){
   // Render search string
   Screen::draw_button(keyboard_x, 60, 680, 100, ThemeButton, ThemeButtonBorder, 6);
   if(!search_str.empty())
-    Screen::draw_text_centered(search_str, keyboard_x, 50, 680, 100, ThemeButtonText, Screen::large);
+    Screen::draw_text_centered(search_str, keyboard_x, 60, 680, 100, ThemeButtonText, Screen::large);
 
   // Back button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);

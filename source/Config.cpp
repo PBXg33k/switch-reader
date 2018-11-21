@@ -12,14 +12,26 @@
 #define configDir "/switch/Reader"
 #define configPath "/switch/Reader/config"
 
+#define ehSearchUrl "https://e-hentai.org/"
+#define ehFavouritesURL "https://e-hentai.org/favorites.php"
+#define ehApiURL "https://api.e-hentai.org/api.php"
+
+#define exSearchUrl "https://exhentai.org/"
+#define exFavouritesURL "https://exhentai.org/favorites.php"
+#define exApiURL "https://api.e-hentai.org/api.php"
+
+#define themeDefault "1"
+#define rotationDefault "0"
+#define modeDefault "E-hentai"
+#define proxyDefault "http://192.168.0.123:5000/?url=" 
+
 static std::map<std::string, std::string> configPairs;
 
 void load_defaults(){
-  configPairs.insert(std::make_pair("theme","1")); // 0 - Light, 1 - Dark
-  configPairs.insert(std::make_pair("rotation","0"));
-  configPairs.insert(std::make_pair("user", "NONE"));
-  configPairs.insert(std::make_pair("pass", "NONE"));
-  configPairs.insert(std::make_pair("mode", "E-hentai"));
+  configPairs.insert(std::make_pair("theme", themeDefault));
+  configPairs.insert(std::make_pair("rotation", rotationDefault));
+  configPairs.insert(std::make_pair("mode", modeDefault));
+  configPairs.insert(std::make_pair("proxy", proxyDefault));
 }
 
 // Create default, clear pairs to check read back
@@ -42,10 +54,10 @@ int ConfigManager::init(){
   // TODO : Not forget I commented this out because I guarantee I'll forget why it isn't working.
   
   // If config missing, create default
-  //if(stat(configPath, &info)){
-    //printf("Creating default config file\n");
+  if(stat(configPath, &info)){
+    printf("Creating default config file\n");
     create_config_default();
-  //}
+  }
   
   // Read back config
   std::ifstream configFile (configPath);
@@ -75,7 +87,7 @@ int ConfigManager::init(){
   configFile.close();
   configFile.clear();
 
-  set_theme();
+  set_all();
 
   return 0;
 }
@@ -103,6 +115,8 @@ void ConfigManager::set_pair(std::string key, std::string value){
 
   if(item != configPairs.end()){
     item->second = value;
+  } else {
+    configPairs.insert(std::make_pair(key, value));
   }
 }
 
@@ -113,11 +127,20 @@ std::string ConfigManager::get_value(std::string key){
     return item->second;
   }
 
-  return NULL;
+  return std::string();
 }
 
 void ConfigManager::set_theme(){
-  int theme = stoi(get_value("theme"));
+  std::string themeStr = get_value("theme");
+  
+  // No theme set, use default
+  if(themeStr.empty()){
+    themeStr = themeDefault;
+    set_pair("theme", themeStr);
+  }
+
+  int theme = stoi(themeStr);
+
   switch(theme){
     // Light
     case 0:
@@ -152,6 +175,44 @@ void ConfigManager::set_theme(){
     default:
       break;
   }
+}
+
+void ConfigManager::set_mode(){
+  std::string mode = get_value("mode");
+
+  // No mode set, make default
+  if(mode.empty()){
+    mode = modeDefault;
+    set_pair("mode", mode);
+  }
+
+  if(mode == "Exhentai"){
+    SearchURL = exSearchUrl;
+    FavouritesURL = exFavouritesURL;
+    ApiURL = exApiURL;
+  } else {
+    SearchURL = ehSearchUrl;
+    FavouritesURL = ehFavouritesURL;
+    ApiURL = ehApiURL;
+  }
+}
+
+void ConfigManager::set_proxy(){
+  std::string proxy = get_value("proxy");
+
+  // No proxy set, make default
+  if(proxy.empty()){
+    proxy = proxyDefault;
+    set_pair("proxy", proxy);
+  }
+
+  ApiProxy = proxy;
+}
+
+void ConfigManager::set_all(){
+  set_theme();
+  set_mode();
+  set_proxy();
 }
 
 void ConfigManager::save_entry_info(Entry* entry){

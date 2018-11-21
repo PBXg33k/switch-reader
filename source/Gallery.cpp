@@ -6,7 +6,7 @@
 #include "Browser.hpp"
 #include <cstdlib>
 
-#define pagesXPath "//a[starts-with(@href, 'https://e-hentai.org/s/')]"
+#define pagesXPath "//a[contains(@href, 'hentai.org/s/')]"
 #define imageXPath "//img[@id='img']"
 
 Gallery* GalleryBrowser::active_gallery;
@@ -100,6 +100,12 @@ void GalleryBrowser::load_page(int page){
     load_urls(block);
   }
 
+  // Still not loaded, failed to load gallery
+  if(page >= (int) active_gallery->pages.size()){
+    img_buffer[page]->texture = Screen::load_stored_texture(0);
+    return;
+  }
+
   xmlChar *path;
   xmlChar *keyword = NULL;
   xmlXPathObjectPtr result;
@@ -120,6 +126,7 @@ void GalleryBrowser::load_page(int page){
 
   if(doc == nullptr){
     xmlCleanupParser();
+    delete pageMem;
     return;
   }
 

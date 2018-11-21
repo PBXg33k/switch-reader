@@ -23,6 +23,8 @@ static Mutex* mutex = new Mutex;
 static Mutex* cookieMutex = new Mutex;
 static CURLSH* shared;
 
+static int delete_active = 0;
+
 CURL* ApiManager::thread_handle;
 CURL* ApiManager::handle;
 
@@ -84,7 +86,7 @@ void ApiManager::init(){
   curl_easy_setopt(handle, CURLOPT_SHARE, shared);
   curl_easy_setopt(thread_handle, CURLOPT_SHARE, shared);
 
-  curl_easy_setopt(handle, CURLOPT_COOKIEFILE, "cookies");
+  curl_easy_setopt(handle, CURLOPT_COOKIEFILE, "/switch/Reader/cookies");
   curl_easy_setopt(handle, CURLOPT_COOKIELIST, "RELOAD");
   curl_easy_perform(handle);
   curl_easy_reset(handle);
@@ -111,7 +113,7 @@ void ApiManager::close(){
 
   printf("Flushing cookies\n");
 
-  curl_easy_setopt(handle, CURLOPT_COOKIEJAR, "cookies");
+  curl_easy_setopt(handle, CURLOPT_COOKIEJAR, "/switch/Reader/cookies");
   curl_easy_setopt(handle, CURLOPT_COOKIELIST, "FLUSH");
   curl_easy_perform(handle);
 
@@ -128,13 +130,9 @@ void ApiManager::cleanup_resource(Resource* res){
     delete res;
     res = nullptr;
   } else {
-    mutexLock(mutex);
-    delete active_res;
-    active_res = nullptr;
-    res = nullptr;
-    threadWaitForExit(res_thread);
-    threadClose(res_thread);
-    mutexUnlock(mutex);
+    // Queue to be cleaned up next update - Prevents hangs
+    active_res->requested = 0;
+    delete_active = 1;
   }
 }
 
@@ -151,7 +149,7 @@ void load_res_thread(void *args){
 void ApiManager::login(std::string username, std::string password){
   CURL *curl = handle;
   std::string login = "https://forums.e-hentai.org/index.php?act=Login&CODE=01";
-  const char* host = "http://192.168.0.123:5000/?url=";
+  const char* host = ApiProxy.c_str();
   std::string payload;
 
   // Set login form data
@@ -242,6 +240,13 @@ void ApiManager::update(){
         // Cleanup thread
         threadWaitForExit(res_thread);
         threadClose(res_thread);
+
+        // Queued for deletion
+        if(delete_active){
+          delete active_res;
+          delete_active = 0;
+        }
+
         active_res = nullptr;
       }
 
@@ -302,7 +307,7 @@ json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vecto
 void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int save, std::string path)
 {
   FILE* file;
-  const char *host = "http://192.168.0.123:5000/?url=";
+  const char* host = ApiProxy.c_str();
 
   char *uri = curl_easy_escape(curl, url.c_str(), strlen(url.c_str()));
 
@@ -348,7 +353,7 @@ json_object* ApiManager::post_api(char* payload, std::string url)
 {
   CURL *curl;
   std::string readBuffer;
-  const char *host = "http://192.168.0.123:5000/?url=";
+  const char* host = ApiProxy.c_str();
 
   curl = curl_easy_init();
   char *uri = curl_easy_escape(curl, url.c_str(), strlen(url.c_str()));

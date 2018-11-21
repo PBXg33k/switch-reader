@@ -32,6 +32,5 @@ class GalleryBrowser {
     static Gallery* active_gallery;
     static const int buffer_size;
     static std::vector<Resource*> img_buffer;
-  private:
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
 };

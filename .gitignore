@@ -4,9 +4,10 @@
 *.nso
 *.elf
 *.html
+nxlink
 testfile
-Helvetica.ttf
 build/
+testy/
 
 # Prerequisites
 *.d

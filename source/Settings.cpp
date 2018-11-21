@@ -9,8 +9,11 @@
 static int field = 0;
 static std::string username;
 static std::string password;
+static std::string proxy;
 
 void Settings::set_touch(){
+    proxy = ApiProxy;
+
     Screen::clear(ThemeBG);
 
     TouchManager::clear();
@@ -29,6 +32,9 @@ void Settings::set_touch(){
 
     // Password
     TouchManager::add_bounds(250, 470, 680, 120, 4);
+
+    // Proxy
+    TouchManager::add_bounds(600, 100, 680, 120, 5);
 }
 
 Handler Settings::on_event(int val){
@@ -58,6 +64,7 @@ Handler Settings::on_event(int val){
       else
         mode = "E-hentai";
       ConfigManager::set_pair("mode", mode);
+      ConfigManager::set_mode();
     // Username
     } else if(val == 3){
       field = 0;
@@ -70,6 +77,12 @@ Handler Settings::on_event(int val){
       Keyboard::setup(Handler::Settings);
       Keyboard::set_touch();
       return Handler::Keyboard;
+    } else if(val == 5){
+      field = 2;
+      Keyboard::setup(Handler::Settings);
+      Keyboard::set_touch();
+      Keyboard::text = proxy;
+      return Handler::Keyboard;
     }
 
     if(val == Shared::KeyboardReturn){
@@ -81,6 +94,11 @@ Handler Settings::on_event(int val){
           break;
         case 1:
           password = Keyboard::text;
+          break;
+        case 2:
+          proxy = Keyboard::text;
+          ConfigManager::set_pair("proxy", proxy);
+          ConfigManager::set_proxy();
           break;
         default:
           break;
@@ -97,6 +115,8 @@ Handler Settings::on_event(int val){
       // Don't keep in memory
       username.clear();
       password.clear();
+
+      Browser::load_username();
 
       // Save config file
       ConfigManager::save();
@@ -135,15 +155,21 @@ void Settings::render(){
 
   // Username
   Screen::draw_button(250, 330, 680, 120, ThemeButton, ThemeButtonBorder, 6);
-  Screen::draw_text("Username", 50, 330, ThemeText, Screen::large);
+  Screen::draw_text("Username", 50, 360, ThemeText, Screen::large);
   if(!username.empty())
     Screen::draw_text_centered(username.c_str(), 250, 330, 680, 120, ThemeText, Screen::large);
 
   // Password
   Screen::draw_button(250, 470, 680, 120, ThemeButton, ThemeButtonBorder, 6);
-  Screen::draw_text("Password", 50, 470, ThemeText, Screen::large);
+  Screen::draw_text("Password", 50, 500, ThemeText, Screen::large);
   if(!password.empty())
     Screen::draw_text_centered(password.c_str(), 250, 470, 680, 120, ThemeText, Screen::large);
+
+  // Proxy
+  Screen::draw_button(600, 100, 680, 120, ThemeButton, ThemeButtonBorder, 5);
+  Screen::draw_text("Proxy URL", 400, 130, ThemeText, Screen::large);
+  if(!proxy.empty())
+    Screen::draw_text_centered(proxy.c_str(), 600, 100, 680, 120, ThemeText, Screen::large);
 
   // Quit Button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);

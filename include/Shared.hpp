@@ -27,9 +27,11 @@ class Shared{
     static const int KeyboardReturn = 9999;
 };
 
+extern std::string ApiProxy;
 extern std::string SearchURL;
 extern std::string ApiURL;
 extern std::string FavouritesURL;
+extern std::string UserURL;
 
 extern SDL_Color ThemeBG;
 extern SDL_Color ThemeButton;
