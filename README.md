@@ -12,7 +12,7 @@ By default this is run on port 5000, but you can modify that yourself in web.py 
 
 **Warning**
 
-This is sending data over HTTP. It is not secure. Your username and password are sent this way to log in, be aware of this if you choose to do so. Your plain text username and password are not stored. Your login cookies will be stored to prevent the need to log in each time you load the application. 
+This is sending data over HTTP. It is not secure. Your username and password are sent this way to log in, be aware of this if you choose to do so. Your plain text username and password are not stored by the proxy server or the application. Your login cookies will be stored by the application to prevent the need to log in each time you load it. 
 
 ### Running
 
