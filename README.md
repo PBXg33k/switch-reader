@@ -52,7 +52,7 @@ Note - Favourites show Exhentai galleries regardless. Loading them will present 
 
 ## Building
 
-Run 'make' from root directory. Will output to Reader.nro
+Run 'make' from root directory. Will output to switch-reader.nro
 
 ## Build Dependencies
 Latest libnx, switch-curl, switch-libxml2, switch-(sdl sdl_image sdl_ttf), switch-json-c
