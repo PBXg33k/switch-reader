@@ -16,7 +16,7 @@ This is sending data over HTTP. It is not secure. Your username and password are
 
 ### Running
 
-Place Reader.nro in your /switch/ folder of your SD card and run through the Homebrew Launcher.
+Place sw-tch-reader.nro in your /switch/ folder of your SD card and run through the Homebrew Launcher.
 
 A config file is generated in /switch/Reader/ and cookies are also stored in this folder. 
 
