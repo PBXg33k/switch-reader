@@ -16,7 +16,7 @@ This is sending data over HTTP. It is not secure. Your username and password are
 
 ### Running
 
-Place Reader.nro in your /switch/ folder of your SD card and run through the Homebrew Launcher.
+Place sw-tch-reader.nro in your /switch/ folder of your SD card and run through the Homebrew Launcher.
 
 A config file is generated in /switch/Reader/ and cookies are also stored in this folder. 
 
@@ -52,7 +52,7 @@ Note - Favourites show Exhentai galleries regardless. Loading them will present 
 
 ## Building
 
-Run 'make' from root directory. Will output to Reader.nro
+Run 'make' from root directory. Will output to switch-reader.nro
 
 ## Build Dependencies
 Latest libnx, switch-curl, switch-libxml2, switch-(sdl sdl_image sdl_ttf), switch-json-c
