@@ -1,27 +1,75 @@
 # E-Hentai Switch Reader
+
 ## Usage
-SSL support isn't in switch-curl - For the time being, you must run a python3 webserver as a relay and configure it in config.h (See web.py)
+
+### Proxy Server
+
+This application requires a proxy server to access HTTPS website. (Until SSL issues are addressed)
+
+Web.py is provided in tools and requires Python 3 with the fake-useragent module to run.
+
+By default this is run on port 5000, but you can modify that yourself in web.py and in the settings menu of the application.
+
+**Warning**
+
+This is sending data over HTTP. It is not secure. Your username and password are sent this way to log in, be aware of this if you choose to do so. Your plain text username and password are not stored. Your login cookies will be stored to prevent the need to log in each time you load the application. 
+
+### Running
+
+Place Reader.nro in your /switch/ folder of your SD card and run through the Homebrew Launcher.
+
+A config file is generated in /switch/Reader/ and cookies are also stored in this folder. 
+
+Please see **Configuration** below to set up the **Proxy** setting before reading the rest below.
+
+The Red Box in the top right will return to a previous screen, or exit the application (If on the Browser screen). This is used in every screen.
+
+A default Non-H search will load. Drag left and right to scroll through the results. Press on one to select it. 
+
+Press **Load Gallery** to load a preview of it with tags listed. Pressing the Red Box will return to the Browser screen.
+
+Pressing **Load Gallery** again will load it for viewing. Press the right or left of the screen to move forwards or backwards through the pages. Pressing **X** will rotate to portrait mode. Pressing the Red Box will return you to the Browser screen.
+
+**Search** - Searches for galleries. Press on a category in the top right to toggle it on or off. If they are all off or all on, it will not filter by category. Pressing the Text Box here will open a keyboard for you to enter your search phrase. Pressing the red box in the top right will return to the Search screen, again another time will complete the search and load results on the Browser screen.
+
+**Favourites** - Lists your favourited galleries. If you aren't logged in this will be empty. Use settings to log in.
+
+**Settings** - Settings are all described in **Configuration**. The config file is saved on exit of this screen.
+
+### Configuration
+
+Press 'Settings' on the Browser screen. (first on loading)
+
+**Proxy** - Set this to the full proxy URL. This will be in the form http://<ip_address>:5000/?url= unless you've modified the port number.
+
+**Theme** - Light and Dark themes are provided, if you want a specific theme, raise an issue.
+
+**Exhentai / E-hentai** - Toggles the domain to be searched, make sure your account has Exhentai priveleges before you use this, otherwise it won't load anything.
+
+Note - Favourites show Exhentai galleries regardless. Loading them will present failed loading images if E-hentai is set.
+
+**Username / Password** - Enter your username and password in here to login. Login will begin once you exit the Settings screen. Check the bottom left of the Browser screen, if your username is visible it was successful. This is wiped after exiting the Settings screen.
+
+## Building
+
+Run 'make' from root directory. Will output to Reader.nro
+
 ## Build Dependencies
 Latest libnx, switch-curl, switch-libxml2, switch-(sdl sdl_image sdl_ttf), switch-json-c
 available from dkp-pacman.
-## Feature Plan
+
+## Current Planned Features
 - Search
-  - Downloaded Galleries
-	- By tag 
-	- By keyword
-	- By rating 
-	- By language (saved)
-- Gallery Browser
-  - Downloaded Galleries
-  - Thumbnail load threading
-  - Scrolling
-  - Tag List
-  - User Favourites
-  - ExHentai Login
-- Gallery View
-  - Full image load threading
-  - Rotation
+  - Filters
+ 	- History of Searches (As an option)
+ 	- Minimum Star Ratings
+	- Permanent filters
+	- Permanent language setting
+- Browser
+  - Downloaded Galleries Viewing
+- Gallery
+  - Custom local galleries
   - Page select by Numpad
   - Skip to start/end
-  - Favourite
-  - Download
+  - (Un)Favourite gallery
+  - Download (Partially done)
