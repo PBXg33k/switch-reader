@@ -3,17 +3,16 @@
 #include <string>
 #include "Browser.hpp"
 
-class ConfigManager {
-  public:
-    static int init();
-    static void save();
-    static void set_pair(std::string key, std::string pair);
-    static std::string get_value(std::string key);
-    static void set_theme();
-    static void set_mode();
-    static void set_proxy();
-    static void set_all();
+namespace ConfigManager {
+  int init();
+  void save();
+  void set_pair(std::string key, std::string pair);
+  std::string get_value(std::string key);
+  void set_theme();
+  void set_mode();
+  void set_proxy();
+  void set_all();
 
-    static void save_entry_info(Entry* entry);
-    static void load_entry(Entry* entry);
+  void save_entry_info(Entry* entry);
+  void load_entry(Entry* entry);
 };

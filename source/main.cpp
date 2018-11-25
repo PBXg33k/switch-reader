@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 
   unsigned int last_time = 0, current_time;
 
-  HSearch::search_keywords("", 25, (int)Category::NonH);
+  HSearch::search_keywords("", 25, stoi(ConfigManager::get_value("categories")));
 
   state = 1;
 
@@ -116,9 +116,13 @@ int main(int argc, char **argv)
         default:
           break;
       }
+
       if(val > -1){
         std::cout << "Event: " << val << std::endl;
       }
+
+      if(event.type == customEvent->type)
+        ApiManager::update();
 
       // Post event to handler
       handler = Shared::do_event(handler, val);

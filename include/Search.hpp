@@ -16,5 +16,4 @@ class SearchBrowser {
 
     static int active_elem;
     static std::string search_str;
-    static int search_flags;
 };

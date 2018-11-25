@@ -4,6 +4,7 @@
 static SDL_Texture* s_refresh;
 SDL_Texture* Screen::s_stars;
 SDL_Texture* Screen::s_loading;
+SDL_Texture* Screen::s_stars_off;
 
 void Screen::init()
 {
@@ -45,6 +46,10 @@ void Screen::init()
 
   surf = IMG_Load("romfs:/loading.png");
   s_loading = SDL_CreateTextureFromSurface(Screen::renderer, surf);
+  SDL_FreeSurface(surf);
+
+  surf = IMG_Load("romfs:/stars_off.png");
+  s_stars_off = SDL_CreateTextureFromSurface(Screen::renderer, surf);
   SDL_FreeSurface(surf);
 
   romfsExit();
@@ -191,7 +196,7 @@ void Screen::draw_rect(int x, int y, int w, int h, SDL_Color color){
 
 }
 
-void Screen::draw_partial(int x, int y, double percentW, double percentH, SDL_Texture* texture){
+void Screen::draw_partial(int x, int y, double percentW, double percentH, SDL_Texture* texture, float scale){
   if(texture){
     int w, h;
     SDL_QueryTexture(texture, NULL, NULL, &w, &h);
@@ -205,8 +210,8 @@ void Screen::draw_partial(int x, int y, double percentW, double percentH, SDL_Te
 
     pos.x = x;
     pos.y = y;
-    pos.w = rect.w;
-    pos.h = rect.h;
+    pos.w = rect.w * scale;
+    pos.h = rect.h * scale;
 
     SDL_RenderCopy(Screen::renderer, texture, &rect, &pos);
   }
@@ -232,6 +237,10 @@ void draw_text_internal(std::string text, int x, int y, SDL_Color color, TTF_Fon
 }
 
 void Screen::draw_text_centered(std::string text, int x, int y, int maxw, int maxh, SDL_Color color, TTF_Font* font){
+  // No text, don't do anything
+  if(text.empty())
+    return;
+
   SDL_Surface *surf = TTF_RenderText_Solid(font, text.c_str(), color);
   SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, surf);
   int w, h;

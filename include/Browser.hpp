@@ -13,7 +13,7 @@ class Browser {
     static void quit_app();
 
     static void load_username();
-    static Entry* new_entry(json_object* json, int num, std::string url);
+    static void new_entry(json_object* json, Entry* entry, int num, std::string url);
     static void add_entry(Entry* entry);
     static void render_entry(Entry* entry, int x, int y, bool active);
     static void render();

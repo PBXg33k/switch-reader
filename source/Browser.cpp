@@ -123,10 +123,9 @@ void Browser::set_touch(){
   }
 }
 
-Entry* Browser::new_entry(json_object* json, int num, std::string url)
+void Browser::new_entry(json_object* json, Entry* entry, int num, std::string url)
 {
   json_object *holder;
-  Entry* entry = new Entry;
 
   // Populate entry
   json = json_object_array_get_idx(json, num);
@@ -154,7 +153,6 @@ Entry* Browser::new_entry(json_object* json, int num, std::string url)
   entry->url = url;
 
   add_entry(entry);
-  return entry;
 }
 
 // Add entry to list of entries

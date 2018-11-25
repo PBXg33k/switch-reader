@@ -334,7 +334,6 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
     } else {
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) chunk);
-      //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
     }
 
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);

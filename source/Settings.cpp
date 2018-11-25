@@ -9,11 +9,8 @@
 static int field = 0;
 static std::string username;
 static std::string password;
-static std::string proxy;
 
 void Settings::set_touch(){
-    proxy = ApiProxy;
-
     Screen::clear(ThemeBG);
 
     TouchManager::clear();
@@ -81,7 +78,7 @@ Handler Settings::on_event(int val){
       field = 2;
       Keyboard::setup(Handler::Settings);
       Keyboard::set_touch();
-      Keyboard::text = proxy;
+      Keyboard::text = ApiProxy;
       return Handler::Keyboard;
     }
 
@@ -96,8 +93,7 @@ Handler Settings::on_event(int val){
           password = Keyboard::text;
           break;
         case 2:
-          proxy = Keyboard::text;
-          ConfigManager::set_pair("proxy", proxy);
+          ConfigManager::set_pair("proxy", Keyboard::text);
           ConfigManager::set_proxy();
           break;
         default:
@@ -168,8 +164,8 @@ void Settings::render(){
   // Proxy
   Screen::draw_button(600, 100, 680, 120, ThemeButton, ThemeButtonBorder, 5);
   Screen::draw_text("Proxy URL", 400, 130, ThemeText, Screen::large);
-  if(!proxy.empty())
-    Screen::draw_text_centered(proxy.c_str(), 600, 100, 680, 120, ThemeText, Screen::large);
+  if(!ApiProxy.empty())
+    Screen::draw_text_centered(ApiProxy.c_str(), 600, 100, 680, 120, ThemeText, Screen::large);
 
   // Quit Button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);

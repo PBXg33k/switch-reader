@@ -24,6 +24,7 @@
 #define rotationDefault "0"
 #define modeDefault "E-hentai"
 #define proxyDefault "http://192.168.0.123:5000/?url=" 
+#define categoriesDefault Category::NonH
 
 static std::map<std::string, std::string> configPairs;
 
@@ -32,6 +33,10 @@ void load_defaults(){
   configPairs.insert(std::make_pair("rotation", rotationDefault));
   configPairs.insert(std::make_pair("mode", modeDefault));
   configPairs.insert(std::make_pair("proxy", proxyDefault));
+  configPairs.insert(std::make_pair("lang", ""));
+  configPairs.insert(std::make_pair("stars","1"));
+  configPairs.insert(std::make_pair("search", "Public"));
+  configPairs.insert(std::make_pair("categories", std::to_string((int) categoriesDefault)));
 }
 
 // Create default, clear pairs to check read back
@@ -39,6 +44,20 @@ void create_config_default(){
   load_defaults();
   ConfigManager::save();
   configPairs.clear();
+}
+
+void update_config(){
+  if(!configPairs.count("lang"))
+    ConfigManager::set_pair("lang", "");
+
+  if(!configPairs.count("stars"))
+    ConfigManager::set_pair("stars", "1");
+
+  if(!configPairs.count("search"))
+    ConfigManager::set_pair("search", "Public");
+
+  if(!configPairs.count("categories"))
+    ConfigManager::set_pair("categories", std::to_string((int) categoriesDefault));
 }
 
 int ConfigManager::init(){
@@ -87,6 +106,7 @@ int ConfigManager::init(){
   configFile.close();
   configFile.clear();
 
+  update_config();
   set_all();
 
   return 0;
@@ -127,7 +147,7 @@ std::string ConfigManager::get_value(std::string key){
     return item->second;
   }
 
-  return std::string();
+  return "";
 }
 
 void ConfigManager::set_theme(){
