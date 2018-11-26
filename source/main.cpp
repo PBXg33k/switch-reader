@@ -219,7 +219,7 @@ int main(int argc, char **argv)
           break;
 
         case SDL_FINGERUP:
-          if(motion_track < 0.01){
+          if(motion_track < 0.017){
             printf("Motion Track %f\n", motion_track);
             val = TouchManager::get_value(event.tfinger.x*1280, event.tfinger.y*720);
             if(val == 100)

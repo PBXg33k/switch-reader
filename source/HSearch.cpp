@@ -247,9 +247,9 @@ void HSearch::search_keywords(std::string keywords, size_t maxResults, int categ
   curl = curl_easy_init();
   safeKeywords = curl_easy_escape(curl, keywords.c_str(), strlen(keywords.c_str()));
 
-  ssize_t bufferSize = snprintf(NULL, 0, "&f_search=%s&f_apply=Apply+Filter&advsearch=1", safeKeywords);
+  ssize_t bufferSize = snprintf(NULL, 0, "&f_search=%s&f_apply=Apply+Filter&advsearch=1&f_sname=on&f_stags=on&f_sdesc=on", safeKeywords);
   char* searchParams = (char*) malloc(bufferSize + 1);
-  snprintf(searchParams, bufferSize + 1, "&f_search=%s&f_apply=Apply+Filter&advsearch=1", safeKeywords);
+  snprintf(searchParams, bufferSize + 1, "&f_search=%s&f_apply=Apply+Filter&advsearch=1&f_sname=on&f_stags=on&f_sdesc=on", safeKeywords);
 
   completeURL.append(searchParams);
 
