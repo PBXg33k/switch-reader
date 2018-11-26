@@ -58,19 +58,18 @@ HandlerEnum GalleryPreview::on_event(int val){
 
 void render_tag(Tag tag){
   int w, h;
-  // Can render tag
-  if(!TTF_SizeText(Screen::normal, tag.tag.c_str(), &w, &h)){
-    // Next line
-    if(curX + w + 10 > screen_width - 200){
-      curX = tags_x;
-      curY += (h + 21);
-    }
-    // Render tag here
-    Screen::draw_rect(curX, curY, w + 10, h + 6, ThemePanelDark);
-    Screen::draw_text(tag.tag.c_str(), curX + 5, curY + 3, ThemeText);
-    // Next tag
-    curX += w + 20;
+  w = FC_GetWidth(Screen::normal, tag.tag.c_str());
+  h = FC_GetHeight(Screen::normal, tag.tag.c_str());
+  // Next line
+  if(curX + w + 10 > screen_width - 200){
+    curX = tags_x;
+    curY += (h + 21);
   }
+  // Render tag here
+  Screen::draw_rect(curX, curY, w + 10, h + 6, ThemePanelDark);
+  Screen::draw_text(tag.tag.c_str(), curX + 5, curY + 3, ThemeText);
+  // Next tag
+  curX += w + 20;
 }
 
 void GalleryPreview::render(){

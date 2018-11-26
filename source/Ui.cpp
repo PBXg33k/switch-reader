@@ -5,6 +5,28 @@ static SDL_Texture* s_refresh;
 SDL_Texture* Screen::s_stars;
 SDL_Texture* Screen::s_loading;
 SDL_Texture* Screen::s_stars_off;
+static PlFontData stdFont, extFont;
+
+static void load_fonts(){
+  Screen::gallery_info = FC_CreateFont();
+  Screen::normal = FC_CreateFont();
+  Screen::large = FC_CreateFont();
+  Screen::header = FC_CreateFont();
+
+  Result rc;
+  plInitialize();
+  plGetSharedFontByType(&stdFont, PlSharedFontType_Standard);
+  plGetSharedFontByType(&extFont, PlSharedFontType_NintendoExt);
+
+  if(!R_FAILED(rc)){
+    FC_LoadFont_RW(Screen::gallery_info, Screen::renderer, SDL_RWFromMem(stdFont.address, stdFont.size), SDL_RWFromMem(extFont.address, extFont.size), 1, 18, FC_MakeColor(0, 0, 0, 255), TTF_STYLE_NORMAL);
+    FC_LoadFont_RW(Screen::normal, Screen::renderer, SDL_RWFromMem(stdFont.address, stdFont.size), SDL_RWFromMem(extFont.address, extFont.size), 1, 24, FC_MakeColor(0, 0, 0, 255), TTF_STYLE_NORMAL);
+    FC_LoadFont_RW(Screen::large, Screen::renderer, SDL_RWFromMem(stdFont.address, stdFont.size), SDL_RWFromMem(extFont.address, extFont.size), 1, 32, FC_MakeColor(0, 0, 0, 255), TTF_STYLE_NORMAL);
+    FC_LoadFont_RW(Screen::header, Screen::renderer, SDL_RWFromMem(stdFont.address, stdFont.size), SDL_RWFromMem(extFont.address, extFont.size), 1, 48, FC_MakeColor(0, 0, 0, 255), TTF_STYLE_NORMAL);
+  } else {
+    printf("Pl service error?\n");
+  }
+}
 
 void Screen::init()
 {
@@ -12,27 +34,13 @@ void Screen::init()
 
   SDL_Init(SDL_INIT_EVERYTHING);
   IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
-  TTF_Init();
-
-  plInitialize();
-
-  Result rc;
-  rc = plGetSharedFontByType(&Screen::standardFontData, PlSharedFontType_Standard);
-  if(!R_FAILED(rc)){
-    Screen::gallery_info = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 18);
-    Screen::normal = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 24);
-    Screen::large = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 30);
-    Screen::header = TTF_OpenFontRW(SDL_RWFromMem(Screen::standardFontData.address, Screen::standardFontData.size), 1, 48);
-  }
-
-  // Screen::gallery_info = TTF_OpenFont("Helvetica.ttf", 18);
-  // Screen::normal = TTF_OpenFont("Helvetica.ttf", 24);
 
   // Set up windows
   Screen::window = SDL_CreateWindow("Image Test",
-    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, 0);
-  Screen::renderer = SDL_CreateRenderer(window, -1, 0);
+    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_FULLSCREEN);
+  Screen::renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   Screen::surface = SDL_GetWindowSurface(Screen::window);
+  SDL_SetRenderDrawBlendMode(Screen::renderer, SDL_BLENDMODE_BLEND);
 
   romfsInit();
 
@@ -55,6 +63,8 @@ void Screen::init()
 
   romfsExit();
 
+  load_fonts();
+
   //Screen::draw_rect(0,0,1280,720,ThemeBG);
   //Screen::render();
 }
@@ -72,9 +82,10 @@ void Screen::cleanup_texture(SDL_Texture* texture){
 void Screen::close()
 {
   // Fonts
-  TTF_CloseFont(Screen::gallery_info);
-  TTF_CloseFont(Screen::normal);
-  TTF_Quit();
+  FC_FreeFont(gallery_info);
+  FC_FreeFont(normal);
+  FC_FreeFont(large);
+  FC_FreeFont(header);
 
   // Textures
   SDL_DestroyTexture(s_refresh);
@@ -227,34 +238,22 @@ void Screen::draw_button(int x, int y, int w, int h, SDL_Color fore, SDL_Color b
   draw_rect(x+border, y+border, w-(border*2), h-(border*2), fore);
 }
 
-void draw_text_internal(std::string text, int x, int y, SDL_Color color, TTF_Font* font){
-  SDL_Surface *surf = TTF_RenderText_Solid(font, text.c_str(), color);
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, surf);
-
-  SDL_Rect rect = { x, y, surf->w, surf->h };
-  SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
-  SDL_FreeSurface(surf);
-  SDL_DestroyTexture(texture);
+void draw_text_internal(std::string text, int x, int y, SDL_Color color, FC_Font* font){
+  FC_DrawColor(font, Screen::renderer, x, y, color, text.c_str());
 }
 
-void Screen::draw_text_centered(std::string text, int x, int y, int maxw, int maxh, SDL_Color color, TTF_Font* font){
+void Screen::draw_text_centered(std::string text, int x, int y, int maxw, int maxh, SDL_Color color, FC_Font* font){
   // No text, don't do anything
   if(text.empty())
     return;
 
-  SDL_Surface *surf = TTF_RenderText_Solid(font, text.c_str(), color);
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(Screen::renderer, surf);
-  int w, h;
-  SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+  Uint16 height = FC_GetHeight(font, text.c_str());
+  y += ((maxh - height) / 2);
 
-  SDL_Rect rect = { x + (maxw - surf->w)/2, y + (maxh - surf->h)/2,
-                   surf->w, surf->h };
-  SDL_RenderCopy(Screen::renderer, texture, NULL, &rect);
-  SDL_FreeSurface(surf);
-  SDL_DestroyTexture(texture);
+  FC_DrawBoxColor(font, Screen::renderer, SDL_Rect {x,y,maxw,maxh}, color, FC_ALIGN_CENTER, text.c_str());
 }
 
-void Screen::draw_text(std::string text, int x, int y, SDL_Color color, TTF_Font* font)
+void Screen::draw_text(std::string text, int x, int y, SDL_Color color, FC_Font* font)
 {
   draw_text_internal(text, x, y, color, font);
 }

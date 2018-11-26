@@ -170,7 +170,7 @@ int main(int argc, char **argv)
   ConfigManager::init();
   Screen::init();
   ApiManager::init();
-
+  
   // Wait for internet connectivity
   int rc;
   CURL* curlLookup = curl_easy_init();
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 
   while((rc = curl_easy_perform(curlLookup)) == CURLE_COULDNT_CONNECT){
     Screen::clear(ThemeBG);
-    Screen::draw_text_centered("Network still loading...", 0, 0, screen_width, screen_height, ThemeText, Screen::header);
+    Screen::draw_text("Network still loading...", 0, 0, ThemeText, Screen::header);
     Screen::render();
     sleep(1);
   }

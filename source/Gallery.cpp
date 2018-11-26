@@ -317,7 +317,7 @@ void GalleryBrowser::save_all_pages(std::string dir){
     int progress = ((float) page / (float) active_gallery->total_pages) * ((screen_width / 2) - 10);
 
     Screen::clear(ThemeBG);
-    Screen::draw_text_centered("Downloading Gallery...", 0, (screen_height / 2) - 100, screen_width, 100, ThemeText, Screen::large);
+    Screen::draw_text_centered("Downloading Gallery...", 0, (screen_height / 2) - 120, screen_width, 100, ThemeText, Screen::header);
     Screen::draw_rect(screen_width / 4, screen_height / 2, screen_width / 2, 150, ThemePanelDark);
     Screen::draw_rect(screen_width / 4 + 5, (screen_height / 2) + 5, progress, 140, ThemePanelLight);
     Screen::render();

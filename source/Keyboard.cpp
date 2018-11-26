@@ -113,48 +113,48 @@ void Keyboard::render(){
   // Number row keys
   for(i = 0; i < 12; i++){
     Screen::draw_button(keyboard_x + (i * (box_size + gap)), keyboard_y - 5*(box_size + gap), box_size, box_size, ThemeButton, ThemeButtonBorder, 5);
-    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + (i * (box_size + gap)), keyboard_y - 5*(box_size + gap), box_size, box_size, ThemeButtonText, Screen::large);
+    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + (i * (box_size + gap)), keyboard_y - 5*(box_size + gap), box_size, box_size, ThemeText, Screen::large);
     letter++;
   }
 
   // Top row keys
   for(i = 0; i < 12; i++){
     Screen::draw_button(keyboard_x + (box_size / 2) + (i * (box_size + gap)), keyboard_y - 4*(box_size + gap), box_size, box_size, ThemeButton, ThemeButtonBorder, 5);
-    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + (box_size / 2) + (i * (box_size + gap)), keyboard_y - 4*(box_size + gap), box_size, box_size, ThemeButtonText, Screen::large);
+    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + (box_size / 2) + (i * (box_size + gap)), keyboard_y - 4*(box_size + gap), box_size, box_size, ThemeText, Screen::large);
     letter++;
   }
 
   // Middle row
   for(i = 0; i < 11; i++){
     Screen::draw_button(keyboard_x + box_size + ((box_size + gap) * i), keyboard_y - 3*(box_size + gap), box_size, box_size, ThemeButton, ThemeButtonBorder, 5);
-    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + box_size + ((box_size + gap) * i), keyboard_y - 3*(box_size + gap), box_size, box_size, ThemeButtonText, Screen::large);
+    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + box_size + ((box_size + gap) * i), keyboard_y - 3*(box_size + gap), box_size, box_size, ThemeText, Screen::large);
     letter++;
   }
 
   // Bottom row
   for(i = 0; i < 10; i++){
     Screen::draw_button(keyboard_x + (box_size*1.5) + ((box_size + gap) * i), keyboard_y - 2*(box_size + gap), box_size, box_size, ThemeButton, ThemeButtonBorder, 5);
-    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + (box_size*1.5) + ((box_size + gap) * i), keyboard_y - 2*(box_size + gap), box_size, box_size, ThemeButtonText, Screen::large);
+    Screen::draw_text_centered(std::string(1, alpha[letter]), keyboard_x + (box_size*1.5) + ((box_size + gap) * i), keyboard_y - 2*(box_size + gap), box_size, box_size, ThemeText, Screen::large);
     letter++;
   }
   // Backspace
   Screen::draw_button(keyboard_x + (box_size*1.5) + ((box_size + gap) * 10), keyboard_y - 2*(box_size + gap), box_size * 1.5, box_size, ThemeButton, ThemeButtonBorder, 5);
-  Screen::draw_text_centered("Bksp", keyboard_x + (box_size*1.5) + ((box_size + gap) * 10), keyboard_y - 2*(box_size + gap), box_size * 1.5, box_size, ThemeButtonText, Screen::large);
+  Screen::draw_text_centered("Bksp", keyboard_x + (box_size*1.5) + ((box_size + gap) * 10), keyboard_y - 2*(box_size + gap), box_size * 1.5, box_size, ThemeText, Screen::large);
 
   // Caps Lock
   Screen::draw_button(keyboard_x, keyboard_y - 2*(box_size + gap), box_size * 1.5 - gap, box_size, ThemeButton, ThemeButtonBorder, 5);
-  Screen::draw_text_centered("Shift", keyboard_x, keyboard_y - 2*(box_size + gap), box_size * 1.5 - gap, box_size, ThemeButtonText, Screen::large);
+  Screen::draw_text_centered("Shift", keyboard_x, keyboard_y - 2*(box_size + gap), box_size * 1.5 - gap, box_size, ThemeText, Screen::large);
 
   // Space
   Screen::draw_button(keyboard_x + (box_size*2), keyboard_y - (box_size + gap), box_size * 10, box_size, ThemeButton, ThemeButtonBorder, 5);
-  Screen::draw_text_centered("Space", keyboard_x + (box_size*2), keyboard_y - (box_size + gap), box_size * 10, box_size, ThemeButtonText, Screen::large);
+  Screen::draw_text_centered("Space", keyboard_x + (box_size*2), keyboard_y - (box_size + gap), box_size * 10, box_size, ThemeText, Screen::large);
 
   // TODO Render fields
 
   // Render search string
   Screen::draw_button(keyboard_x, 60, 680, 100, ThemeButton, ThemeButtonBorder, 6);
   if(!text.empty())
-    Screen::draw_text_centered(text, keyboard_x, 60, 680, 100, ThemeButtonText, Screen::large);
+    Screen::draw_text_centered(text, keyboard_x, 60, 680, 100, ThemeText, Screen::large);
 
   // Back button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
