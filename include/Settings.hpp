@@ -2,9 +2,9 @@
 
 #include "Shared.hpp"
 
-class Settings {
+class Settings : public Handler {
   public:
     static void set_touch();
-    static Handler on_event(int val);
+    static HandlerEnum on_event(int val);
     static void render();
 };

@@ -16,6 +16,14 @@ std::vector<Resource*> GalleryBrowser::img_buffer;
 static int rotation = 0;
 static int block_size;
 
+static float oldZoomFactor = 1;
+static float zoomFactor = 1;
+static SDL_Point pos;
+static SDL_Point startPos;
+
+// Sets image bounds to keep onscreen when zooming
+void set_pos_bounds();
+
 void GalleryBrowser::close(){
   if(active_gallery){
     delete active_gallery;
@@ -31,6 +39,10 @@ void GalleryBrowser::close(){
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
   block_size = 1;
+  // Cur image load
+  zoomFactor = 1;
+  pos.x = 0;
+  pos.y = 0;
 
   printf("Loading Gallery %s\n", entry->url.c_str());
 
@@ -152,7 +164,7 @@ void GalleryBrowser::load_page(int page){
   delete pageMem;
 }
 
-Handler GalleryBrowser::on_event(int val){
+HandlerEnum GalleryBrowser::on_event(int val){
   // Next page
   if(val == 104 && cur_page < (active_gallery->total_pages - 1)){
     int to_add = cur_page + buffer_size;
@@ -160,6 +172,9 @@ Handler GalleryBrowser::on_event(int val){
     int to_remove = cur_page - buffer_size;
 
     // Immediate page switch
+    zoomFactor = 1;
+    pos.x = 0;
+    pos.y = 0;
     render();
 
     // Unload oldest page
@@ -185,6 +200,9 @@ Handler GalleryBrowser::on_event(int val){
     int to_remove = cur_page + buffer_size;
 
     // Immediate page switch
+    zoomFactor = 1;
+    pos.x = 0;
+    pos.y = 0;
     render();
 
     // Unload oldest page
@@ -209,7 +227,7 @@ Handler GalleryBrowser::on_event(int val){
     ApiManager::cancel_all_requests();
     GalleryBrowser::close();
     Browser::set_touch();
-    return Handler::Browser;
+    return HandlerEnum::Browser;
   }
 
   // Rotate Image
@@ -220,7 +238,7 @@ Handler GalleryBrowser::on_event(int val){
     GalleryBrowser::set_touch();
   }
 
-  return Handler::Gallery;
+  return HandlerEnum::Gallery;
 }
 
 xmlXPathObjectPtr GalleryBrowser::get_node_set(xmlDocPtr doc, xmlChar *xpath){
@@ -347,8 +365,9 @@ void GalleryBrowser::save_all_pages(std::string dir){
 void GalleryBrowser::render(){
   Screen::clear(ThemeBG);
   // Image (If loaded)
-  if(img_buffer[cur_page]->texture)
-    Screen::draw_adjusted_mem(img_buffer[cur_page]->texture, 0, 0, screen_width, screen_height, rotation);
+  if(img_buffer[cur_page]->texture){
+    Screen::draw_adjusted_mem(img_buffer[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
+  }
 
   // Page Number
   Screen::draw_text("Page " + std::to_string(cur_page+1), 30, 30, ThemeText, Screen::large);
@@ -357,4 +376,136 @@ void GalleryBrowser::render(){
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
   // Left side button (prev)
   //Screen::draw_button(10, (screen_height/2) - 40, 80, 80, ThemeButton, ThemeButtonBorder, 4);
+}
+
+void GalleryBrowser::set_pos_bounds(){
+  int realWidth = screen_width * zoomFactor;
+  int realHeight = screen_height * zoomFactor;
+  int w, h;
+  SDL_QueryTexture(img_buffer[cur_page]->texture, NULL, NULL, &w, &h);
+  float scaler;
+  // Distance from edge, nothing, width, height
+  SDL_Point rect;
+
+  if(!(rotation % 2)){
+    scaler = realHeight / ((float)(h));
+    rect.x = (int)(w * scaler);
+    rect.y = (int)(h * scaler);
+
+    scaler = realWidth / ((float)(rect.x));
+    if(scaler < 1){
+      rect.x *= scaler;
+      rect.y *= scaler;
+    }
+  } else {
+    scaler = realHeight / ((float)(w));
+    rect.x = (int)(w * scaler);
+    rect.y = (int)(h * scaler);
+
+    scaler = realWidth / ((float)(rect.y));
+    if(scaler < 1){
+      rect.x *= scaler;
+      rect.y *= scaler;
+    }
+  }
+
+
+  float distFromEdge;
+  if(rotation)
+    distFromEdge = (realWidth - rect.y) / 2;
+  else
+    distFromEdge = (realWidth - rect.x) / 2;
+
+  int bottomBound = 0;
+  int topBound = screen_height - realHeight;
+  int leftBound, rightBound;
+
+  if(rect.x < screen_width){
+    rightBound = realWidth - screen_width + (distFromEdge); 
+    leftBound = 0 - distFromEdge;
+  } else {
+    rightBound = 0 - distFromEdge;
+    leftBound = screen_width - (realWidth - distFromEdge);
+  }
+
+  printf("Bounds {%d, %d, %d, %d}\n", bottomBound, topBound, rightBound, leftBound);
+  printf("Pos {%d, %d}\n", pos.x, pos.y);
+
+  if(pos.x < leftBound)
+    pos.x = leftBound;
+
+  if(pos.y < topBound)
+    pos.y = topBound;
+
+  if(pos.x > rightBound)
+    pos.x = rightBound;
+
+  if(pos.y > bottomBound)
+    pos.y = bottomBound;
+
+  printf("Pos Adjusted {%d, %d}\n", pos.x, pos.y);
+}
+
+void GalleryBrowser::gesture(SDL_Event e) {
+  printf("Doing Gesture\n");
+  // First finger, second first, original first pos, original second pos
+  SDL_Finger* first = SDL_GetTouchFinger(e.mgesture.touchId, 0);
+  SDL_Finger* second = SDL_GetTouchFinger(e.mgesture.touchId, 1);
+
+  // Catch missing fingers exceptions
+  if(first == NULL || second == NULL)
+    return;
+
+  FloatPoint firstStart = fingerTouches[first->id];
+  FloatPoint secondStart = fingerTouches[second->id];
+
+  // Get distances between each pair of points, calc percentage change in zoom
+  float distStart = pow((firstStart.x*screen_width) - (secondStart.x*screen_width), 2) + pow((firstStart.y*screen_height) - (secondStart.y*screen_height), 2);
+  float distNow = pow((first->x*screen_width) - (second->x*screen_width), 2) + pow((first->y*screen_height) - (second->y*screen_height), 2);
+  float percentChange = distNow / distStart;
+
+  // Cap change in zoom - Stops infinite size zooms
+  if(percentChange < 0.1)
+    percentChange = 0.1;
+  if(percentChange > 4)
+    percentChange = 4; 
+
+  zoomFactor = oldZoomFactor * percentChange;
+  printf("New %f, Old %f\n", zoomFactor, oldZoomFactor);
+
+  // Cap zoom level
+  if(zoomFactor > 4)
+    zoomFactor = 4;
+  if(zoomFactor < 1)
+    zoomFactor = 1;
+
+
+  // Translate to percentage img coords
+  float pX = abs(startPos.x - (e.mgesture.x * screen_width)) / (screen_width * oldZoomFactor);
+  float pY = abs(startPos.y - (e.mgesture.y * screen_height)) / (screen_height * oldZoomFactor);
+  printf("Percent of image {%f, %f}\n", pX, pY);
+
+  // Get screen amount from percentage, take away from midpoint to get real coords
+  pos.x = (e.mgesture.x * screen_width) - (pX * screen_width * zoomFactor);
+  pos.y = (e.mgesture.y * screen_height) - (pY * screen_height * zoomFactor);
+  printf("Translated {%d, %d}\n", pos.x, pos.y);
+
+  set_pos_bounds();
+}
+
+void GalleryBrowser::scroll(float dx, float dy){
+  pos.x += dx * screen_width;
+  pos.y += dy * screen_height;
+  set_pos_bounds();
+}
+
+void GalleryBrowser::finger_down(SDL_Event e){
+  if(fingerTouches.size() >= 2){
+    oldZoomFactor = zoomFactor;
+    printf("Set old %f\n", oldZoomFactor);
+    startPos = pos;
+  }
+}
+
+void GalleryBrowser::finger_up(SDL_Event e){
 }

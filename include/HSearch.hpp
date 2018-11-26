@@ -6,7 +6,7 @@
 #include <json-c/json.h>
 #include "Browser.hpp"
 
-namespace HSearch{
+namespace HSearch {
   void expand_search(std::string completeURL, int page);
   void search_keywords(std::string keywords, size_t maxResults, int categories);
   void search_favourites();

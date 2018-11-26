@@ -64,7 +64,7 @@ void SearchBrowser::set_touch(){
 
 }
 
-Handler SearchBrowser::on_event(int val){
+HandlerEnum SearchBrowser::on_event(int val){
 
   // > 50 leaves 40-49 for special characters, if desired later
   if(val >= 50 && val < 60){
@@ -87,23 +87,23 @@ Handler SearchBrowser::on_event(int val){
 
     // Go back to Browser
     Browser::set_touch();
-    return Handler::Browser;
+    return HandlerEnum::Browser;
   }
 
   // Open keyboard
   if(val == 102){
     field = 0;
-    Keyboard::setup(Handler::Search, search_str);
+    Keyboard::setup(HandlerEnum::Search, search_str);
     Keyboard::set_touch();
-    return Handler::Keyboard;
+    return HandlerEnum::Keyboard;
   }
   
   // Open lang keyboard
   if(val == 110){
     field = 1;
-    Keyboard::setup(Handler::Search, ConfigManager::get_value("lang"));
+    Keyboard::setup(HandlerEnum::Search, ConfigManager::get_value("lang"));
     Keyboard::set_touch();
-    return Handler::Keyboard;
+    return HandlerEnum::Keyboard;
   }
   // Turn stars on/set
   if(val >= 150 && val < 155){
@@ -134,7 +134,7 @@ Handler SearchBrowser::on_event(int val){
     set_touch();
   }
 
-  return Handler::Search;
+  return HandlerEnum::Search;
 }
 
 void SearchBrowser::render(){

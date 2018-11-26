@@ -33,13 +33,13 @@ void GalleryPreview::set_touch(){
   TouchManager::add_bounds(screen_width-190, (screen_height/2) + 110, 180, 80, 111);
 }
 
-Handler GalleryPreview::on_event(int val){
+HandlerEnum GalleryPreview::on_event(int val){
   // Load Gallery
   if(val == 102){
     ApiManager::cancel_all_requests();
     GalleryBrowser::load_gallery(entry);
     GalleryBrowser::set_touch();
-    return Handler::Gallery;
+    return HandlerEnum::Gallery;
   }
 
   // Download Gallery
@@ -50,10 +50,10 @@ Handler GalleryPreview::on_event(int val){
 
   // Exit to Browser
   if(val == 101){
-    return Handler::Browser;
+    return HandlerEnum::Browser;
   }
 
-  return Handler::Preview;
+  return HandlerEnum::Preview;
 }
 
 void render_tag(Tag tag){

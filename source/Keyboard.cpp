@@ -10,7 +10,7 @@ int Keyboard::active_elem = 0;
 int Keyboard::caps_lock = 0;
 
 std::string Keyboard::text;
-static Handler handler = Handler::Browser;
+static HandlerEnum handler = HandlerEnum::Browser;
 
 std::vector<char> alphabet = { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
       'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']',
@@ -21,7 +21,7 @@ std::vector<char> altAlphabet = { '!', '"', '#', '$', '%', '^', '&', '*', '(', '
       'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '@',
       'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?' };
 
-void Keyboard::setup(Handler handle, std::string start_str){
+void Keyboard::setup(HandlerEnum handle, std::string start_str){
   handler = handle;
   text = start_str;
 }
@@ -66,7 +66,7 @@ void Keyboard::set_touch(){
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
 }
 
-Handler Keyboard::on_event(int val){
+HandlerEnum Keyboard::on_event(int val){
   // Number row, A-Z and , and .
   if(val >= 0 && val < 50){
     if(caps_lock)
@@ -99,7 +99,7 @@ Handler Keyboard::on_event(int val){
     return handler;
   }
 
-  return Handler::Keyboard;
+  return HandlerEnum::Keyboard;
 }
 
 void Keyboard::render(){

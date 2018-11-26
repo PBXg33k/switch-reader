@@ -264,7 +264,7 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
     Screen::draw_text(entry->language.c_str(), x + maxw + 10, y + (maxh - 24), ThemeText, Screen::normal);
 }
 
-Handler Browser::on_event(int val){
+HandlerEnum Browser::on_event(int val){
   int offset;
   // Select Gallery
   if(val >= 0 && val < 13){
@@ -278,14 +278,14 @@ Handler Browser::on_event(int val){
     ApiManager::cancel_all_requests();
     GalleryPreview::load_gallery(entry);
     GalleryPreview::set_touch();
-    return Handler::Preview;
+    return HandlerEnum::Preview;
   // Change to Search
   } else if (val == 110) {
     active_gallery = -1;
     scroll_pos = 0;
     ApiManager::cancel_all_requests();
     SearchBrowser::set_touch();
-    return Handler::Search;
+    return HandlerEnum::Search;
   // Load Favourites
   } else if (val == 115){
     active_gallery = -1;
@@ -293,7 +293,7 @@ Handler Browser::on_event(int val){
     ApiManager::cancel_all_requests();
     Browser::clear();
     HSearch::search_favourites();
-    return Handler::Browser;
+    return HandlerEnum::Browser;
   // Gallery selection
   } else if (val >= 120 && val < 130 && active_gallery >= 0){
     // O - Up, clockwise rot
@@ -321,17 +321,17 @@ Handler Browser::on_event(int val){
   // Settings
   } else if (val == 111){
     Settings::set_touch();
-    return Handler::Settings;
+    return HandlerEnum::Settings;
   // Quit app
   } else if (val == 101){
     quit_app();
   }
 
-  return Handler::Browser;
+  return HandlerEnum::Browser;
 }
 
 // Scrolls based on a normalized float - Screen moves left as number rises
-void Browser::scroll(float dx){
+void Browser::scroll(float dx, float dy){
   float amount = screen_width * dx;
   int incX = (Browser::maxw2 + 30);
   int new_pos;

@@ -3,11 +3,11 @@
 #include "Browser.hpp"
 #include "Shared.hpp"
 
-class GalleryPreview {
+class GalleryPreview : public Handler {
   public:
     static void load_gallery(Entry* entry);
     static void set_touch();
-    static Handler on_event(int val);
+    static HandlerEnum on_event(int val);
     static void render();
   private:
     static Entry* entry;

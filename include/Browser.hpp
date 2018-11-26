@@ -6,10 +6,11 @@
 #include "Api.hpp"
 #include "Shared.hpp"
 
-class Browser {
+class Browser : public Handler {
   public:
     static void close();
     static void set_touch();
+    static void scroll(float dx, float dy);
     static void quit_app();
 
     static void load_username();
@@ -18,8 +19,7 @@ class Browser {
     static void render_entry(Entry* entry, int x, int y, bool active);
     static void render();
     static void clear();
-    static void scroll(float dx);
-    static Handler on_event(int val);
+    static HandlerEnum on_event(int val);
 
     static const int maxw = 128; // Thumb width
     static const int maxh = 181; // Thumb height

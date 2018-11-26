@@ -2,11 +2,11 @@
 
 #include "Shared.hpp"
 
-class Keyboard {
+class Keyboard : public Handler {
   public:
-    static void setup(Handler handle, std::string start_str = "");
+    static void setup(HandlerEnum handle, std::string start_str = "");
     static void set_touch();
-    static Handler on_event(int val);
+    static HandlerEnum on_event(int val);
     static void render();
     static std::string text;
   private:

@@ -38,3 +38,12 @@ SDL_Color ThemePanelSelectedLight = COLOR_PALERED;
 SDL_Color ThemeText = COLOR_GRAY;
 SDL_Color ThemeOptionSelected = COLOR_PALEWHITE;
 SDL_Color ThemeOptionUnselected = COLOR_VLIGHTGRAY;
+
+std::map<SDL_FingerID, FloatPoint> Handler::fingerTouches;
+void Handler::set_touch() {};
+HandlerEnum Handler::on_event(int val) { return HandlerEnum::Browser; };
+void Handler::render() {};
+void Handler::scroll(float dx, float dy){};
+void Handler::gesture(SDL_Event e) {};
+void Handler::finger_down(SDL_Event e) {};
+void Handler::finger_up(SDL_Event e) {};

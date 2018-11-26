@@ -3,10 +3,10 @@
 #include "Shared.hpp"
 #include <string>
 
-class SearchBrowser {
+class SearchBrowser : public Handler {
   public:
     static void set_touch();
-    static Handler on_event(int val);
+    static HandlerEnum on_event(int val);
     static void render();
   private:
     static int keyboard_x, keyboard_y;

@@ -34,7 +34,7 @@ void Settings::set_touch(){
     TouchManager::add_bounds(600, 100, 680, 120, 5);
 }
 
-Handler Settings::on_event(int val){
+HandlerEnum Settings::on_event(int val){
 
     // Theme
     if(val == 1){
@@ -65,21 +65,21 @@ Handler Settings::on_event(int val){
     // Username
     } else if(val == 3){
       field = 0;
-      Keyboard::setup(Handler::Settings);
+      Keyboard::setup(HandlerEnum::Settings);
       Keyboard::set_touch();
-      return Handler::Keyboard;
+      return HandlerEnum::Keyboard;
     // Password
     } else if(val == 4){
       field = 1;
-      Keyboard::setup(Handler::Settings);
+      Keyboard::setup(HandlerEnum::Settings);
       Keyboard::set_touch();
-      return Handler::Keyboard;
+      return HandlerEnum::Keyboard;
     } else if(val == 5){
       field = 2;
-      Keyboard::setup(Handler::Settings);
+      Keyboard::setup(HandlerEnum::Settings);
       Keyboard::set_touch();
       Keyboard::text = ApiProxy;
-      return Handler::Keyboard;
+      return HandlerEnum::Keyboard;
     }
 
     if(val == Shared::KeyboardReturn){
@@ -119,9 +119,9 @@ Handler Settings::on_event(int val){
 
       // Return
       Browser::set_touch();
-      return Handler::Browser;
+      return HandlerEnum::Browser;
     }
-    return Handler::Settings;
+    return HandlerEnum::Settings;
 }
 
 void Settings::render(){

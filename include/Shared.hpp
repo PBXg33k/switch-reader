@@ -2,8 +2,9 @@
 
 #include <SDL2/SDL.h>
 #include <string>
+#include <map>
 
-enum class Handler { Browser,
+enum class HandlerEnum { Browser,
                      Search,
                      Gallery,
                      Preview,
@@ -21,9 +22,27 @@ enum class Category : int { Doujinshi=1,
                       AsianPorn=256,
                       Misc=512 };
 
+struct FloatPoint {
+  float x;
+  float y;
+};
+
+class Handler {
+  public:
+    static void set_touch();
+    static HandlerEnum on_event(int val);
+    static void render();
+    static void scroll(float dx, float dy);
+    static void gesture(SDL_Event e);
+    static void finger_down(SDL_Event e);
+    static void finger_up(SDL_Event e);
+
+    static std::map<SDL_FingerID, FloatPoint> fingerTouches;
+};
+
 class Shared{
   public:
-    static Handler do_event(Handler handler, int val);
+    static HandlerEnum do_event(HandlerEnum handler, int val);
     static const int KeyboardReturn = 9999;
 };
 

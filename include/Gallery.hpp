@@ -14,17 +14,21 @@ struct Gallery{
   int total_pages;
 };
 
-class GalleryBrowser {
+class GalleryBrowser : public Handler {
   public:
     static void close();
     static void load_gallery(Entry* entry);
     static void set_touch();
+    static void gesture(SDL_Event e);
+    static void scroll(float dx, float dy);
+    static void finger_down(SDL_Event e);
+    static void finger_up(SDL_Event e);
 
     static void load_page(int page);
     static void load_urls(size_t page);
     static void save_all_pages(std::string dir);
 
-    static Handler on_event(int val);
+    static HandlerEnum on_event(int val);
 
     static void render();
 
@@ -33,4 +37,6 @@ class GalleryBrowser {
     static const int buffer_size;
     static std::vector<Resource*> img_buffer;
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
+  private:
+    static void set_pos_bounds();
 };
