@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include <unistd.h>
 
 #include "Ui.hpp"
 #include "Shared.hpp"
@@ -13,6 +14,8 @@
 #include "Config.hpp"
 #include "Settings.hpp"
 #include "Keyboard.hpp"
+
+#define lookupURL "http://www.google.com"
 
 static SDL_Event* customEvent;
 static int state;
@@ -167,6 +170,21 @@ int main(int argc, char **argv)
   ConfigManager::init();
   Screen::init();
   ApiManager::init();
+
+  // Wait for internet connectivity
+  int rc;
+  CURL* curlLookup = curl_easy_init();
+  curl_easy_setopt(curlLookup, CURLOPT_URL, lookupURL);
+
+  while((rc = curl_easy_perform(curlLookup)) == CURLE_COULDNT_CONNECT){
+    Screen::clear(ThemeBG);
+    Screen::draw_text_centered("Network still loading...", 0, 0, screen_width, screen_height, ThemeText, Screen::header);
+    Screen::render();
+    sleep(1);
+  }
+
+  curl_easy_cleanup(curlLookup);
+
   Browser::load_username();
 
   // Custom SDL event for timer

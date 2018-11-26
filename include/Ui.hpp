@@ -33,6 +33,7 @@ class Screen {
     static inline TTF_Font *gallery_info;
     static inline TTF_Font *normal;
     static inline TTF_Font *large;
+    static inline TTF_Font *header;
 
     static SDL_Texture* s_stars;
     static SDL_Texture* s_loading;
