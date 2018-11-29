@@ -2,7 +2,9 @@
 #include "Touch.hpp"
 #include "Ui.hpp"
 #include "Config.hpp"
+#include "HSearch.hpp"
 #include "Keyboard.hpp"
+#include "Search.hpp"
 #include "Browser.hpp"
 #include <math.h>
 
@@ -116,7 +118,12 @@ HandlerEnum Settings::on_event(int val){
       username.clear();
       password.clear();
 
-      Browser::load_username();
+      if(ConfigManager::get_value("mode") != "NHentai")
+        Browser::load_username();
+      Browser::clear();
+
+      // Do search
+      HSearch::search_keywords(SearchBrowser::search_str, stoi(ConfigManager::get_value("categories")));
 
       // Save config file
       ConfigManager::save();

@@ -242,15 +242,18 @@ void draw_text_internal(std::string text, int x, int y, SDL_Color color, FC_Font
   FC_DrawColor(font, Screen::renderer, x, y, color, text.c_str());
 }
 
-void Screen::draw_text_centered(std::string text, int x, int y, int maxw, int maxh, SDL_Color color, FC_Font* font){
-  // No text, don't do anything
+void Screen::draw_text_aligned(std::string text, int x, int y, int maxw, int maxh, FC_AlignEnum align, SDL_Color color, FC_Font* font){
   if(text.empty())
     return;
 
   Uint16 height = FC_GetHeight(font, text.c_str());
   y += ((maxh - height) / 2);
 
-  FC_DrawBoxColor(font, Screen::renderer, SDL_Rect {x,y,maxw,maxh}, color, FC_ALIGN_CENTER, text.c_str());
+  FC_DrawBoxColor(font, Screen::renderer, SDL_Rect {x,y,maxw,maxh}, color, align, text.c_str());
+}
+
+void Screen::draw_text_centered(std::string text, int x, int y, int maxw, int maxh, SDL_Color color, FC_Font* font){
+  draw_text_aligned(text, x, y, maxw, maxh, FC_ALIGN_CENTER, color, font);
 }
 
 void Screen::draw_text(std::string text, int x, int y, SDL_Color color, FC_Font* font)

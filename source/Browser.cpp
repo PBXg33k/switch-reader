@@ -6,6 +6,7 @@
 #include "Gallery.hpp"
 #include "Preview.hpp"
 #include "Search.hpp"
+#include "Config.hpp"
 #include "Settings.hpp"
 #include <iostream>
 #include <math.h>
@@ -99,8 +100,14 @@ void Browser::set_touch(){
   TouchManager::add_bounds(screen_width-190, (screen_height/2) - 190, 180, 80, 110);
   // Load Gallery
   TouchManager::add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
-  // Favourites
-  TouchManager::add_bounds(screen_width-190, (screen_height/2) + 50, 180, 80, 115);
+
+  // E-Hentai specific button
+  if(ConfigManager::get_value("mode") != "NHentai"){
+    // Favourites
+    TouchManager::add_bounds(screen_width-190, (screen_height/2) + 50, 180, 80, 115);
+  }
+
+
   // Quit app
   TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
   // Stop pressing in button backgrounds
@@ -202,8 +209,11 @@ void Browser::render(){
     }
   }
 
-  // Username
-  Screen::draw_text(username.c_str(), 30, screen_height - 40, ThemeText, Screen::large);
+  // No results
+  if(entries.size() == 0){
+    Screen::draw_text_centered("No Results :(", 0, 0, screen_width - 200, screen_height - 40, ThemeText, Screen::header);
+  }
+
   // Clean background for buttons
   Screen::draw_rect(screen_width - 200, 0, 200, screen_height, ThemeBG);
   // Settings button
@@ -215,9 +225,20 @@ void Browser::render(){
   // Load Gallery button
   Screen::draw_button(screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButton, ThemeButtonBorder, 4);
   Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
-  // Favourites button
-  Screen::draw_button(screen_width-190, (screen_height/2) + 50, 180, 80, ThemeButton, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Favourites", screen_width-190, (screen_height/2) + 50, 180, 80, ThemeButtonText, Screen::normal);
+
+  // E-Hentai specific
+  if(ConfigManager::get_value("mode") != "NHentai"){
+    // Favourites button
+    Screen::draw_button(screen_width-190, (screen_height/2) + 50, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Favourites", screen_width-190, (screen_height/2) + 50, 180, 80, ThemeButtonText, Screen::normal);
+
+    // Username
+    Screen::draw_text(username.c_str(), 30, screen_height - 40, ThemeText, Screen::large);
+  }
+
+  // Mode
+  Screen::draw_text_aligned(ConfigManager::get_value("mode"), 0, screen_height-40, screen_width - 210, 40, FC_ALIGN_RIGHT, ThemeText, Screen::large);
+
   // Quit button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
 }
@@ -227,8 +248,6 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
   // If image not loaded, stick in texture
   if(entry->res->requested == 0){
     //printf("Requesting thumb texture\n");
-    //entry->res = new Resource();
-    //mutexInit(mutex);
     entry->res->url = entry->thumb;
     ApiManager::request_res(entry->res);
     entry->res->requested = 1;

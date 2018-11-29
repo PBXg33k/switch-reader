@@ -19,6 +19,7 @@ class Screen {
     static void draw_adjusted_mem(SDL_Texture* texture, int x, int y, int maxw, int maxy, int rot = 0);
     static void draw_text(std::string text, int x, int y, SDL_Color color);
     static void draw_text(std::string text, int x, int y, SDL_Color color, FC_Font* font);
+    static void draw_text_aligned(std::string text, int x, int y, int maxw, int maxh, FC_AlignEnum align, SDL_Color color, FC_Font* font);
     static void draw_text_centered(std::string text, int x, int y, int maxw, int maxh, SDL_Color color, FC_Font* font);
     static void draw_rect(int x, int y, int w, int h, SDL_Color color);
     static void draw_pill(int x, int y, int w, int h, SDL_Color color);

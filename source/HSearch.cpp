@@ -147,10 +147,15 @@ void parse_nh_page(std::string completeURL, int page){
       std::string type = json_object_get_string(HSearch::get_json_obj(holder, "type"));
       std::string name = json_object_get_string(HSearch::get_json_obj(holder, "name"));
 
-      if(type == "language")
-        e->language = name;
-      else
-        e->tags.push_back(Tag(type,name));
+      // Is a language, set as so
+      if(type == "language"){
+        if(name != "translated" && name != "text cleaned"){
+          e->language = name;
+          // Make sure language is capitalised - Style is best
+          e->language[0] = std::toupper(e->language[0]);
+        }
+      }
+      e->tags.push_back(Tag(type,name));
     }
 
     Browser::add_entry(e);

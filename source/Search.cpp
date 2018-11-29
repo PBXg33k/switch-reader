@@ -33,34 +33,37 @@ void SearchBrowser::set_touch(){
   // Open Language Entry
   TouchManager::add_bounds(keyboard_x, 260, 680, 100, 110);
 
-  // Star Ratings
-  // 1-5
-  for(int i = 0; i < 5; i++)
-    TouchManager::add_bounds(keyboard_x + (31 * i * starScale), 460, 62, 30 * starScale, 150 + i);
+  // E-Hentai specific things
+  if(ConfigManager::get_value("mode") != "NHentai"){
+    // Star Ratings
+    // 1-5
+    for(int i = 0; i < 5; i++)
+      TouchManager::add_bounds(keyboard_x + (31 * i * starScale), 460, 62, 30 * starScale, 150 + i);
 
-  // Public or Favourites
-  TouchManager::add_bounds(keyboard_x + 680 + 30, 10 + 5*(50 + gap-12), 420, 100, 111);
+    // Public or Favourites
+    TouchManager::add_bounds(keyboard_x + 680 + 30, 10 + 5*(50 + gap-12), 420, 100, 111);
 
-  // All 10 Categorys
-  TouchManager::add_bounds(keyboard_x + 680 + 30, 10, 200, 50, 50);
+    // All 10 Categorys
+    TouchManager::add_bounds(keyboard_x + 680 + 30, 10, 200, 50, 50);
 
-  TouchManager::add_bounds(keyboard_x + 680 + 30, 10 + 50 + gap-12, 200, 50, 51);
+    TouchManager::add_bounds(keyboard_x + 680 + 30, 10 + 50 + gap-12, 200, 50, 51);
 
-  TouchManager::add_bounds(keyboard_x + 680 + 30, 10 + 2*(50 + gap-12), 200, 50, 52);
+    TouchManager::add_bounds(keyboard_x + 680 + 30, 10 + 2*(50 + gap-12), 200, 50, 52);
 
-  TouchManager::add_bounds(keyboard_x + 680 + 30, 10 + 3*(50 + gap-12), 200, 50, 53);
+    TouchManager::add_bounds(keyboard_x + 680 + 30, 10 + 3*(50 + gap-12), 200, 50, 53);
 
-  TouchManager::add_bounds(keyboard_x + 680 + 30, 10 + 4*(50 + gap-12), 200, 50, 54);
+    TouchManager::add_bounds(keyboard_x + 680 + 30, 10 + 4*(50 + gap-12), 200, 50, 54);
 
-  TouchManager::add_bounds(keyboard_x + 680 + 250, 10, 200, 50, 55);
+    TouchManager::add_bounds(keyboard_x + 680 + 250, 10, 200, 50, 55);
 
-  TouchManager::add_bounds(keyboard_x + 680 + 250, 10 + 50 + gap-12, 200, 50, 56);
+    TouchManager::add_bounds(keyboard_x + 680 + 250, 10 + 50 + gap-12, 200, 50, 56);
 
-  TouchManager::add_bounds(keyboard_x + 680 + 250, 10 + 2*(50 + gap-12), 200, 50, 57);
+    TouchManager::add_bounds(keyboard_x + 680 + 250, 10 + 2*(50 + gap-12), 200, 50, 57);
 
-  TouchManager::add_bounds(keyboard_x + 680 + 250, 10 + 3*(50 + gap-12), 200, 50, 58);
+    TouchManager::add_bounds(keyboard_x + 680 + 250, 10 + 3*(50 + gap-12), 200, 50, 58);
 
-  TouchManager::add_bounds(keyboard_x + 680 + 250, 10 + 4*(50 + gap-12), 200, 50, 59);
+    TouchManager::add_bounds(keyboard_x + 680 + 250, 10 + 4*(50 + gap-12), 200, 50, 59);
+  }
 
 }
 
@@ -140,6 +143,9 @@ HandlerEnum SearchBrowser::on_event(int val){
 void SearchBrowser::render(){
   Screen::clear(ThemeBG);
 
+  // Back button
+  Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
+
   // Render search string
   Screen::draw_text("Search", keyboard_x, 15, ThemeText, Screen::large);
   Screen::draw_button(keyboard_x, 60, 680, 100, ThemeButton, ThemeButtonBorder, 6);
@@ -150,62 +156,62 @@ void SearchBrowser::render(){
   Screen::draw_button(keyboard_x, 260, 680, 100, ThemeButton, ThemeButtonBorder, 6);
   Screen::draw_text_centered(ConfigManager::get_value("lang"), keyboard_x, 260, 680, 100, ThemeButtonText, Screen::large);
 
-  Screen::draw_text("Min. Star Rating", keyboard_x, 410, ThemeText, Screen::large);
-  // Empty stars
-  Screen::draw_partial(keyboard_x, 460, 1, 1, Screen::s_stars_off, starScale);
-  // Filled stars
-  Screen::draw_partial(keyboard_x, 460, stof(ConfigManager::get_value("stars")) / 5, 1, Screen::s_stars, starScale);
+  // E-Hentai specific things
+  if(ConfigManager::get_value("mode") != "NHentai"){
+    Screen::draw_text("Min. Star Rating", keyboard_x, 410, ThemeText, Screen::large);
+    // Empty stars
+    Screen::draw_partial(keyboard_x, 460, 1, 1, Screen::s_stars_off, starScale);
+    // Filled stars
+    Screen::draw_partial(keyboard_x, 460, stof(ConfigManager::get_value("stars")) / 5, 1, Screen::s_stars, starScale);
 
-  // Public or Favourites
-  Screen::draw_button(keyboard_x + 680 + 30, 10 + 5*(50 + gap-12), 420, 100, ThemeButton, ThemeButtonBorder, 5);
-  Screen::draw_text_centered(ConfigManager::get_value("search"), keyboard_x + 680 + 30, 10 + 5*(50 + gap-12), 420, 100, ThemeButtonText, Screen::large);
+    // Public or Favourites
+    Screen::draw_button(keyboard_x + 680 + 30, 10 + 5*(50 + gap-12), 420, 100, ThemeButton, ThemeButtonBorder, 5);
+    Screen::draw_text_centered(ConfigManager::get_value("search"), keyboard_x + 680 + 30, 10 + 5*(50 + gap-12), 420, 100, ThemeButtonText, Screen::large);
 
-  // Back button
-  Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
+    SDL_Color state;
 
-  SDL_Color state;
+    int search_flags = stoi(ConfigManager::get_value("categories"));
 
-  int search_flags = stoi(ConfigManager::get_value("categories"));
+    if(search_flags & (int)Category::Doujinshi) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(keyboard_x + 680 + 30, 10, 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Doujinshi", keyboard_x + 680 + 30, 10, 200, 50, ThemeButtonText, Screen::normal);
 
-  if(search_flags & (int)Category::Doujinshi) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
-  Screen::draw_button(keyboard_x + 680 + 30, 10, 200, 50, state, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Doujinshi", keyboard_x + 680 + 30, 10, 200, 50, ThemeButtonText, Screen::normal);
+    if(search_flags & (int)Category::Manga) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(keyboard_x + 680 + 30, 10 + 50 + gap-12, 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Manga", keyboard_x + 680 + 30, 10 + 50 + gap-12, 200, 50, ThemeButtonText, Screen::normal);
 
-  if(search_flags & (int)Category::Manga) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
-  Screen::draw_button(keyboard_x + 680 + 30, 10 + 50 + gap-12, 200, 50, state, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Manga", keyboard_x + 680 + 30, 10 + 50 + gap-12, 200, 50, ThemeButtonText, Screen::normal);
+    if(search_flags & (int)Category::ArtistCg) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(keyboard_x + 680 + 30, 10 + 2*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Artist Cg", keyboard_x + 680 + 30, 10 + 2*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
 
-  if(search_flags & (int)Category::ArtistCg) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
-  Screen::draw_button(keyboard_x + 680 + 30, 10 + 2*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Artist Cg", keyboard_x + 680 + 30, 10 + 2*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
+    if(search_flags & (int)Category::GameCg) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(keyboard_x + 680 + 30, 10 + 3*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Game Cg", keyboard_x + 680 + 30, 10 + 3*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
 
-  if(search_flags & (int)Category::GameCg) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
-  Screen::draw_button(keyboard_x + 680 + 30, 10 + 3*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Game Cg", keyboard_x + 680 + 30, 10 + 3*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
+    if(search_flags & (int)Category::Western) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(keyboard_x + 680 + 30, 10 + 4*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Western", keyboard_x + 680 + 30, 10 + 4*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
 
-  if(search_flags & (int)Category::Western) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
-  Screen::draw_button(keyboard_x + 680 + 30, 10 + 4*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Western", keyboard_x + 680 + 30, 10 + 4*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
+    if(search_flags & (int)Category::NonH) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(keyboard_x + 680 + 250, 10, 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Non-H", keyboard_x + 680 + 250, 10, 200, 50, ThemeButtonText, Screen::normal);
 
-  if(search_flags & (int)Category::NonH) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
-  Screen::draw_button(keyboard_x + 680 + 250, 10, 200, 50, state, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Non-H", keyboard_x + 680 + 250, 10, 200, 50, ThemeButtonText, Screen::normal);
+    if(search_flags & (int)Category::ImageSet) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(keyboard_x + 680 + 250, 10 + 50 + gap-12, 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Image Set", keyboard_x + 680 + 250, 10 + 50 + gap-12, 200, 50, ThemeButtonText, Screen::normal);
 
-  if(search_flags & (int)Category::ImageSet) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
-  Screen::draw_button(keyboard_x + 680 + 250, 10 + 50 + gap-12, 200, 50, state, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Image Set", keyboard_x + 680 + 250, 10 + 50 + gap-12, 200, 50, ThemeButtonText, Screen::normal);
+    if(search_flags & (int)Category::Cosplay) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(keyboard_x + 680 + 250, 10 + 2*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Cosplay", keyboard_x + 680 + 250, 10 + 2*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
 
-  if(search_flags & (int)Category::Cosplay) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
-  Screen::draw_button(keyboard_x + 680 + 250, 10 + 2*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Cosplay", keyboard_x + 680 + 250, 10 + 2*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
+    if(search_flags & (int)Category::AsianPorn) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(keyboard_x + 680 + 250, 10 + 3*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Asian Porn", keyboard_x + 680 + 250, 10 + 3*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
 
-  if(search_flags & (int)Category::AsianPorn) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
-  Screen::draw_button(keyboard_x + 680 + 250, 10 + 3*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Asian Porn", keyboard_x + 680 + 250, 10 + 3*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
-
-  if(search_flags & (int)Category::Misc) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
-  Screen::draw_button(keyboard_x + 680 + 250, 10 + 4*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Misc", keyboard_x + 680 + 250, 10 + 4*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
+    if(search_flags & (int)Category::Misc) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(keyboard_x + 680 + 250, 10 + 4*(50 + gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Misc", keyboard_x + 680 + 250, 10 + 4*(50 + gap-12), 200, 50, ThemeButtonText, Screen::normal);
+  }
 
 
 }

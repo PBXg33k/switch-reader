@@ -8,6 +8,7 @@ class SearchBrowser : public Handler {
     static void set_touch();
     static HandlerEnum on_event(int val);
     static void render();
+    static std::string search_str;
   private:
     static int keyboard_x, keyboard_y;
     static int box_size;
@@ -15,5 +16,4 @@ class SearchBrowser : public Handler {
     static int caps_lock;
 
     static int active_elem;
-    static std::string search_str;
 };
