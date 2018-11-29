@@ -13,11 +13,35 @@
 #define listXPath "//div[@class='it5']/a"
 #define pagesXPath "//p[@class='ip']"
 
+#define nhThumbnailURL "https://t.nhentai.net"
+#define nhImageURL "https://i.nhentai.net"
+
 struct ResultsList{
   std::vector<std::string> gids;
   std::vector<std::string> gtkns;
   std::vector<std::string> urls;
 };
+
+std::string HSearch::build_nh_image(Entry* e, int page, std::string type, bool thumbnail){
+  std::string imageURL;
+
+  // Thumbnails
+  if(thumbnail){
+    imageURL = std::string(nhThumbnailURL) + "/galleries/" + std::to_string(e->media_id) + "/thumb";
+
+  // Images
+  } else {
+    imageURL = std::string(nhImageURL) + "/galleries/" + std::to_string(e->media_id) + "/" + std::to_string(page);
+  }
+
+  // Add format
+  if(type == "j")
+    imageURL += ".jpg";
+  else if(type == "p")
+    imageURL += ".png";
+
+  return imageURL;
+}
 
 xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath){
     xmlXPathContextPtr context;
@@ -28,10 +52,10 @@ xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath){
     return result;
 }
 
-json_object* get_json_obj2(json_object* root, const char* key)
+json_object* HSearch::get_json_obj(json_object* root, std::string key)
 {
   json_object* ret;
-  if (json_object_object_get_ex(root, key, &ret)){
+  if (json_object_object_get_ex(root, key.c_str(), &ret)){
     return ret;
   }
   return NULL;
@@ -49,6 +73,111 @@ bool contains_tag(Entry* e, std::string tag) {
   return false;
 }
 
+void parse_nh_page(std::string completeURL, int page){
+  json_object* json;
+  json_object* array_of_galleries;
+  json_object* gallery_info;
+  json_object* holder;
+  json_object* images;
+  std::string copy = completeURL;
+
+  if(completeURL.find('?') != std::string::npos)
+    completeURL += "&page=" + std::to_string(page);
+  else
+    completeURL += "?page=" + std::to_string(page);
+
+  json = ApiManager::get_res_json(completeURL, ApiManager::handle);
+
+  // Failed request
+  if(json == NULL){
+    return;
+  }
+
+  array_of_galleries = HSearch::get_json_obj(json, "result");
+
+  for(int i = 0; i < (int) json_object_array_length(array_of_galleries); i++){
+    gallery_info = json_object_array_get_idx(array_of_galleries, i);
+    Entry* e = new Entry;
+
+    printf("Adding new gallery\n");
+
+    // Add ID
+    holder = HSearch::get_json_obj(gallery_info, "id");
+    if(json_object_is_type(holder, json_type_int)){
+      e->id = json_object_get_int(holder);
+    } else {
+      std::string id_str = json_object_get_string(holder);
+      e->id = stoi(id_str);
+    }
+
+    // Add Media ID
+    holder = HSearch::get_json_obj(gallery_info, "media_id");
+    std::string id_str = json_object_get_string(holder);
+    e->media_id = stoi(id_str);
+
+    // Add title
+    holder = HSearch::get_json_obj(gallery_info, "title");
+    holder = HSearch::get_json_obj(holder, "english");
+    e->title = json_object_get_string(holder);
+
+    printf("Title : %s\n", e->title.c_str());
+
+    // Add pages
+    holder = HSearch::get_json_obj(gallery_info, "num_pages");
+    e->pages = json_object_get_int(holder);
+
+    printf("Pages : %d\n", e->pages);
+
+    // Add thumbnail
+    images = HSearch::get_json_obj(gallery_info, "images");
+    holder = HSearch::get_json_obj(images, "thumbnail");
+    e->thumb = HSearch::build_nh_image(e, 0, json_object_get_string(HSearch::get_json_obj(holder, "t")), true);
+
+    // Fill irrelevant
+    e->category = "";
+    e->url = "";
+    e->rating = 0;
+
+    printf("Adding tags\n");
+
+    // Add tags - reusing gallery_info for it
+    gallery_info = HSearch::get_json_obj(gallery_info, "tags");
+    for(int j = 0; j < (int) json_object_array_length(gallery_info); j++){
+      holder = json_object_array_get_idx(gallery_info, j);
+      std::string type = json_object_get_string(HSearch::get_json_obj(holder, "type"));
+      std::string name = json_object_get_string(HSearch::get_json_obj(holder, "name"));
+
+      if(type == "language")
+        e->language = name;
+      else
+        e->tags.push_back(Tag(type,name));
+    }
+
+    Browser::add_entry(e);
+  }
+
+  // Set results amount - TODO: Adjust for last page differences
+  holder = HSearch::get_json_obj(json, "num_pages");
+  
+  if(copy.find('?') != std::string::npos)
+    copy += "&page=" + std::string(json_object_get_string(holder));
+  else
+    copy += "?page=" + std::string(json_object_get_string(holder));
+
+  json_object* num_check = ApiManager::get_res_json(copy, ApiManager::handle);
+  holder = HSearch::get_json_obj(num_check, "result");
+
+
+  if(Browser::numOfResults == 0){
+    Browser::numOfResults = ((json_object_get_int(HSearch::get_json_obj(json, "num_pages")) - 1) * 25) + json_object_array_length(holder);
+    if(Browser::numOfResults < 0)
+      Browser::numOfResults = 0;
+  }
+
+  json_object_put(num_check);
+  json_object_put(json);
+}
+
 int HSearch::json_entries(std::vector<std::string> gids, std::vector<std::string> gtkns, std::vector<std::string> urls){
   json_object* json = ApiManager::get_galleries(gids, gtkns);
   int skipped_entries = 0;
@@ -56,7 +185,7 @@ int HSearch::json_entries(std::vector<std::string> gids, std::vector<std::string
   if(json == NULL)
     return 0;
 
-  json = get_json_obj2(json, "gmetadata");
+  json = get_json_obj(json, "gmetadata");
 
   // API Call failed, return empty handed
   if(json == NULL){
@@ -85,7 +214,7 @@ void HSearch::fill_tags(Entry* entry, json_object* json){
   int numOfTags;
   std::string tag;
 
-  json = get_json_obj2(json, "tags");
+  json = HSearch::get_json_obj(json, "tags");
   numOfTags = json_object_array_length(json);
 
   for(int i = 0; i < numOfTags; i++){
@@ -179,13 +308,17 @@ ResultsList parse_page(MemoryStruct* pageMem, std::string completeURL){
 }
 
 void HSearch::expand_search(std::string completeURL, int page){
+  // If NHentai, skip rest
+  if(ConfigManager::get_value("mode") == "NHentai"){
+    parse_nh_page(completeURL, page);
+    return;
+  }
 
   // Add page num - & if parameters already exist
   if(completeURL.find('?') != std::string::npos)
     completeURL += "&page=" + std::to_string(page);
   else
     completeURL += "?page=" + std::to_string(page);
-
 
   // Get html page
   MemoryStruct* pageMem = new MemoryStruct();
@@ -208,7 +341,7 @@ void HSearch::expand_search(std::string completeURL, int page){
   json_entries(rList.gids, rList.gtkns, rList.urls);
 }
 
-void HSearch::search_keywords(std::string keywords, size_t maxResults, int categories){
+void HSearch::search_eh_keywords(std::string keywords, int categories){
   // Build url
   std::string completeURL;
   if(ConfigManager::get_value("search") == "Public")
@@ -301,7 +434,7 @@ std::vector<std::pair<std::string,std::string>> HSearch::get_tags(json_object* j
   return tagPairs;
 }
 
-void HSearch::search_favourites(){
+void HSearch::search_eh_favourites(){
   std::string completeURL = FavouritesURL;
   Browser::numOfResults = 0;
 
@@ -349,4 +482,40 @@ void HSearch::search_favourites(){
   }
 
   Browser::numOfResults -= skipped_entries;
+}
+
+void HSearch::search_nh_keywords(std::string keywords){
+  std::string completeURL = ApiURL;
+  char* safeKeywords;
+
+  if(!keywords.empty()){
+    completeURL += "/galleries/search?query=";
+
+    CURL* curl;
+    curl = curl_easy_init();
+    safeKeywords = curl_easy_escape(curl, keywords.c_str(), strlen(keywords.c_str()));
+    completeURL += safeKeywords;
+    curl_easy_cleanup(curl);
+  } else {
+    completeURL+= "/galleries/all";
+  }
+
+  Browser::loadedPages = 1;
+  Browser::numOfResults = 0;
+  Browser::currentUrl = completeURL;
+
+  parse_nh_page(completeURL, 1);
+
+}
+
+void HSearch::search_keywords(std::string keywords, int categories){
+  if(ConfigManager::get_value("mode") == "NHentai")
+    search_nh_keywords(keywords);
+  else
+    search_eh_keywords(keywords, categories);
+}
+
+json_object* HSearch::fetch_nh_gallery(Entry* e){
+  std::string completeURL = ApiURL + "/gallery/" + std::to_string(e->id);
+  return ApiManager::get_res_json(completeURL, ApiManager::handle);
 }

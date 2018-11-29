@@ -292,7 +292,7 @@ HandlerEnum Browser::on_event(int val){
     scroll_pos = 0;
     ApiManager::cancel_all_requests();
     Browser::clear();
-    HSearch::search_favourites();
+    HSearch::search_eh_favourites();
     return HandlerEnum::Browser;
   // Gallery selection
   } else if (val >= 120 && val < 130 && active_gallery >= 0){

@@ -12,6 +12,8 @@
 #define configDir "/switch/Reader"
 #define configPath "/switch/Reader/config"
 
+#define nhApiURL "https://nhentai.net/api"
+
 #define ehSearchUrl "https://e-hentai.org/"
 #define ehFavouritesURL "https://e-hentai.org/favorites.php"
 #define ehApiURL "https://api.e-hentai.org/api.php"
@@ -210,10 +212,12 @@ void ConfigManager::set_mode(){
     SearchURL = exSearchUrl;
     FavouritesURL = exFavouritesURL;
     ApiURL = exApiURL;
-  } else {
+  } else if(mode == "E-hentai"){
     SearchURL = ehSearchUrl;
     FavouritesURL = ehFavouritesURL;
     ApiURL = ehApiURL;
+  } else if(mode == "NHentai"){
+    ApiURL = nhApiURL;
   }
 }
 

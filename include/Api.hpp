@@ -26,6 +26,7 @@ class ApiManager {
     static void cancel_all_requests();
     static void request_res(Resource* res);
 		static void get_res(MemoryStruct* mem, std::string url, CURL* curl=ApiManager::handle, int save=0, std::string path = std::string());
+    static json_object* get_res_json(std::string url, CURL* curl);
 		static json_object* post_api(char* payload, std::string url);
     static void download_gallery(Entry* entry, float* percent);
 
@@ -87,6 +88,7 @@ struct Resource{
 
 struct Entry{
   int id;
+  int media_id;
   std::string title;
   std::string category;
   std::string language;
@@ -100,6 +102,7 @@ struct Entry{
   Resource* res;
   Entry(){
     local = 0;
+    media_id = 0;
     res = new Resource();
   }
   ~Entry(){

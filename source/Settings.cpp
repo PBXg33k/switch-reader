@@ -56,10 +56,14 @@ HandlerEnum Settings::on_event(int val){
     // ExHentai toggle
     } else if(val == 2){
       std::string mode = ConfigManager::get_value("mode");
+
       if(mode == "E-hentai")
         mode = "Exhentai";
-      else
+      else if (mode == "Exhentai")
+        mode = "NHentai";
+      else if(mode == "NHentai")
         mode = "E-hentai";
+
       ConfigManager::set_pair("mode", mode);
       ConfigManager::set_mode();
     // Username

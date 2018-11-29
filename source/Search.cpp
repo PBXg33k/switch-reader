@@ -83,7 +83,7 @@ HandlerEnum SearchBrowser::on_event(int val){
     Browser::clear();
 
     // Do search
-    HSearch::search_keywords(search_str.c_str(), 25, stoi(ConfigManager::get_value("categories")));
+    HSearch::search_keywords(search_str.c_str(), stoi(ConfigManager::get_value("categories")));
 
     // Go back to Browser
     Browser::set_touch();

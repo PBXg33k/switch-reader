@@ -130,10 +130,8 @@ void do_gesture(HandlerEnum handler, SDL_Event e){
       break;
     default:
       break;
+    }
   }
-  }
-
-
 }
 
 void do_scroll(HandlerEnum handler, SDL_Event e){
@@ -170,7 +168,7 @@ int main(int argc, char **argv)
   ConfigManager::init();
   Screen::init();
   ApiManager::init();
-  
+
   // Wait for internet connectivity
   int rc;
   CURL* curlLookup = curl_easy_init();
@@ -209,7 +207,7 @@ int main(int argc, char **argv)
 
   unsigned int last_time = 0, current_time;
 
-  HSearch::search_keywords("", 25, stoi(ConfigManager::get_value("categories")));
+  HSearch::search_keywords("", stoi(ConfigManager::get_value("categories")));
 
   state = 1;
 

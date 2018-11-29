@@ -336,7 +336,7 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) chunk);
     }
 
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30);
 
   	curl_easy_perform(curl);
 
@@ -346,6 +346,38 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
   if(save)
     fclose(file);
   free(link);
+}
+
+
+json_object* ApiManager::get_res_json(std::string url, CURL* curl){
+  std::string readBuffer;
+  const char* host = ApiProxy.c_str();
+
+  char *uri = curl_easy_escape(curl, url.c_str(), strlen(url.c_str()));
+
+  char *link = (char*)malloc(strlen(host) + strlen(uri) + 1);
+  strcpy(link, host);
+  strcat(link, uri);
+
+  if(curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, link);
+    printf("Getting Link - %s\n", link);
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30);
+
+    curl_easy_perform(curl);
+
+    curl_free(uri);
+    curl_easy_reset(curl);
+
+    json_object* json = json_tokener_parse(readBuffer.c_str());
+    json_object_get(json);
+    return json;
+  }
+  free(link);
+  return NULL;
 }
 
 json_object* ApiManager::post_api(char* payload, std::string url)
