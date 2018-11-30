@@ -1,4 +1,6 @@
-# E-Hentai Switch Reader
+# Hentai Switch Reader
+
+## Supports E-Hentai, Exhentai (+ user accounts) and Nhentai domains
 
 ## Usage
 
@@ -44,7 +46,7 @@ Press 'Settings' on the Browser screen. (first on loading)
 
 **Theme** - Light and Dark themes are provided, if you want a specific theme, raise an issue.
 
-**Exhentai / E-hentai** - Toggles the domain to be searched, make sure your account has Exhentai priveleges before you use this, otherwise it won't load anything.
+**Mode** - Toggles the domain to be searched, make sure your account has Exhentai priveleges before you use this, otherwise it won't load anything.
 
 Note - Favourites show Exhentai galleries regardless. Loading them will present failed loading images if E-hentai is set.
 
