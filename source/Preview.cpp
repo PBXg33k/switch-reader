@@ -9,15 +9,17 @@
 #include "Touch.hpp"
 #include "Ui.hpp"
 
-#define tags_x 400
-#define tags_y 80
+#define tags_x 440
+#define tags_y 86
 
 Entry* GalleryPreview::entry;
 static int curX, curY;
+static int scroll_pos;
 std::string last_category;
 
 void GalleryPreview::load_gallery(Entry* entry){
     GalleryPreview::entry = entry;
+    scroll_pos = 0;
 }
 
 void GalleryPreview::set_touch(){
@@ -41,7 +43,6 @@ HandlerEnum GalleryPreview::on_event(int val){
     GalleryBrowser::set_touch();
     return HandlerEnum::Gallery;
   }
-
   // Download Gallery
   if(val == 111){
     printf("Downloading Gallery\n");
@@ -56,10 +57,10 @@ HandlerEnum GalleryPreview::on_event(int val){
   return HandlerEnum::Preview;
 }
 
-void render_tag(Tag tag){
+void render_tag(std::string type, std::string name){
   int w, h;
-  w = FC_GetWidth(Screen::normal, tag.tag.c_str());
-  h = FC_GetHeight(Screen::normal, tag.tag.c_str());
+  w = FC_GetWidth(Screen::normal, name.c_str());
+  h = FC_GetHeight(Screen::normal, name.c_str());
   // Next line
   if(curX + w + 10 > screen_width - 200){
     curX = tags_x;
@@ -67,7 +68,7 @@ void render_tag(Tag tag){
   }
   // Render tag here
   Screen::draw_rect(curX, curY, w + 10, h + 6, ThemePanelDark);
-  Screen::draw_text(tag.tag.c_str(), curX + 5, curY + 3, ThemeText);
+  Screen::draw_text(name.c_str(), curX + 5, curY + 3, ThemeText);
   // Next tag
   curX += w + 20;
 }
@@ -87,9 +88,6 @@ void GalleryPreview::render(){
   else
     Screen::draw_text_centered("Download", screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButtonText, Screen::normal);
 
-  // Back button
-  Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
-
   // Load thumbnail
   if(!entry->res->requested){
     ApiManager::request_res(entry->res);
@@ -100,19 +98,33 @@ void GalleryPreview::render(){
     Screen::draw_adjusted_mem(entry->res->texture, 30, 30, 240, 450);
   }
 
-  // Draw title
-  Screen::draw_text(entry->title, tags_x - 100, tags_y - 10, ThemeText, Screen::large);
-
   // Draw tags
   curX = tags_x;
-  curY = tags_y;
-  for(Tag tag : entry->tags){
-    if(tag.category != last_category){
+  curY = tags_y - scroll_pos;
+  for(auto tag : entry->tags){
+    if(tag.first != last_category){
       curX = tags_x;
       curY += 42;
-      Screen::draw_text(tag.category, tags_x - 100, curY, ThemeText);
-      last_category = tag.category;
+      Screen::draw_text(tag.first, tags_x - 140, curY, ThemeText);
+      last_category = tag.first;
     }
-    render_tag(tag);
+    render_tag(tag.first, tag.second);
   }
+
+    // Draw title
+  Screen::draw_rect(tags_x - 140, 0, screen_width - (tags_x - 140), tags_y, ThemeBG);
+  Screen::draw_text(entry->title, tags_x - 140, tags_y - 40, ThemeText, Screen::large);
+
+  // Back button
+  Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
 }
+
+void GalleryPreview::scroll(float dx, float dy) {
+  float amount = screen_height * dy;
+
+  if(scroll_pos - amount >= 0){
+    scroll_pos = scroll_pos - amount;
+  } else {
+    scroll_pos = 0;
+  }
+};

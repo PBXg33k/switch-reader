@@ -8,6 +8,7 @@
 #include <switch.h>
 #include <SDL2/SDL.h>
 #include <iostream>
+#include <map>
 
 #include "Ui.hpp"
 
@@ -51,20 +52,6 @@ struct MemoryStruct {
   }
 };
 
-struct Tag{
-  std::string category;
-  std::string tag;
-  Tag(std::string c, std::string t){
-    category = c;
-    tag = t;
-  }
-
-  friend std::ostream& operator<<(std::ostream& os, const Tag& tag){
-    os << tag.category << ":" << tag.tag;
-    return os;
-  };
-};
-
 struct Resource{
   MemoryStruct* mem;
   SDL_Texture* texture;
@@ -96,7 +83,7 @@ struct Entry{
   std::string thumb;
   std::string url;
   int pages;
-  std::vector<Tag> tags;
+  std::multimap<std::string, std::string> tags;
   int local;
 
   Resource* res;
@@ -112,7 +99,7 @@ struct Entry{
   friend std::ostream& operator<<(std::ostream& os, const Entry& entry){
     os << entry.title << "\n" << entry.category << "\n" << entry.pages << "\n";
     for(auto tag : entry.tags)
-      os << tag << "\n";
+      os << tag.first << ":" << tag.second << "\n";
     return os;
   };
 };

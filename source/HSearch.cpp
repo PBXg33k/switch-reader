@@ -66,7 +66,7 @@ bool contains_tag(Entry* e, std::string tag) {
     return true;
 
   for(auto t : e->tags){
-    if(strcasecmp(tag.c_str(), t.tag.c_str()) == 0)
+    if(strcasecmp(tag.c_str(), t.second.c_str()) == 0)
       return true;
   }
 
@@ -150,12 +150,11 @@ void parse_nh_page(std::string completeURL, int page){
       // Is a language, set as so
       if(type == "language"){
         if(name != "translated" && name != "text cleaned"){
+          name[0] = std::toupper(name[0]);
           e->language = name;
-          // Make sure language is capitalised - Style is best
-          e->language[0] = std::toupper(e->language[0]);
         }
       }
-      e->tags.push_back(Tag(type,name));
+      e->tags.insert(std::make_pair(type, name));
     }
 
     Browser::add_entry(e);
@@ -227,17 +226,18 @@ void HSearch::fill_tags(Entry* entry, json_object* json){
     tag = json_object_get_string(holder);
 
     if(tag.find(':') != std::string::npos){
-      Tag t( tag.substr(0, tag.find(':')), tag.erase(0, tag.find(':') + 1) );
-      if(t.category == "lang" || t.category == "language"){
-        if(t.tag != "translated" && t.tag != "speechless"){
-          t.tag[0] = std::toupper(t.tag[0]);
-          entry->language = t.tag;
+      std::string type = tag.substr(0, tag.find(':'));
+      std::string name = tag.erase(0, tag.find(':') + 1);
+
+      if(type == "lang" || type == "language"){
+        if(name != "translated" && name != "speechless"){
+          name[0] = std::toupper(name[0]);
+          entry->language = name;
         }
       }
-      entry->tags.push_back(t);
+      entry->tags.insert(std::make_pair(type, name));
     } else {
-      Tag t( "misc", tag );
-      entry->tags.push_back(t);
+      entry->tags.insert(std::make_pair("misc", tag));
     }
   }
 }
