@@ -169,6 +169,11 @@ int main(int argc, char **argv)
   Screen::init();
   ApiManager::init();
 
+  // Register domains
+  HSearch::register_domain("E-Hentai", new Domain_EHentai());
+  HSearch::register_domain("Exhentai", new Domain_EHentai());
+  HSearch::register_domain("NHentai", new Domain_NHentai());
+
   // Wait for internet connectivity
   int rc;
   CURL* curlLookup = curl_easy_init();

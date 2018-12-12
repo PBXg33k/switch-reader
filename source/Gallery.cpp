@@ -39,9 +39,7 @@ void GalleryBrowser::close(){
 
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
-  json_object* json;
-  json_object* images;
-  json_object* img;
+  Domain* domain = HSearch::current_domain();
   block_size = 1;
   // Cur image load
   zoomFactor = 1;
@@ -65,20 +63,9 @@ void GalleryBrowser::load_gallery(Entry* entry){
     img_buffer.push_back(res);
   }
 
-  if(ConfigManager::get_value("mode") == "NHentai"){
-    json = HSearch::fetch_nh_gallery(entry);
-    images = HSearch::get_json_obj(json, "images");
-    images = HSearch::get_json_obj(images, "pages");
-    // If NHentai, build all URLs to start with
-    for(int i = 0; i < (int) json_object_array_length(images); i++){
-      img = json_object_array_get_idx(images, i);
-
-      Resource* res = img_buffer[i];
-      res->populated = 1;
-      res->url = HSearch::build_nh_image(entry, i+1, json_object_get_string(HSearch::get_json_obj(img, "t")));
-    }
-    json_object_put(json);
-  }
+  // Early fill images
+  if(domain != nullptr)
+    domain->prefill_gallery(entry, &img_buffer);
 
   // Populate image buffer area
   for(int i = 0; i < active_gallery->total_pages && i < buffer_size; i++){

@@ -311,7 +311,9 @@ HandlerEnum Browser::on_event(int val){
     scroll_pos = 0;
     ApiManager::cancel_all_requests();
     Browser::clear();
-    HSearch::search_eh_favourites();
+    Domain* domain = HSearch::current_domain();
+    if(domain != nullptr)
+      domain->search_favourites();
     return HandlerEnum::Browser;
   // Gallery selection
   } else if (val >= 120 && val < 130 && active_gallery >= 0){

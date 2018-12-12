@@ -212,7 +212,7 @@ void ConfigManager::set_mode(){
     SearchURL = exSearchUrl;
     FavouritesURL = exFavouritesURL;
     ApiURL = exApiURL;
-  } else if(mode == "E-hentai"){
+  } else if(mode == "E-Hentai"){
     SearchURL = ehSearchUrl;
     FavouritesURL = ehFavouritesURL;
     ApiURL = ehApiURL;
