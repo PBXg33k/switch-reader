@@ -14,12 +14,12 @@ struct ResultsList{
 
 class Domain {
   public:
-    virtual void process_req(Resource* res);
-    virtual void search(std::string keywords, std::vector<void*> args = std::vector<void*>());
-    virtual void search(std::string keywords, std::string type, std::vector<void*> args);
-    virtual void expand_search(std::string completeURL, int page);
-    virtual void search_favourites();
-    virtual void prefill_gallery(Entry* e, std::vector<Resource*>* img_buffer);
+    virtual void process_gallery_req(Resource* res, Resource* fill); /* Process Gallery Page Requests - Page in Resource Meta */
+    virtual void search(std::string keywords, std::vector<void*> args = std::vector<void*>()); /* Search and fill Browser */
+    virtual void search(std::string keywords, std::string type, std::vector<void*> args); /* Might be used for favourites later? */
+    virtual void expand_search(std::string completeURL, int page); /* Adds more results to Browser */
+    virtual void search_favourites(); /* Loads the default favourites immediately */
+    virtual void prefill_gallery(Entry* e, std::vector<Resource*>* img_buffer); /* Fills the Gallery's Resource list when loaded, useful if the urls are immediately known */
 
     // Shared functions
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
@@ -30,6 +30,7 @@ class Domain {
 
 class Domain_EHentai : public Domain {
   public:
+    void process_gallery_req(Resource* res, Resource* fill);
     void search(std::string keywords, std::vector<void*> args = std::vector<void*>());
     void expand_search(std::string completeURL, int page);
     void search_favourites();

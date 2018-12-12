@@ -1,7 +1,7 @@
 #include "Domain.hpp"
 #include "Config.hpp"
 
-void Domain::process_req(Resource* res){}
+void Domain::process_gallery_req(Resource* res, Resource* fill){}
 void Domain::search(std::string keywords, std::vector<void*> args){}
 void Domain::search(std::string keywords, std::string type, std::vector<void*> args){}
 void Domain::expand_search(std::string completeURL, int page){}

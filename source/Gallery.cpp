@@ -124,50 +124,20 @@ void GalleryBrowser::load_page(int page){
     return;
   }
 
-  xmlChar *path;
-  xmlChar *keyword = NULL;
-  xmlXPathObjectPtr result;
-  xmlDocPtr doc;
-  xmlNodeSetPtr nodeset;
+  res = new Resource();
+  res->url = active_gallery->pages[page].c_str();
+  res->meta = page;
+  ApiManager::request_res(res, handle_req);
+}
 
-  // Get html page
-  MemoryStruct* pageMem = new MemoryStruct();
-  ApiManager::get_res(pageMem, active_gallery->pages[page].c_str());
+void GalleryBrowser::handle_req(Resource* res){
+  printf("Handling Gallery Response\n");
+  Domain* domain = HSearch::current_domain();
+  if(domain != nullptr)
+    domain->process_gallery_req(res, img_buffer[res->meta]);
 
-  // If page failed to load, return failure image
-  if(pageMem->size == 0){
-    delete pageMem;
-    img_buffer[page]->texture = Screen::load_stored_texture(0);
-  }
-
-  doc = htmlReadMemory(pageMem->memory, pageMem->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
-
-  if(doc == nullptr){
-    xmlCleanupParser();
-    delete pageMem;
-    return;
-  }
-
-  // Get node list matching XPath for direct image url
-  path = (xmlChar*) imageXPath;
-  result = get_node_set(doc, path);
-  if(result){
-    nodeset = result->nodesetval;
-    keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
-  }
-
-  // Load URL into resource, then request
-  if(keyword){
-    printf("Requesting page %d\n", page);
-    res->url = (char*)keyword;
-    res->populated = 1;
-    ApiManager::request_res(res);
-  }
-
-  xmlFree(keyword);
-  xmlFreeDoc(doc);
-  xmlCleanupParser();
-  delete pageMem;
+  // Make sure request is discarded
+  ApiManager::delete_active = true;
 }
 
 HandlerEnum GalleryBrowser::on_event(int val){

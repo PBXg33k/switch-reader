@@ -23,7 +23,7 @@ static Mutex* mutex = new Mutex;
 static Mutex* cookieMutex = new Mutex;
 static CURLSH* shared;
 
-static int delete_active = 0;
+bool ApiManager::delete_active = false;
 
 CURL* ApiManager::thread_handle;
 CURL* ApiManager::handle;
@@ -132,7 +132,7 @@ void ApiManager::cleanup_resource(Resource* res){
   } else {
     // Queue to be cleaned up next update - Prevents hangs
     active_res->requested = 0;
-    delete_active = 1;
+    delete_active = true;
   }
 }
 
@@ -201,6 +201,10 @@ void ApiManager::download_gallery(Entry* entry, float* percent){
   GalleryBrowser::save_all_pages(path);
 }
 
+void ApiManager::handle_req(Resource* res){
+  res->texture = Screen::load_texture(res->mem->memory, res->mem->size);
+}
+
 void ApiManager::update(){
   // If requests are waiting, start request thread
   if(active_res == nullptr && !requests.empty()){
@@ -231,7 +235,7 @@ void ApiManager::update(){
       if(active_res->done){
         // If cancelled, don't load texture
         if(active_res->requested)
-          active_res->texture = Screen::load_texture(active_res->mem->memory, active_res->mem->size);
+          active_res->res_func(active_res);
 
         // Reset memory struct
         delete active_res->mem;
@@ -244,7 +248,7 @@ void ApiManager::update(){
         // Queued for deletion
         if(delete_active){
           delete active_res;
-          delete_active = 0;
+          delete_active = false;
         }
 
         active_res = nullptr;
@@ -265,13 +269,13 @@ void ApiManager::cancel_all_requests(){
 }
 
 // Threaded image loading
-void ApiManager::request_res(Resource* res){
+void ApiManager::request_res(Resource* res, void(*res_func)(Resource*)){
   // Active_res is loaded in thread - Don't touch done.
   if(active_res != res)
     res->done = 0;
   res->requested = 1;
+  res->res_func = res_func;
   requests.push_back(res);
-
 }
 
 json_object* ApiManager::get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns){

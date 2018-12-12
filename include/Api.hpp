@@ -25,7 +25,8 @@ class ApiManager {
 		static void api_test();
     static void cleanup_resource(Resource* res);
     static void cancel_all_requests();
-    static void request_res(Resource* res);
+    static void handle_req(Resource* res);
+    static void request_res(Resource* res, void(*res_func)(Resource*) = handle_req);
 		static void get_res(MemoryStruct* mem, std::string url, CURL* curl=ApiManager::handle, int save=0, std::string path = std::string());
     static json_object* get_res_json(std::string url, CURL* curl);
 		static json_object* post_api(char* payload, std::string url);
@@ -34,6 +35,7 @@ class ApiManager {
     static void login(std::string username, std::string password);
 
     static const std::string gallery_template;
+    static bool delete_active;
 
 		static json_object* get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns);
     static CURL* thread_handle;
@@ -56,6 +58,9 @@ struct Resource{
   MemoryStruct* mem;
   SDL_Texture* texture;
   std::string url;
+  int meta;
+  void(*res_func)(Resource*);
+
   int done;
   int requested;
   int populated;

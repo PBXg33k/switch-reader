@@ -17,6 +17,56 @@
 #define exFavouritesURL "https://exhentai.org/favorites.php"
 #define exApiURL "https://api.e-hentai.org/api.php"
 
+#define imageXPath "//img[@id='img']"
+
+void Domain_EHentai::process_gallery_req(Resource* res, Resource* fill){
+
+  // Already filled, maybe by older request?
+  if(fill->populated){
+    return;
+  }
+
+  printf("Populating resource\n");
+  xmlChar *path;
+  xmlChar *keyword = NULL;
+  xmlXPathObjectPtr result;
+  xmlDocPtr doc;
+  xmlNodeSetPtr nodeset;
+
+  // If page failed to load, return failure image
+  if(res->mem->size == 0){
+    fill->texture = Screen::load_stored_texture(0);
+  }
+
+  doc = htmlReadMemory(res->mem->memory, res->mem->size, "base", NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+
+  if(doc == nullptr){
+    xmlCleanupParser();
+    return;
+  }
+
+  // Get node list matching XPath for direct image url
+  path = (xmlChar*) imageXPath;
+  result = get_node_set(doc, path);
+  if(result){
+    nodeset = result->nodesetval;
+    keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
+  }
+
+  // Load URL into resource, then request
+  if(keyword){
+    printf("Requesting page %d - %s\n", res->meta, (char*) keyword);
+    fill->url = (char*)keyword;
+    fill->populated = 1;
+    ApiManager::request_res(fill);
+    printf("Sent for resource\n");
+  }
+
+  xmlFree(keyword);
+  xmlFreeDoc(doc);
+  xmlCleanupParser();
+}
+
 void Domain_EHentai::fill_tags(Entry* entry, json_object* json){
   json_object* holder;
   int numOfTags;
