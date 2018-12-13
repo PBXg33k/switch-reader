@@ -23,7 +23,7 @@ void Settings::set_touch(){
     // Theme
     TouchManager::add_bounds(50, 50, 300, 120, 1);
 
-    // Exhentai
+    // Mode
     TouchManager::add_bounds(50, 190, 300, 120, 2);
     
     // Username
@@ -55,15 +55,15 @@ HandlerEnum Settings::on_event(int val){
       ConfigManager::set_pair("theme", theme);
       ConfigManager::set_theme();
       printf("New Theme %s\n", ConfigManager::get_value("theme").c_str());
-    // ExHentai toggle
+    // Mode switch
     } else if(val == 2){
       std::string mode = ConfigManager::get_value("mode");
       std::map<std::string, Domain*> domains = HSearch::get_domains();
       auto iter = domains.find(mode);
 
-      // Not found, replace with default
+      // Not found, replace with first domain in list
       if(iter == domains.end()){
-        mode = "E-Hentai";
+        mode = HSearch::get_domains().begin()->first;
       // Found, set next
       } else {
         iter++;
@@ -129,11 +129,11 @@ HandlerEnum Settings::on_event(int val){
         Browser::load_username();
       Browser::clear();
 
-      // Do search
-      HSearch::search_keywords(SearchBrowser::search_str, stoi(ConfigManager::get_value("categories")));
-
       // Save config file
       ConfigManager::save();
+
+      // Do search
+      HSearch::search_keywords(SearchBrowser::search_str);
 
       // Return
       Browser::set_touch();

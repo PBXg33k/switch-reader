@@ -8,8 +8,10 @@
 #include "Domain.hpp"
 
 namespace HSearch {
+  static Domain default_domain;
+
   void expand_search(std::string completeURL, int page);
-  void search_keywords(std::string keywords, int categories);
+  void search_keywords(std::string keywords);
   
   void register_domain(std::string type, Domain* domain);
   Domain* current_domain();

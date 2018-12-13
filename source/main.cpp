@@ -218,7 +218,7 @@ int main(int argc, char **argv)
 
   unsigned int last_time = 0, current_time;
 
-  HSearch::search_keywords("", stoi(ConfigManager::get_value("categories")));
+  HSearch::search_keywords("");
 
   state = 1;
 

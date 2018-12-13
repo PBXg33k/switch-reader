@@ -89,8 +89,8 @@ struct Entry{
   int pages;
   std::multimap<std::string, std::string> tags;
   int local;
-
   Resource* res;
+  
   Entry(){
     local = 0;
     media_id = 0;

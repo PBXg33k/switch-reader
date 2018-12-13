@@ -2,6 +2,8 @@
 #include "RegexHelper.hpp"
 #include "Browser.hpp"
 #include "Config.hpp"
+#include "Touch.hpp"
+#include "Search.hpp"
 
 #include <libxml/HTMLparser.h>
 
@@ -10,15 +12,9 @@
 #define pagesXPath "//p[@class='ip']"
 #define urlsXPath "//a[contains(@href, 'hentai.org/s/')]"
 
-#define ehSearchUrl "https://e-hentai.org/"
-#define ehFavouritesURL "https://e-hentai.org/favorites.php"
-#define ehApiURL "https://api.e-hentai.org/api.php"
-
-#define exSearchUrl "https://exhentai.org/"
-#define exFavouritesURL "https://exhentai.org/favorites.php"
-#define exApiURL "https://api.e-hentai.org/api.php"
-
 #define imageXPath "//img[@id='img']"
+
+#define starScale 2
 
 void Domain_EHentai::process_gallery_req(Resource* res){
 
@@ -212,10 +208,9 @@ ResultsList Domain_EHentai::parse_page(MemoryStruct* pageMem, std::string comple
 }
 
 void Domain_EHentai::search(std::string keywords, std::vector<void*> args){
-  printf("Called 10!\n");
+  Domain::search(keywords);
 
   // Build url
-
   std::string completeURL;
   if(ConfigManager::get_value("search") == "Public")
     completeURL = SearchURL;
@@ -223,11 +218,13 @@ void Domain_EHentai::search(std::string keywords, std::vector<void*> args){
     completeURL = FavouritesURL;
 
   char* safeKeywords;
-  Browser::numOfResults = 0;
+  
+  // Make sure categories exists
+  std::string category_str = ConfigManager::get_value("categories");
+  if(category_str.empty())
+    ConfigManager::set_pair("categories", "0");
 
-  int categories = 0;
-  if(args.size() > 0)
-    categories = *((int*) args[0]);
+  int categories = stoi(ConfigManager::get_value("categories"));
 
   printf("Categories : %d\n", categories);  
 
@@ -522,4 +519,120 @@ json_object* Domain_EHentai::get_galleries(std::vector<std::string> gids, std::v
   json_object* json = ApiManager::post_api(data, ApiURL);
   free(data);
   return json;
+}
+
+void Domain_EHentai::search_touch(){
+  // Star Ratings
+  for(int i = 0; i < 5; i++)
+      TouchManager::add_bounds(SearchBrowser::keyboard_x + (31 * i * starScale), 460, 62, 30 * starScale, 150 + i);
+
+  // Public or Favourites
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 5*(50 + SearchBrowser::gap-12), 420, 100, 111);
+
+  // All 10 Categorys
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10, 200, 50, 50);
+
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 50 + SearchBrowser::gap-12, 200, 50, 51);
+
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 2*(50 + SearchBrowser::gap-12), 200, 50, 52);
+
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 3*(50 + SearchBrowser::gap-12), 200, 50, 53);
+
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 4*(50 + SearchBrowser::gap-12), 200, 50, 54);
+
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10, 200, 50, 55);
+
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 50 + SearchBrowser::gap-12, 200, 50, 56);
+
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 2*(50 + SearchBrowser::gap-12), 200, 50, 57);
+
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 3*(50 + SearchBrowser::gap-12), 200, 50, 58);
+
+  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 4*(50 + SearchBrowser::gap-12), 200, 50, 59);
+}
+
+void Domain_EHentai::search_render(){
+      Screen::draw_text("Min. Star Rating", SearchBrowser::keyboard_x, 410, ThemeText, Screen::large);
+    // Empty stars
+    Screen::draw_partial(SearchBrowser::keyboard_x, 460, 1, 1, Screen::s_stars_off, starScale);
+    // Filled stars
+    Screen::draw_partial(SearchBrowser::keyboard_x, 460, stof(ConfigManager::get_value("stars")) / 5, 1, Screen::s_stars, starScale);
+
+    // Public or Favourites
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 30, 10 + 5*(50 + SearchBrowser::gap-12), 420, 100, ThemeButton, ThemeButtonBorder, 5);
+    Screen::draw_text_centered(ConfigManager::get_value("search"), SearchBrowser::keyboard_x + 680 + 30, 10 + 5*(50 + SearchBrowser::gap-12), 420, 100, ThemeButtonText, Screen::large);
+
+    SDL_Color state;
+
+    int search_flags = stoi(ConfigManager::get_value("categories"));
+
+    if(search_flags & (int)Category::Doujinshi) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 30, 10, 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Doujinshi", SearchBrowser::keyboard_x + 680 + 30, 10, 200, 50, ThemeButtonText, Screen::normal);
+
+    if(search_flags & (int)Category::Manga) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 30, 10 + 50 + SearchBrowser::gap-12, 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Manga", SearchBrowser::keyboard_x + 680 + 30, 10 + 50 + SearchBrowser::gap-12, 200, 50, ThemeButtonText, Screen::normal);
+
+    if(search_flags & (int)Category::ArtistCg) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 30, 10 + 2*(50 + SearchBrowser::gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Artist Cg", SearchBrowser::keyboard_x + 680 + 30, 10 + 2*(50 + SearchBrowser::gap-12), 200, 50, ThemeButtonText, Screen::normal);
+
+    if(search_flags & (int)Category::GameCg) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 30, 10 + 3*(50 + SearchBrowser::gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Game Cg", SearchBrowser::keyboard_x + 680 + 30, 10 + 3*(50 + SearchBrowser::gap-12), 200, 50, ThemeButtonText, Screen::normal);
+
+    if(search_flags & (int)Category::Western) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 30, 10 + 4*(50 + SearchBrowser::gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Western", SearchBrowser::keyboard_x + 680 + 30, 10 + 4*(50 + SearchBrowser::gap-12), 200, 50, ThemeButtonText, Screen::normal);
+
+    if(search_flags & (int)Category::NonH) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 250, 10, 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Non-H", SearchBrowser::keyboard_x + 680 + 250, 10, 200, 50, ThemeButtonText, Screen::normal);
+
+    if(search_flags & (int)Category::ImageSet) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 250, 10 + 50 + SearchBrowser::gap-12, 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Image Set", SearchBrowser::keyboard_x + 680 + 250, 10 + 50 + SearchBrowser::gap-12, 200, 50, ThemeButtonText, Screen::normal);
+
+    if(search_flags & (int)Category::Cosplay) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 250, 10 + 2*(50 + SearchBrowser::gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Cosplay", SearchBrowser::keyboard_x + 680 + 250, 10 + 2*(50 + SearchBrowser::gap-12), 200, 50, ThemeButtonText, Screen::normal);
+
+    if(search_flags & (int)Category::AsianPorn) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 250, 10 + 3*(50 + SearchBrowser::gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Asian Porn", SearchBrowser::keyboard_x + 680 + 250, 10 + 3*(50 + SearchBrowser::gap-12), 200, 50, ThemeButtonText, Screen::normal);
+
+    if(search_flags & (int)Category::Misc) state = ThemeOptionSelected; else state = ThemeOptionUnselected;
+    Screen::draw_button(SearchBrowser::keyboard_x + 680 + 250, 10 + 4*(50 + SearchBrowser::gap-12), 200, 50, state, ThemeButtonBorder, 4);
+    Screen::draw_text_centered("Misc", SearchBrowser::keyboard_x + 680 + 250, 10 + 4*(50 + SearchBrowser::gap-12), 200, 50, ThemeButtonText, Screen::normal);
+}
+
+HandlerEnum Domain_EHentai::search_event(int val){
+  // Category toggle
+  if(val >= 50 && val < 60){
+    int flag = (int)(pow(2, val%50));
+    int flags = stoi(ConfigManager::get_value("categories"));
+    if(flags & flag)
+      flags = flags & ~flag;
+    else
+      flags = flags | flag;
+
+    ConfigManager::set_pair("categories", std::to_string(flags));
+  }
+
+  // Turn stars on/set
+  if(val >= 150 && val < 155){
+    ConfigManager::set_pair("stars", std::to_string((val - 150) + 1));
+    printf("Set %d stars\n", (val-150) + 1);
+  }
+
+  // Toggle favourites
+  if(val == 111){
+    if(ConfigManager::get_value("search") == "Public")
+      ConfigManager::set_pair("search", "Favourites");
+    else
+      ConfigManager::set_pair("search", "Public");
+  }
+
+  return HandlerEnum::Search;
 }

@@ -250,7 +250,6 @@ void ApiManager::update(){
           delete active_res;
           delete_active = false;
         }
-
         active_res = nullptr;
       }
 
@@ -265,6 +264,11 @@ void ApiManager::cancel_all_requests(){
     if(res != nullptr)
       res->requested = 0;
   }
+  if(active_res){
+    active_res->requested = 0;
+    delete_active = true;
+  }
+
   requests.clear();
 }
 
@@ -296,7 +300,7 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    printf("Getting Link - %s\n", link);
+    printf("Getting Link - %s\n", url.c_str());
 
     // Cookies
     //curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "/switch/Reader/cookies");
@@ -335,7 +339,7 @@ json_object* ApiManager::get_res_json(std::string url, CURL* curl){
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    printf("Getting Link - %s\n", link);
+    printf("Getting Link - %s\n", url.c_str());
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);

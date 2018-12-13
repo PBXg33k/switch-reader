@@ -9,10 +9,11 @@ class SearchBrowser : public Handler {
     static HandlerEnum on_event(int val);
     static void render();
     static std::string search_str;
+    static const int keyboard_x, keyboard_y;
+    static const int gap;
+
   private:
-    static int keyboard_x, keyboard_y;
     static int box_size;
-    static int gap;
     static int caps_lock;
 
     static int active_elem;

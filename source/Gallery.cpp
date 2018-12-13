@@ -51,8 +51,7 @@ void GalleryBrowser::load_gallery(Entry* entry){
   active_gallery->total_pages = entry->pages;
 
   // Early fill images
-  if(domain != nullptr)
-    domain->prefill_gallery(entry, active_gallery);
+  domain->prefill_gallery(entry, active_gallery);
 
   // Populate image buffer area
   for(int i = 0; i < active_gallery->total_pages && i < buffer_size; i++){
@@ -126,8 +125,7 @@ void GalleryBrowser::load_page(int page){
 void GalleryBrowser::handle_req(Resource* res){
   printf("Handling Gallery Response\n");
   Domain* domain = HSearch::current_domain();
-  if(domain != nullptr)
-    domain->process_gallery_req(res);
+  domain->process_gallery_req(res);
 }
 
 HandlerEnum GalleryBrowser::on_event(int val){
@@ -220,8 +218,7 @@ xmlXPathObjectPtr GalleryBrowser::get_node_set(xmlDocPtr doc, xmlChar *xpath){
 // Buffer page urls on numbered index page (max 40 per index page)
 void GalleryBrowser::load_urls(size_t page){
   Domain* domain = HSearch::current_domain();
-  if(domain != nullptr)
-    domain->load_gallery_urls(page, &block_size, active_gallery);
+  domain->load_gallery_urls(page, &block_size, active_gallery);
 }
 
 int GalleryBrowser::save_all_pages(std::string dir){
@@ -233,10 +230,7 @@ int GalleryBrowser::save_all_pages(std::string dir){
   }
 
   Domain* domain = HSearch::current_domain();
-  int fail = 1;
-  if(domain != nullptr){
-    fail = domain->download_gallery(active_gallery, dir);
-  }
+  int fail = domain->download_gallery(active_gallery, dir);
 
   return fail;
 }

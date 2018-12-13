@@ -24,6 +24,10 @@ class Domain {
     virtual int download_gallery(Gallery* gallery, std::string directory); /* Saves all gallery pages. Returns - 1 = Download not supported */
     virtual void load_gallery_urls(size_t page, int* block_size, Gallery* gallery); /* Loads URLs from the next page - Block size is 1 when not set, your job to do so */
 
+    virtual void search_touch();
+    virtual void search_render();
+    virtual HandlerEnum search_event(int val);
+
     // Shared functions
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
     static json_object* get_json_obj(json_object* root, std::string key);
@@ -40,6 +44,11 @@ class Domain_EHentai : public Domain {
     int download_gallery(Gallery* gallery, std::string directory);
     void load_gallery_urls(size_t page, int* block_size, Gallery* gallery);
     json_object* get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns);
+
+    // Search page expansion
+    void search_touch();
+    void search_render();
+    HandlerEnum search_event(int val);
 
     std::string SearchURL = "https://e-hentai.org/";;
     std::string FavouritesURL = "https://e-hentai.org/favorites.php";

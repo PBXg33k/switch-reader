@@ -186,6 +186,7 @@ void Browser::render(){
   int baseY = 30;
   int incX = (Browser::maxw2 + 30);
   int incY = (Browser::maxh + 30);
+  
   // Index to start from
   int idx = (scroll_pos / incX) * 3;
   idx -= (idx % 3);
@@ -193,7 +194,6 @@ void Browser::render(){
   int offset = ((int) scroll_pos) % incX;
 
   // Load more if not enough
-
   if(idx + 11 >= (int) entries.size() && (int) entries.size()+1 < numOfResults){
     printf("Loading from %d of %d\n", (int) entries.size()+1, numOfResults);
     load_urls();
@@ -309,11 +309,9 @@ HandlerEnum Browser::on_event(int val){
   } else if (val == 115){
     active_gallery = -1;
     scroll_pos = 0;
-    ApiManager::cancel_all_requests();
     Browser::clear();
     Domain* domain = HSearch::current_domain();
-    if(domain != nullptr)
-      domain->search_favourites();
+    domain->search_favourites();
     return HandlerEnum::Browser;
   // Gallery selection
   } else if (val >= 120 && val < 130 && active_gallery >= 0){
@@ -394,6 +392,7 @@ void Browser::scroll(float dx, float dy){
     }
   }
 
+        printf("Thread handled!\n");
   scroll_pos = new_pos;
 
   set_touch();
