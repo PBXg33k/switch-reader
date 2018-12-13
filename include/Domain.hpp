@@ -39,6 +39,11 @@ class Domain_EHentai : public Domain {
     void search_favourites();
     int download_gallery(Gallery* gallery, std::string directory);
     void load_gallery_urls(size_t page, int* block_size, Gallery* gallery);
+    json_object* get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns);
+
+    std::string SearchURL = "https://e-hentai.org/";;
+    std::string FavouritesURL = "https://e-hentai.org/favorites.php";
+    std::string ApiURL = "https://api.e-hentai.org/api.php";
 
   private:
     bool contains_tag(Entry* e, std::string tag);
@@ -52,6 +57,8 @@ class Domain_NHentai : public Domain {
     void search(std::string keywords, std::vector<void*> args = std::vector<void*>());
     void expand_search(std::string completeURL, int page);
     void prefill_gallery(Entry* e, Gallery* gallery);
+
+    std::string ApiURL = "https://nhentai.net/api";
 
   private:
     void parse_page(std::string completeURL, int page);

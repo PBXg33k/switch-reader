@@ -165,14 +165,20 @@ int main(int argc, char **argv)
   HandlerEnum handler = HandlerEnum::Browser;
   motion_track = 0;
 
-  ConfigManager::init();
-  Screen::init();
-  ApiManager::init();
+  // Domain setup
+  Domain_EHentai* ex = new Domain_EHentai();
+  ex->SearchURL = "https://exhentai.org/";
+  ex->FavouritesURL = "https://exhentai.org/favorites.php";
 
   // Register domains
   HSearch::register_domain("E-Hentai", new Domain_EHentai());
-  HSearch::register_domain("Exhentai", new Domain_EHentai());
+  HSearch::register_domain("Exhentai", ex);
   HSearch::register_domain("NHentai", new Domain_NHentai());
+
+  // Initial setup
+  ConfigManager::init();
+  Screen::init();
+  ApiManager::init();
 
   // Wait for internet connectivity
   int rc;

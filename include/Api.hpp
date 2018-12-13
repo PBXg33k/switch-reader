@@ -37,7 +37,6 @@ class ApiManager {
     static const std::string gallery_template;
     static bool delete_active;
 
-		static json_object* get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns);
     static CURL* thread_handle;
     static CURL* handle;
 };

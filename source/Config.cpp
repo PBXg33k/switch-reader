@@ -8,23 +8,13 @@
 #include <sys/stat.h>
 #include "Config.hpp"
 #include "Shared.hpp"
+#include "HSearch.hpp"
 
 #define configDir "/switch/Reader"
 #define configPath "/switch/Reader/config"
 
-#define nhApiURL "https://nhentai.net/api"
-
-#define ehSearchUrl "https://e-hentai.org/"
-#define ehFavouritesURL "https://e-hentai.org/favorites.php"
-#define ehApiURL "https://api.e-hentai.org/api.php"
-
-#define exSearchUrl "https://exhentai.org/"
-#define exFavouritesURL "https://exhentai.org/favorites.php"
-#define exApiURL "https://api.e-hentai.org/api.php"
-
 #define themeDefault "1"
 #define rotationDefault "0"
-#define modeDefault "E-hentai"
 #define proxyDefault "http://192.168.0.123:5000/?url=" 
 #define categoriesDefault Category::NonH
 
@@ -33,7 +23,7 @@ static std::map<std::string, std::string> configPairs;
 void load_defaults(){
   configPairs.insert(std::make_pair("theme", themeDefault));
   configPairs.insert(std::make_pair("rotation", rotationDefault));
-  configPairs.insert(std::make_pair("mode", modeDefault));
+  configPairs.insert(std::make_pair("mode", HSearch::get_domains().begin()->first));
   configPairs.insert(std::make_pair("proxy", proxyDefault));
   configPairs.insert(std::make_pair("lang", ""));
   configPairs.insert(std::make_pair("stars","1"));
@@ -204,20 +194,8 @@ void ConfigManager::set_mode(){
 
   // No mode set, make default
   if(mode.empty()){
-    mode = modeDefault;
+    mode = HSearch::get_domains().begin()->first;
     set_pair("mode", mode);
-  }
-
-  if(mode == "Exhentai"){
-    SearchURL = exSearchUrl;
-    FavouritesURL = exFavouritesURL;
-    ApiURL = exApiURL;
-  } else if(mode == "E-Hentai"){
-    SearchURL = ehSearchUrl;
-    FavouritesURL = ehFavouritesURL;
-    ApiURL = ehApiURL;
-  } else if(mode == "NHentai"){
-    ApiURL = nhApiURL;
   }
 }
 

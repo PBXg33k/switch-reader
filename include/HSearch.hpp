@@ -10,7 +10,8 @@
 namespace HSearch {
   void expand_search(std::string completeURL, int page);
   void search_keywords(std::string keywords, int categories);
-
+  
   void register_domain(std::string type, Domain* domain);
   Domain* current_domain();
+  std::map<std::string, Domain*> get_domains();
 };

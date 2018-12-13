@@ -45,3 +45,7 @@ Domain* HSearch::current_domain(){
 
   return nullptr;
 }
+
+std::map<std::string, Domain*> HSearch::get_domains(){
+  return domains;
+}

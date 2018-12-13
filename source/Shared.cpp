@@ -1,9 +1,6 @@
 #include "Shared.hpp"
 
 std::string ApiProxy;
-std::string SearchURL;
-std::string FavouritesURL;
-std::string ApiURL;
 std::string UserURL = "https://forums.e-hentai.org/index.php?act=UserCP&CODE=00";
 
 SDL_Color COLOR_WHITE = {255,255,255,255};

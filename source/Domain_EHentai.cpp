@@ -111,7 +111,7 @@ bool Domain_EHentai::contains_tag(Entry* e, std::string tag) {
 }
 
 int Domain_EHentai::json_entries(std::vector<std::string> gids, std::vector<std::string> gtkns, std::vector<std::string> urls){
-  json_object* json = ApiManager::get_galleries(gids, gtkns);
+  json_object* json = get_galleries(gids, gtkns);
   int skipped_entries = 0;
 
   if(json == NULL)
@@ -492,4 +492,34 @@ void Domain_EHentai::load_gallery_urls(size_t page, int* block_size, Gallery* ga
   xmlFreeDoc(doc);
   xmlCleanupParser();
   delete index;
+}
+
+json_object* Domain_EHentai::get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns){
+  char* temp = (char *) "[%s,\"%s\"]";
+  std::string gallery_list;
+  size_t size;
+  char* buffer;
+
+  printf("Making string\n");
+
+  if(gids.size() == 0)
+    return NULL;
+
+  for(size_t c = 0; c < gids.size(); c++){
+    size = snprintf(NULL, 0, temp, gids[c].c_str(), gtkns[c].c_str());
+    buffer = (char*) malloc(size + 1);
+    snprintf(buffer, size + 1, temp, gids[c].c_str(), gtkns[c].c_str());
+    gallery_list.append(buffer);
+    gallery_list.append(",");
+    free(buffer);
+  }
+
+  gallery_list.resize(gallery_list.size() - 1);
+
+  char* data = (char*)malloc((strlen(gallery_list.c_str()) + 64) * sizeof(char));
+  sprintf(data, "{\"method\": \"gdata\",\"gidlist\": [%s],\"namespace\": 1}", gallery_list.c_str());
+  printf("%s\n",data);
+  json_object* json = ApiManager::post_api(data, ApiURL);
+  free(data);
+  return json;
 }

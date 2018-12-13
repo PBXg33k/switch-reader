@@ -8,7 +8,6 @@ void Domain::expand_search(std::string completeURL, int page){}
 void Domain::search_favourites(){}
 void Domain::prefill_gallery(Entry* e, Gallery* gallery){}
 void Domain::load_gallery_urls(size_t page, int* block_size, Gallery* gallery){}
-
 int Domain::download_gallery(Gallery* gallery, std::string directory){ return 1; }
 
 xmlXPathObjectPtr Domain::get_node_set(xmlDocPtr doc, xmlChar *xpath){

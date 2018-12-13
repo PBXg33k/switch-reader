@@ -58,15 +58,20 @@ HandlerEnum Settings::on_event(int val){
     // ExHentai toggle
     } else if(val == 2){
       std::string mode = ConfigManager::get_value("mode");
+      std::map<std::string, Domain*> domains = HSearch::get_domains();
+      auto iter = domains.find(mode);
 
-      if(mode == "E-Hentai")
-        mode = "Exhentai";
-      else if (mode == "Exhentai")
-        mode = "NHentai";
-      else if(mode == "NHentai")
+      // Not found, replace with default
+      if(iter == domains.end()){
         mode = "E-Hentai";
-      else
-        mode = "E-Hentai";
+      // Found, set next
+      } else {
+        iter++;
+        if(iter == domains.end())
+          iter = domains.begin();
+        
+        mode = iter->first;
+      }
 
       ConfigManager::set_pair("mode", mode);
       ConfigManager::set_mode();

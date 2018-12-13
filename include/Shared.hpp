@@ -47,9 +47,6 @@ class Shared{
 };
 
 extern std::string ApiProxy;
-extern std::string SearchURL;
-extern std::string ApiURL;
-extern std::string FavouritesURL;
 extern std::string UserURL;
 
 extern SDL_Color ThemeBG;
