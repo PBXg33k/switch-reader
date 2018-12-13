@@ -10,8 +10,14 @@
 struct Gallery{
   std::string title;
   std::string index;
-  std::vector<std::string> pages;
+  std::vector<Resource*> images;
   int total_pages;
+
+  ~Gallery(){
+    for(auto res : images){
+      ApiManager::cleanup_resource(res);
+    }
+  }
 };
 
 class GalleryBrowser : public Handler {
@@ -36,7 +42,6 @@ class GalleryBrowser : public Handler {
     static int cur_page;
     static Gallery* active_gallery;
     static const int buffer_size;
-    static std::vector<Resource*> img_buffer;
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
   private:
     static void set_pos_bounds();

@@ -20,10 +20,11 @@
 
 #define imageXPath "//img[@id='img']"
 
-void Domain_EHentai::process_gallery_req(Resource* res, Resource* fill){
+void Domain_EHentai::process_gallery_req(Resource* res){
 
   // Already filled, maybe by older request?
-  if(fill->populated){
+  if(res->populated){
+    ApiManager::request_res(res);
     return;
   }
 
@@ -36,7 +37,7 @@ void Domain_EHentai::process_gallery_req(Resource* res, Resource* fill){
 
   // If page failed to load, return failure image
   if(res->mem->size == 0){
-    fill->texture = Screen::load_stored_texture(0);
+    res->texture = Screen::load_stored_texture(0);
   }
 
   doc = htmlReadMemory(res->mem->memory, res->mem->size, "base", NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
@@ -57,9 +58,9 @@ void Domain_EHentai::process_gallery_req(Resource* res, Resource* fill){
   // Load URL into resource, then request
   if(keyword){
     printf("Requesting page %d - %s\n", res->meta, (char*) keyword);
-    fill->url = (char*)keyword;
-    fill->populated = 1;
-    ApiManager::request_res(fill);
+    res->url = (char*)keyword;
+    res->populated = 1;
+    ApiManager::request_res(res);
     printf("Sent for resource\n");
   }
 
@@ -385,13 +386,13 @@ void Domain_EHentai::search_favourites(){
   Browser::numOfResults -= skipped_entries;
 }
 
-int Domain_EHentai::download_gallery(std::vector<Resource*> pages, Gallery* gallery, std::string directory){
-  for(int page = 0; page < (int) gallery->pages.size(); page++){
+int Domain_EHentai::download_gallery(Gallery* gallery, std::string directory){
+  for(int page = 0; page < (int) gallery->images.size(); page++){
     // Update progress
     int progress = ((float) page / (float) gallery->total_pages) * ((screen_width / 2) - 10);
 
     Screen::clear(ThemeBG);
-    std::string to_print = "Downloading Gallery - Page " + std::to_string(page + 1) + " of " + std::to_string(gallery->pages.size());
+    std::string to_print = "Downloading Gallery - Page " + std::to_string(page + 1) + " of " + std::to_string(gallery->images.size());
     Screen::draw_text_centered(to_print, 0, (screen_height / 2) - 120, screen_width, 100, ThemeText, Screen::header);
     Screen::draw_rect(screen_width / 4, screen_height / 2, screen_width / 2, 150, ThemePanelDark);
     Screen::draw_rect(screen_width / 4 + 5, (screen_height / 2) + 5, progress, 140, ThemePanelLight);
@@ -405,12 +406,12 @@ int Domain_EHentai::download_gallery(std::vector<Resource*> pages, Gallery* gall
 
     // Get html page
     MemoryStruct* pageMem = new MemoryStruct();
-    ApiManager::get_res(pageMem, gallery->pages[page].c_str());
+    ApiManager::get_res(pageMem, gallery->images[page]->url.c_str());
 
     // If page failed to load, use failure image
     if(pageMem->size == 0){
       delete pageMem;
-      pages[page]->texture = Screen::load_stored_texture(0);
+      gallery->images[page]->texture = Screen::load_stored_texture(0);
     }
 
     doc = htmlReadMemory(pageMem->memory, pageMem->size, gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
@@ -478,10 +479,14 @@ void Domain_EHentai::load_gallery_urls(size_t page, int* block_size, Gallery* ga
     for (i=0; i < nodeset->nodeNr; i++) {
 			keyword = xmlGetProp(nodeset->nodeTab[i], (xmlChar*) "href");
   		printf("Page %d: %s\n", i, keyword);
-      gallery->pages.push_back((char *)keyword);
+      Resource* res = new Resource();
+      res->url = (char*) keyword;
+      gallery->images.push_back(res);
   		xmlFree(keyword);
 		}
   }
+
+  printf("Loaded URL block\n");
 
   // Cleanup
   xmlFreeDoc(doc);

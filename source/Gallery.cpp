@@ -13,7 +13,6 @@
 Gallery* GalleryBrowser::active_gallery;
 int GalleryBrowser::cur_page = 0;
 const int GalleryBrowser::buffer_size = 2; // 1 - 1 Page, 2 - 3 pages, 3 - 5 pages...
-std::vector<Resource*> GalleryBrowser::img_buffer;
 static int rotation = 0;
 static int block_size;
 
@@ -29,12 +28,6 @@ void GalleryBrowser::close(){
   if(active_gallery){
     delete active_gallery;
   }
-
-  for(auto res : img_buffer){
-    ApiManager::cleanup_resource(res);
-  }
-
-  img_buffer.clear();
 }
 
 // Load gallery
@@ -57,15 +50,9 @@ void GalleryBrowser::load_gallery(Entry* entry){
   active_gallery->index = entry->url;
   active_gallery->total_pages = entry->pages;
 
-  // Create all buffer pages
-  for(int i = 0; i < active_gallery->total_pages; i++){
-    Resource* res = new Resource;
-    img_buffer.push_back(res);
-  }
-
   // Early fill images
   if(domain != nullptr)
-    domain->prefill_gallery(entry, &img_buffer, active_gallery);
+    domain->prefill_gallery(entry, active_gallery);
 
   // Populate image buffer area
   for(int i = 0; i < active_gallery->total_pages && i < buffer_size; i++){
@@ -102,42 +89,45 @@ void GalleryBrowser::set_touch(){
 }
 
 void GalleryBrowser::load_page(int page){
-  Resource* res = img_buffer[page];
-
-  // If resource already has a URL set, skip finding src, request immediately
-  if(res->populated){
-    printf("Requesting page %d\n", page);
-    ApiManager::request_res(res);
-    return;
-  }
-
   // Load more URLs if needed - block_size on each page
-  if(page >= (int) active_gallery->pages.size()){
-    int block = (active_gallery->pages.size()/block_size);
+  if(page >= (int) active_gallery->images.size()){
+    int block = (active_gallery->images.size()/block_size);
     printf("Loading page block %d\n", block);
     load_urls(block);
   }
 
-  // Still not loaded, failed to load gallery
-  if(page >= (int) active_gallery->pages.size()){
-    img_buffer[page]->texture = Screen::load_stored_texture(0);
+  Resource* res = active_gallery->images[page];
+
+  // Already requested
+  if(res->requested){
     return;
   }
 
-  res = new Resource();
-  res->url = active_gallery->pages[page].c_str();
+  // If image URL in populated, load image
+  if(res->populated){
+    printf("Requesting image %d\n", page);
+    ApiManager::request_res(res);
+    return;
+  }
+
+  // Still not loaded, failed to load gallery
+  if(page >= (int) active_gallery->images.size()){
+    active_gallery->images[page]->texture = Screen::load_stored_texture(0);
+    return;
+  }
+
+  res = active_gallery->images[page];
   res->meta = page;
   ApiManager::request_res(res, handle_req);
+
+  printf("Requested page %d", page);
 }
 
 void GalleryBrowser::handle_req(Resource* res){
   printf("Handling Gallery Response\n");
   Domain* domain = HSearch::current_domain();
   if(domain != nullptr)
-    domain->process_gallery_req(res, img_buffer[res->meta]);
-
-  // Make sure request is discarded
-  ApiManager::delete_active = true;
+    domain->process_gallery_req(res);
 }
 
 HandlerEnum GalleryBrowser::on_event(int val){
@@ -155,11 +145,11 @@ HandlerEnum GalleryBrowser::on_event(int val){
 
     // Unload oldest page
     if(to_remove >= 0){
-      Resource* removing = img_buffer[to_remove];
+      Resource* removing = active_gallery->images[to_remove];
       removing->requested = 0;
 
       if(removing->texture)
-        Screen::cleanup_texture(img_buffer[to_remove]->texture);
+        Screen::cleanup_texture(active_gallery->images[to_remove]->texture);
       removing->texture = NULL;
     }
 
@@ -183,11 +173,11 @@ HandlerEnum GalleryBrowser::on_event(int val){
 
     // Unload oldest page
     if(to_remove <= active_gallery->total_pages - 1){
-      Resource* removing = img_buffer[to_remove];
+      Resource* removing = active_gallery->images[to_remove];
       removing->requested = 0;
 
       if(removing->texture)
-        Screen::cleanup_texture(img_buffer[to_remove]->texture);
+        Screen::cleanup_texture(active_gallery->images[to_remove]->texture);
       removing->texture = NULL;
     }
 
@@ -237,7 +227,7 @@ void GalleryBrowser::load_urls(size_t page){
 int GalleryBrowser::save_all_pages(std::string dir){
   // Load all URLs
   int url_page = 1;
-  while((int) active_gallery->pages.size() < active_gallery->total_pages){
+  while(active_gallery->images[active_gallery->total_pages-1]->url.empty()){
     load_urls(url_page);
     url_page++;
   }
@@ -245,7 +235,7 @@ int GalleryBrowser::save_all_pages(std::string dir){
   Domain* domain = HSearch::current_domain();
   int fail = 1;
   if(domain != nullptr){
-    fail = domain->download_gallery(img_buffer, active_gallery, dir);
+    fail = domain->download_gallery(active_gallery, dir);
   }
 
   return fail;
@@ -254,8 +244,8 @@ int GalleryBrowser::save_all_pages(std::string dir){
 void GalleryBrowser::render(){
   Screen::clear(ThemeBG);
   // Image (If loaded)
-  if(img_buffer[cur_page]->texture){
-    Screen::draw_adjusted_mem(img_buffer[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
+  if(active_gallery->images[cur_page]->texture){
+    Screen::draw_adjusted_mem(active_gallery->images[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
   }
 
   // Page Number
@@ -271,7 +261,7 @@ void GalleryBrowser::set_pos_bounds(){
   int realWidth = screen_width * zoomFactor;
   int realHeight = screen_height * zoomFactor;
   int w, h;
-  SDL_QueryTexture(img_buffer[cur_page]->texture, NULL, NULL, &w, &h);
+  SDL_QueryTexture(active_gallery->images[cur_page]->texture, NULL, NULL, &w, &h);
   float scaler;
   // Distance from edge, nothing, width, height
   SDL_Point rect;
@@ -316,9 +306,6 @@ void GalleryBrowser::set_pos_bounds(){
     rightBound = 0 - distFromEdge;
     leftBound = screen_width - (realWidth - distFromEdge);
   }
-
-  printf("Bounds {%d, %d, %d, %d}\n", bottomBound, topBound, rightBound, leftBound);
-  printf("Pos {%d, %d}\n", pos.x, pos.y);
 
   if(pos.x < leftBound)
     pos.x = leftBound;
