@@ -15,4 +15,6 @@ namespace ConfigManager {
 
   void save_entry_info(Entry* entry);
   void load_entry(Entry* entry);
+
+  static const std::string downloadsDir = "/switch/Reader/Downloads";
 };

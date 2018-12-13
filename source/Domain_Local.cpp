@@ -1,13 +1,12 @@
 #include "Domain.hpp"
+#include "Config.hpp"
 #include <filesystem>
 #include <fstream>
-
-#define app_path "/switch/Reader/"
 
 void Domain_Local::search(std::string keywords){
   Browser::numOfResults = 0;
 
-  std::vector<std::string> gallery_dirs = get_directories(app_path);
+  std::vector<std::string> gallery_dirs = get_directories(ConfigManager::downloadsDir);
 
   for(std::string path : gallery_dirs){
     printf("Loading local %s\n", path.c_str());
@@ -18,6 +17,7 @@ void Domain_Local::search(std::string keywords){
     Entry* entry = new Entry();
     getline(info, entry->title);
     getline(info, entry->category);
+    getline(info, entry->language);
     getline(info, line);
     entry->rating = atof(line.c_str());
     getline(info, line);

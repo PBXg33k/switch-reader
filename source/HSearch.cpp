@@ -21,6 +21,11 @@ void HSearch::expand_search(std::string completeURL, int page){
 }
 
 void HSearch::search_keywords(std::string keywords){
+  // Search screen
+  Screen::clear(ThemeBG);
+  Screen::draw_text_centered("Searching...", 0, 0, screen_width, screen_height, ThemeText, Screen::header);
+  Screen::render();
+
   Domain* domain = current_domain();
   domain->search(keywords);
 }

@@ -1,5 +1,9 @@
 #include "Domain.hpp"
 #include "Browser.hpp"
+#include "Config.hpp"
+
+#include <fstream>
+#include <sys/stat.h>
 
 #define nhThumbnailURL "https://t.nhentai.net"
 #define nhImageURL "https://i.nhentai.net"
@@ -182,4 +186,47 @@ void Domain_NHentai::prefill_gallery(Entry* e, Gallery* gallery){
     gallery->images.push_back(res);
   }
   json_object_put(json);
+}
+
+int Domain_NHentai::download_gallery(Gallery * gallery){
+  struct stat info;
+  std::string dir = ConfigManager::downloadsDir + "/NH_" + std::to_string(gallery->entry->id);
+
+  printf("Downloading into %s\n", dir.c_str());
+
+  // Create gallery directory
+  stat(dir.c_str(), &info);
+  if(!(info.st_mode & S_IFDIR)){
+    printf("Creating gallery directory\n");
+    mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  }
+
+  // Save Gallery Info
+  std::ofstream f;
+
+  f.open((dir + "/info").c_str());
+  // Fill info file
+  f << *gallery->entry << std::endl;
+  f.close();
+
+  printf("Saved info\n");
+
+  // Save thumbnail
+  ApiManager::get_res(nullptr, gallery->entry->thumb, ApiManager::handle, 1, dir + "/thumb.jpg");
+
+  for(int page = 0; page < (int) gallery->images.size(); page++){
+    // Update progress
+    int progress = ((float) page / (float) gallery->total_pages) * ((screen_width / 2) - 10);
+
+    Screen::clear(ThemeBG);
+    std::string to_print = "Downloading Gallery - Page " + std::to_string(page + 1) + " of " + std::to_string(gallery->images.size());
+    Screen::draw_text_centered(to_print, 0, (screen_height / 2) - 120, screen_width, 100, ThemeText, Screen::header);
+    Screen::draw_rect(screen_width / 4, screen_height / 2, screen_width / 2, 150, ThemePanelDark);
+    Screen::draw_rect(screen_width / 4 + 5, (screen_height / 2) + 5, progress, 140, ThemePanelLight);
+    Screen::render();
+
+    ApiManager::get_res(NULL, gallery->images[page]->url, ApiManager::handle, 1, dir + "/page" + std::to_string(page) + ".jpg");
+  }
+
+  return 0;
 }

@@ -21,7 +21,7 @@ class Domain {
     virtual void expand_search(std::string completeURL, int page); /* Adds more results to Browser */
     virtual void search_favourites(); /* Loads the default favourites immediately */
     virtual void prefill_gallery(Entry* e, Gallery* gallery); /* Fills the Gallery's Resource list when loaded, useful if the urls are immediately known */
-    virtual int download_gallery(Gallery* gallery); /* Saves all gallery pages. Returns - 1 = Download not supported */
+    virtual int download_gallery(Gallery* gallery); /* Saves all gallery pages. Returns - 1 = Download not supported, Other = Failure */
     virtual void load_gallery_urls(size_t page, int* block_size, Gallery* gallery); /* Loads URLs from the next page - Block size is 1 when not set, your job to do so */
 
     virtual void search_touch();
@@ -66,6 +66,7 @@ class Domain_NHentai : public Domain {
     void search(std::string keywords);
     void expand_search(std::string completeURL, int page);
     void prefill_gallery(Entry* e, Gallery* gallery);
+    int download_gallery(Gallery * gallery);
 
     std::string ApiURL = "https://nhentai.net/api";
 

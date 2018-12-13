@@ -185,6 +185,7 @@ int main(int argc, char **argv)
   int rc;
   CURL* curlLookup = curl_easy_init();
   curl_easy_setopt(curlLookup, CURLOPT_URL, lookupURL);
+  curl_easy_setopt(curlLookup, CURLOPT_NOBODY, 1);
 
   while((rc = curl_easy_perform(curlLookup)) == CURLE_COULDNT_CONNECT){
     Screen::clear(ThemeBG);

@@ -56,16 +56,23 @@ int ConfigManager::init(){
 
   // Make sure subdirectory exists
   struct stat info;
+  struct stat dInfo;
+  struct stat cInfo;
+
   stat(configDir, &info);
   if(!(info.st_mode & S_IFDIR)){
     printf("Creating config directory\n");
     mkdir(configDir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   }
 
-  // TODO : Not forget I commented this out because I guarantee I'll forget why it isn't working.
+  stat(downloadsDir.c_str(), &dInfo);
+  if(!(dInfo.st_mode & S_IFDIR)){
+    printf("Creating downloads directory\n");
+    mkdir(downloadsDir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  }
   
   // If config missing, create default
-  if(stat(configPath, &info)){
+  if(stat(configPath, &cInfo)){
     printf("Creating default config file\n");
     create_config_default();
   }

@@ -118,8 +118,12 @@ HandlerEnum Settings::on_event(int val){
 
     // Return to Browser
     if(val == 101){
-      if(!username.empty() && !password.empty())
+      if(!username.empty() && !password.empty()){
+        Screen::clear(ThemeBG);
+        Screen::draw_text_centered("Logging in...", 0, 0, screen_width, screen_height, ThemeText, Screen::header);
+        Screen::render();
         ApiManager::login(username, password);
+      }
 
       // Don't keep in memory
       username.clear();

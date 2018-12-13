@@ -387,7 +387,7 @@ void Domain_EHentai::search_favourites(){
 
 int Domain_EHentai::download_gallery(Gallery* gallery){
   struct stat info;
-  std::string dir = "/switch/Reader/EH_" + std::to_string(gallery->entry->id);
+  std::string dir = ConfigManager::downloadsDir + "/EH_" + std::to_string(gallery->entry->id);
 
   printf("Downloading into %s\n", dir.c_str());
 

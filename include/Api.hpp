@@ -103,12 +103,8 @@ struct Entry{
 
   friend std::ostream& operator<<(std::ostream& os, const Entry& entry){
     os << entry.title << "\n";
-
-    if(entry.category.empty())
-      os << "None" << "\n";
-    else
-      os << entry.category << "\n";
-    
+    os << entry.category << "\n";
+    os << entry.language << "\n";
     os << entry.rating << "\n";
     os << entry.pages << "\n";
     for(auto tag : entry.tags)
