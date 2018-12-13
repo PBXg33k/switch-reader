@@ -222,6 +222,6 @@ void ConfigManager::save_entry_info(Entry* entry){
   std::ofstream f;
 
   f.open(path.c_str());
-  f << entry << std::endl;
+  f << *entry << std::endl;
   f.close();
 }

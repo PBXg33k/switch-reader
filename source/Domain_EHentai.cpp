@@ -6,6 +6,8 @@
 #include "Search.hpp"
 
 #include <libxml/HTMLparser.h>
+#include <fstream>
+#include <sys/stat.h>
 
 #define idRegex "(.+?)(?=\\/)"
 #define listXPath "//div[@class='it5']/a"
@@ -207,7 +209,7 @@ ResultsList Domain_EHentai::parse_page(MemoryStruct* pageMem, std::string comple
   return rList;
 }
 
-void Domain_EHentai::search(std::string keywords, std::vector<void*> args){
+void Domain_EHentai::search(std::string keywords){
   Domain::search(keywords);
 
   // Build url
@@ -383,7 +385,32 @@ void Domain_EHentai::search_favourites(){
   Browser::numOfResults -= skipped_entries;
 }
 
-int Domain_EHentai::download_gallery(Gallery* gallery, std::string directory){
+int Domain_EHentai::download_gallery(Gallery* gallery){
+  struct stat info;
+  std::string dir = "/switch/Reader/EH_" + std::to_string(gallery->entry->id);
+
+  printf("Downloading into %s\n", dir.c_str());
+
+  // Create gallery directory
+  stat(dir.c_str(), &info);
+  if(!(info.st_mode & S_IFDIR)){
+    printf("Creating gallery directory\n");
+    mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  }
+
+  // Save Gallery Info
+  std::ofstream f;
+
+  f.open((dir + "/info").c_str());
+  // Fill info file
+  f << *gallery->entry << std::endl;
+  f.close();
+
+  printf("Saved info\n");
+
+  // Save thumbnail
+  ApiManager::get_res(nullptr, gallery->entry->thumb, ApiManager::handle, 1, dir + "/thumb.jpg");
+
   for(int page = 0; page < (int) gallery->images.size(); page++){
     // Update progress
     int progress = ((float) page / (float) gallery->total_pages) * ((screen_width / 2) - 10);
@@ -424,7 +451,7 @@ int Domain_EHentai::download_gallery(Gallery* gallery, std::string directory){
     // Save image
     if(keyword){
       printf("Saving page %d\n", page);
-      ApiManager::get_res(NULL, (char*) keyword, ApiManager::handle, 1, directory + "/page" + std::to_string(page) + ".jpg");
+      ApiManager::get_res(NULL, (char*) keyword, ApiManager::handle, 1, dir + "/page" + std::to_string(page) + ".jpg");
     }
 
     xmlFree(keyword);

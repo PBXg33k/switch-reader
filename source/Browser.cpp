@@ -186,7 +186,7 @@ void Browser::render(){
   int baseY = 30;
   int incX = (Browser::maxw2 + 30);
   int incY = (Browser::maxh + 30);
-  
+
   // Index to start from
   int idx = (scroll_pos / incX) * 3;
   idx -= (idx % 3);
@@ -294,7 +294,6 @@ HandlerEnum Browser::on_event(int val){
   // Change to Gallery
   } else if(Browser::active_gallery >= 0 && val == 102){
     Entry* entry = Browser::entries[active_gallery];
-    ApiManager::cancel_all_requests();
     GalleryPreview::load_gallery(entry);
     GalleryPreview::set_touch();
     return HandlerEnum::Preview;
@@ -392,7 +391,6 @@ void Browser::scroll(float dx, float dy){
     }
   }
 
-        printf("Thread handled!\n");
   scroll_pos = new_pos;
 
   set_touch();

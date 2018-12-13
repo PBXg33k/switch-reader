@@ -2,13 +2,13 @@
 #include "Config.hpp"
 
 void Domain::process_gallery_req(Resource* res){}
-void Domain::search(std::string keywords, std::vector<void*> args){ Browser::numOfResults = 0; }
-void Domain::search(std::string keywords, std::string type, std::vector<void*> args){}
+void Domain::search(std::string keywords){ Browser::numOfResults = 0; }
+void Domain::search(std::string keywords, std::string type){}
 void Domain::expand_search(std::string completeURL, int page){}
 void Domain::search_favourites(){}
 void Domain::prefill_gallery(Entry* e, Gallery* gallery){}
 void Domain::load_gallery_urls(size_t page, int* block_size, Gallery* gallery){}
-int Domain::download_gallery(Gallery* gallery, std::string directory){ return 1; }
+int Domain::download_gallery(Gallery* gallery){ return 1; }
 
 void Domain::search_touch(){}
 void Domain::search_render(){}

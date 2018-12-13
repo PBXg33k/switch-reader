@@ -28,9 +28,10 @@ class ApiManager {
     static void handle_req(Resource* res);
     static void request_res(Resource* res, void(*res_func)(Resource*) = handle_req);
 		static void get_res(MemoryStruct* mem, std::string url, CURL* curl=ApiManager::handle, int save=0, std::string path = std::string());
+    static void load_res(MemoryStruct* mem, std::string url);
     static json_object* get_res_json(std::string url, CURL* curl);
 		static json_object* post_api(char* payload, std::string url);
-    static int download_gallery(Entry* entry, float* percent);
+    static int download_gallery(Entry* entry);
 
     static void login(std::string username, std::string password);
 
@@ -101,7 +102,15 @@ struct Entry{
   }
 
   friend std::ostream& operator<<(std::ostream& os, const Entry& entry){
-    os << entry.title << "\n" << entry.category << "\n" << entry.pages << "\n";
+    os << entry.title << "\n";
+
+    if(entry.category.empty())
+      os << "None" << "\n";
+    else
+      os << entry.category << "\n";
+    
+    os << entry.rating << "\n";
+    os << entry.pages << "\n";
     for(auto tag : entry.tags)
       os << tag.first << ":" << tag.second << "\n";
     return os;

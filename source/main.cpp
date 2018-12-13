@@ -174,6 +174,7 @@ int main(int argc, char **argv)
   HSearch::register_domain("E-Hentai", new Domain_EHentai());
   HSearch::register_domain("Exhentai", ex);
   HSearch::register_domain("NHentai", new Domain_NHentai());
+  HSearch::register_domain("Local", new Domain_Local());
 
   // Initial setup
   ConfigManager::init();

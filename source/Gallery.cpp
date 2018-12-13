@@ -46,6 +46,7 @@ void GalleryBrowser::load_gallery(Entry* entry){
   // Debug readout
   printf("-- LOADING GALLERY --\nTitle: %s\nURL: %s\nPages:%d\n", entry->title.c_str(), entry->url.c_str(), entry->pages);
   active_gallery = new Gallery();
+  active_gallery->entry = entry;
   active_gallery->title = entry->title;
   active_gallery->index = entry->url;
   active_gallery->total_pages = entry->pages;
@@ -221,8 +222,9 @@ void GalleryBrowser::load_urls(size_t page){
   domain->load_gallery_urls(page, &block_size, active_gallery);
 }
 
-int GalleryBrowser::save_all_pages(std::string dir){
+int GalleryBrowser::save_all_pages(){
   // Load all URLs
+  printf("Loading URLs\n");
   int url_page = 1;
   while(active_gallery->images[active_gallery->total_pages-1]->url.empty()){
     load_urls(url_page);
@@ -230,7 +232,7 @@ int GalleryBrowser::save_all_pages(std::string dir){
   }
 
   Domain* domain = HSearch::current_domain();
-  int fail = domain->download_gallery(active_gallery, dir);
+  int fail = domain->download_gallery(active_gallery);
 
   return fail;
 }

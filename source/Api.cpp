@@ -136,11 +136,33 @@ void ApiManager::cleanup_resource(Resource* res){
   }
 }
 
+void ApiManager::load_res(MemoryStruct* mem, std::string url){
+  std::ifstream image (url);
+
+  // Get size
+  image.seekg(0, image.end);
+  mem->size = image.tellg();
+  image.seekg(0, image.beg);
+
+  // Resize and load in data
+  mem->memory = (char*) realloc(mem->memory, mem->size);
+  image.read(mem->memory, mem->size);
+
+  image.close();
+}
+
 void load_res_thread(void *args){
   Resource* res = (Resource*) args;
 
   mutexLock(mutex);
-  ApiManager::get_res(res->mem, res->url, ApiManager::thread_handle);
+
+  // Url, use curl
+  if(res->url.find("http") == 0)
+    ApiManager::get_res(res->mem, res->url, ApiManager::thread_handle);
+  // Local file, load normally
+  else
+    ApiManager::load_res(res->mem, res->url);
+
   res->done = 1;
   mutexUnlock(mutex);
 }
@@ -176,29 +198,14 @@ void ApiManager::login(std::string username, std::string password){
 
   // Cleanup
   free(link);
-
 }
 
-int ApiManager::download_gallery(Entry* entry, float* percent){
-  struct stat info;
-  std::string path = "/switch/Reader/" + std::to_string(entry->id);
-
-  // Create gallery directory
-  stat(path.c_str(), &info);
-  if(!(info.st_mode & S_IFDIR)){
-    printf("Creating gallery directory\n");
-    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  }
-
-  // Save info
-  ConfigManager::save_entry_info(entry);
-
-  // Save thumbnail
-  ApiManager::get_res(nullptr, entry->thumb, ApiManager::handle, 1, path + "/thumb.jpg");
-
+int ApiManager::download_gallery(Entry* entry){
   // Save pages
+  printf("Loading Gallery\n");
   GalleryBrowser::load_gallery(entry);
-  return GalleryBrowser::save_all_pages(path);
+  printf("Saving\n");
+  return GalleryBrowser::save_all_pages();
 }
 
 void ApiManager::handle_req(Resource* res){
@@ -302,9 +309,6 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
     curl_easy_setopt(curl, CURLOPT_URL, link);
     printf("Getting Link - %s\n", url.c_str());
 
-    // Cookies
-    //curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "/switch/Reader/cookies");
-
     // Check if saving locally or to memory
     if(save){
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fwrite);
@@ -373,12 +377,6 @@ json_object* ApiManager::post_api(char* payload, std::string url)
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    //curl_easy_setopt(curl, CURLOPT_URL, "https://api.e-hentai.org/api.php");
-    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
-    // Cookies
-    //curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "/switch/Reader/cookies");
-
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);

@@ -48,7 +48,7 @@ HandlerEnum GalleryPreview::on_event(int val){
   // Download Gallery
   if(val == 111){
     printf("Downloading Gallery\n");
-    int ret = ApiManager::download_gallery(entry, nullptr);
+    int ret = ApiManager::download_gallery(entry);
 
     if(ret == 1)
       message = "Download Not Supported";

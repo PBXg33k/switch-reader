@@ -8,6 +8,7 @@
 #include <libxml/xpath.h>
 
 struct Gallery{
+  Entry* entry;
   std::string title;
   std::string index;
   std::vector<Resource*> images;
@@ -32,7 +33,7 @@ class GalleryBrowser : public Handler {
 
     static void load_page(int page);
     static void load_urls(size_t page);
-    static int save_all_pages(std::string dir);
+    static int save_all_pages();
     static void handle_req(Resource* res);
 
     static HandlerEnum on_event(int val);

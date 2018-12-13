@@ -16,12 +16,12 @@ struct ResultsList{
 class Domain {
   public:
     virtual void process_gallery_req(Resource* res); /* Process Gallery Page Requests - Page in Resource Meta */
-    virtual void search(std::string keywords, std::vector<void*> args = std::vector<void*>()); /* Search and fill Browser */
-    virtual void search(std::string keywords, std::string type, std::vector<void*> args); /* Might be used for favourites later? */
+    virtual void search(std::string keywords); /* Search and fill Browser */
+    virtual void search(std::string keywords, std::string type); /* Might be used for favourites later? */
     virtual void expand_search(std::string completeURL, int page); /* Adds more results to Browser */
     virtual void search_favourites(); /* Loads the default favourites immediately */
     virtual void prefill_gallery(Entry* e, Gallery* gallery); /* Fills the Gallery's Resource list when loaded, useful if the urls are immediately known */
-    virtual int download_gallery(Gallery* gallery, std::string directory); /* Saves all gallery pages. Returns - 1 = Download not supported */
+    virtual int download_gallery(Gallery* gallery); /* Saves all gallery pages. Returns - 1 = Download not supported */
     virtual void load_gallery_urls(size_t page, int* block_size, Gallery* gallery); /* Loads URLs from the next page - Block size is 1 when not set, your job to do so */
 
     virtual void search_touch();
@@ -38,10 +38,10 @@ class Domain {
 class Domain_EHentai : public Domain {
   public:
     void process_gallery_req(Resource* res);
-    void search(std::string keywords, std::vector<void*> args = std::vector<void*>());
+    void search(std::string keywords);
     void expand_search(std::string completeURL, int page);
     void search_favourites();
-    int download_gallery(Gallery* gallery, std::string directory);
+    int download_gallery(Gallery* gallery);
     void load_gallery_urls(size_t page, int* block_size, Gallery* gallery);
     json_object* get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns);
 
@@ -50,7 +50,7 @@ class Domain_EHentai : public Domain {
     void search_render();
     HandlerEnum search_event(int val);
 
-    std::string SearchURL = "https://e-hentai.org/";;
+    std::string SearchURL = "https://e-hentai.org/";
     std::string FavouritesURL = "https://e-hentai.org/favorites.php";
     std::string ApiURL = "https://api.e-hentai.org/api.php";
 
@@ -63,7 +63,7 @@ class Domain_EHentai : public Domain {
 
 class Domain_NHentai : public Domain {
   public:
-    void search(std::string keywords, std::vector<void*> args = std::vector<void*>());
+    void search(std::string keywords);
     void expand_search(std::string completeURL, int page);
     void prefill_gallery(Entry* e, Gallery* gallery);
 
@@ -72,4 +72,12 @@ class Domain_NHentai : public Domain {
   private:
     void parse_page(std::string completeURL, int page);
     std::string build_image(Entry* e, int page, std::string type, bool thumbnail);
+};
+
+class Domain_Local : public Domain {
+  public:
+    void search(std::string keywords);
+    void prefill_gallery(Entry* e, Gallery* gallery);
+  private:
+    std::vector<std::string> get_directories(const std::string& s);
 };
