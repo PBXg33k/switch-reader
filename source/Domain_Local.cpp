@@ -5,7 +5,7 @@
 #define app_path "/switch/Reader/"
 
 void Domain_Local::search(std::string keywords){
-  Domain::search(keywords);
+  Browser::numOfResults = 0;
 
   std::vector<std::string> gallery_dirs = get_directories(app_path);
 

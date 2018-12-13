@@ -5,7 +5,7 @@
 #define nhImageURL "https://i.nhentai.net"
 
 void Domain_NHentai::search(std::string keywords){
-  Domain::search(keywords);
+  Browser::numOfResults = 0;
 
   std::string completeURL = ApiURL;
   char* safeKeywords;

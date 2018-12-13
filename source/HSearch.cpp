@@ -18,13 +18,11 @@ static std::map<std::string, Domain*> domains;
 void HSearch::expand_search(std::string completeURL, int page){
   Domain* domain = current_domain();
   domain->expand_search(completeURL, page);
-  return;
 }
 
 void HSearch::search_keywords(std::string keywords){
   Domain* domain = current_domain();
   domain->search(keywords);
-  return;
 }
 
 void HSearch::register_domain(std::string name, Domain* domain){

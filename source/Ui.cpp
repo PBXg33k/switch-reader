@@ -65,8 +65,10 @@ void Screen::init()
 
   load_fonts();
 
-  //Screen::draw_rect(0,0,1280,720,ThemeBG);
-  //Screen::render();
+  // Render loading screen
+  clear(ThemeBG);
+  draw_text_centered("Loading...", 0, 0, screen_width, screen_height, ThemeText, Screen::header);
+  render();
 }
 
 void Screen::cleanup_texture(SDL_Texture* texture){

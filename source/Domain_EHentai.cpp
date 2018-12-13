@@ -210,7 +210,7 @@ ResultsList Domain_EHentai::parse_page(MemoryStruct* pageMem, std::string comple
 }
 
 void Domain_EHentai::search(std::string keywords){
-  Domain::search(keywords);
+  Browser::numOfResults = 0;
 
   // Build url
   std::string completeURL;

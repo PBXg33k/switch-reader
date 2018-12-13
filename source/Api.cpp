@@ -127,8 +127,8 @@ void ApiManager::close(){
 
 void ApiManager::cleanup_resource(Resource* res){
   if(active_res != res){
+    requests.erase(std::remove(requests.begin(), requests.end(), res), requests.end());
     delete res;
-    res = nullptr;
   } else {
     // Queue to be cleaned up next update - Prevents hangs
     active_res->requested = 0;
@@ -240,7 +240,7 @@ void ApiManager::update(){
     if(mutexTryLock(mutex)){
       // If done, load texture into memory, close thread
       if(active_res->done){
-        // If cancelled, don't load texture
+        // If cancelled, don't process
         if(active_res->requested)
           active_res->res_func(active_res);
 
@@ -273,7 +273,6 @@ void ApiManager::cancel_all_requests(){
   }
   if(active_res){
     active_res->requested = 0;
-    delete_active = true;
   }
 
   requests.clear();
@@ -307,7 +306,7 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    printf("Getting Link - %s\n", url.c_str());
+    fprintf(stdout, "Getting Link - %s\n", url.c_str());
 
     // Check if saving locally or to memory
     if(save){
@@ -343,7 +342,7 @@ json_object* ApiManager::get_res_json(std::string url, CURL* curl){
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    printf("Getting Link - %s\n", url.c_str());
+    fprintf(stdout, "Getting Link - %s\n", url.c_str());
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
