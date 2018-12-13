@@ -179,7 +179,7 @@ void ApiManager::login(std::string username, std::string password){
 
 }
 
-void ApiManager::download_gallery(Entry* entry, float* percent){
+int ApiManager::download_gallery(Entry* entry, float* percent){
   struct stat info;
   std::string path = "/switch/Reader/" + std::to_string(entry->id);
 
@@ -198,7 +198,7 @@ void ApiManager::download_gallery(Entry* entry, float* percent){
 
   // Save pages
   GalleryBrowser::load_gallery(entry);
-  GalleryBrowser::save_all_pages(path);
+  return GalleryBrowser::save_all_pages(path);
 }
 
 void ApiManager::handle_req(Resource* res){

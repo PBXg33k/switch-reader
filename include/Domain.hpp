@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Api.hpp"
+#include "Gallery.hpp"
 #include <vector>
 #include <libxml/xpath.h>
 
@@ -19,7 +20,9 @@ class Domain {
     virtual void search(std::string keywords, std::string type, std::vector<void*> args); /* Might be used for favourites later? */
     virtual void expand_search(std::string completeURL, int page); /* Adds more results to Browser */
     virtual void search_favourites(); /* Loads the default favourites immediately */
-    virtual void prefill_gallery(Entry* e, std::vector<Resource*>* img_buffer); /* Fills the Gallery's Resource list when loaded, useful if the urls are immediately known */
+    virtual void prefill_gallery(Entry* e, std::vector<Resource*>* img_buffer, Gallery* gallery); /* Fills the Gallery's Resource list when loaded, useful if the urls are immediately known */
+    virtual int download_gallery(std::vector<Resource*> pages, Gallery* gallery, std::string directory); /* Saves all gallery pages. Returns - 1 = Download not supported */
+    virtual void load_gallery_urls(size_t page, int* block_size, Gallery* gallery); /* Loads URLs from the next page - Block size is 1 when not set, your job to do so */
 
     // Shared functions
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
@@ -34,6 +37,8 @@ class Domain_EHentai : public Domain {
     void search(std::string keywords, std::vector<void*> args = std::vector<void*>());
     void expand_search(std::string completeURL, int page);
     void search_favourites();
+    int download_gallery(std::vector<Resource*> pages, Gallery* gallery, std::string directory);
+    void load_gallery_urls(size_t page, int* block_size, Gallery* gallery);
 
   private:
     bool contains_tag(Entry* e, std::string tag);
@@ -46,7 +51,7 @@ class Domain_NHentai : public Domain {
   public:
     void search(std::string keywords, std::vector<void*> args = std::vector<void*>());
     void expand_search(std::string completeURL, int page);
-    void prefill_gallery(Entry* e, std::vector<Resource*>* img_buffer);
+    void prefill_gallery(Entry* e, std::vector<Resource*>* img_buffer, Gallery* gallery);
 
   private:
     void parse_page(std::string completeURL, int page);

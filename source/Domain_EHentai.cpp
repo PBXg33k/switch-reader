@@ -8,6 +8,7 @@
 #define idRegex "(.+?)(?=\\/)"
 #define listXPath "//div[@class='it5']/a"
 #define pagesXPath "//p[@class='ip']"
+#define urlsXPath "//a[contains(@href, 'hentai.org/s/')]"
 
 #define ehSearchUrl "https://e-hentai.org/"
 #define ehFavouritesURL "https://e-hentai.org/favorites.php"
@@ -382,4 +383,108 @@ void Domain_EHentai::search_favourites(){
   }
 
   Browser::numOfResults -= skipped_entries;
+}
+
+int Domain_EHentai::download_gallery(std::vector<Resource*> pages, Gallery* gallery, std::string directory){
+  for(int page = 0; page < (int) gallery->pages.size(); page++){
+    // Update progress
+    int progress = ((float) page / (float) gallery->total_pages) * ((screen_width / 2) - 10);
+
+    Screen::clear(ThemeBG);
+    std::string to_print = "Downloading Gallery - Page " + std::to_string(page + 1) + " of " + std::to_string(gallery->pages.size());
+    Screen::draw_text_centered(to_print, 0, (screen_height / 2) - 120, screen_width, 100, ThemeText, Screen::header);
+    Screen::draw_rect(screen_width / 4, screen_height / 2, screen_width / 2, 150, ThemePanelDark);
+    Screen::draw_rect(screen_width / 4 + 5, (screen_height / 2) + 5, progress, 140, ThemePanelLight);
+    Screen::render();
+
+    xmlChar *path;
+    xmlChar *keyword = NULL;
+    xmlXPathObjectPtr result;
+    xmlDocPtr doc;
+    xmlNodeSetPtr nodeset;
+
+    // Get html page
+    MemoryStruct* pageMem = new MemoryStruct();
+    ApiManager::get_res(pageMem, gallery->pages[page].c_str());
+
+    // If page failed to load, use failure image
+    if(pageMem->size == 0){
+      delete pageMem;
+      pages[page]->texture = Screen::load_stored_texture(0);
+    }
+
+    doc = htmlReadMemory(pageMem->memory, pageMem->size, gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+
+    // Get node list matching XPath for direct image url
+    path = (xmlChar*) imageXPath;
+    result = get_node_set(doc, path);
+    if(result){
+      nodeset = result->nodesetval;
+      keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
+    }
+
+    // Save image
+    if(keyword){
+      printf("Saving page %d\n", page);
+      ApiManager::get_res(NULL, (char*) keyword, ApiManager::handle, 1, directory + "/page" + std::to_string(page) + ".jpg");
+    }
+
+    xmlFree(keyword);
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
+    delete pageMem;
+  }
+
+  return 0;
+}
+
+void Domain_EHentai::load_gallery_urls(size_t page, int* block_size, Gallery* gallery){
+  xmlChar *path = (xmlChar*) urlsXPath;
+  xmlChar *keyword;
+
+  int i;
+
+  // Load page into memory
+  std::string indexCopy = gallery->index;
+  indexCopy.append("?p=");
+  indexCopy.append(std::to_string(page));
+  printf("Fetching %s\n", indexCopy.c_str());
+  MemoryStruct* index = new MemoryStruct();
+  ApiManager::get_res(index, indexCopy);
+
+  if(index->size == 0){
+    delete index;
+    return;
+  }
+
+  // Load to xml
+  xmlDocPtr doc = htmlReadMemory(index->memory, index->size, gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+
+  if(doc == nullptr){
+    xmlCleanupParser();
+    return;
+  }
+
+  // Get node list matching XPath
+  xmlXPathObjectPtr result = Domain::get_node_set(doc, path);
+
+  // Iterate through results
+  if(result) {
+    xmlNodeSetPtr nodeset = result->nodesetval;
+    printf("Found %d entries\n", nodeset->nodeNr);
+    if(*block_size == 1)
+      *block_size = nodeset->nodeNr;
+
+    for (i=0; i < nodeset->nodeNr; i++) {
+			keyword = xmlGetProp(nodeset->nodeTab[i], (xmlChar*) "href");
+  		printf("Page %d: %s\n", i, keyword);
+      gallery->pages.push_back((char *)keyword);
+  		xmlFree(keyword);
+		}
+  }
+
+  // Cleanup
+  xmlFreeDoc(doc);
+  xmlCleanupParser();
+  delete index;
 }

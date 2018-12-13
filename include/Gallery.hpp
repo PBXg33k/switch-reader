@@ -26,7 +26,7 @@ class GalleryBrowser : public Handler {
 
     static void load_page(int page);
     static void load_urls(size_t page);
-    static void save_all_pages(std::string dir);
+    static int save_all_pages(std::string dir);
     static void handle_req(Resource* res);
 
     static HandlerEnum on_event(int val);

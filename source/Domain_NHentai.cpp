@@ -162,7 +162,7 @@ std::string Domain_NHentai::build_image(Entry* e, int page, std::string type, bo
   return imageURL;
 }
 
-void Domain_NHentai::prefill_gallery(Entry* e, std::vector<Resource*>* img_buffer){
+void Domain_NHentai::prefill_gallery(Entry* e, std::vector<Resource*>* img_buffer, Gallery* gallery){
   json_object* images;
   json_object* img;
   std::string completeURL = ApiURL + "/gallery/" + std::to_string(e->id);
@@ -178,6 +178,7 @@ void Domain_NHentai::prefill_gallery(Entry* e, std::vector<Resource*>* img_buffe
     Resource* res = (*img_buffer)[i];
     res->populated = 1;
     res->url = build_image(e, i+1, json_object_get_string(Domain::get_json_obj(img, "t")), false);
+    gallery->pages.push_back(res->url);
   }
   json_object_put(json);
 }

@@ -65,7 +65,7 @@ void GalleryBrowser::load_gallery(Entry* entry){
 
   // Early fill images
   if(domain != nullptr)
-    domain->prefill_gallery(entry, &img_buffer);
+    domain->prefill_gallery(entry, &img_buffer, active_gallery);
 
   // Populate image buffer area
   for(int i = 0; i < active_gallery->total_pages && i < buffer_size; i++){
@@ -229,58 +229,12 @@ xmlXPathObjectPtr GalleryBrowser::get_node_set(xmlDocPtr doc, xmlChar *xpath){
 
 // Buffer page urls on numbered index page (max 40 per index page)
 void GalleryBrowser::load_urls(size_t page){
-
-  xmlChar *path = (xmlChar*) pagesXPath;
-  xmlChar *keyword;
-
-  int i;
-
-  // Load page into memory
-  std::string indexCopy = active_gallery->index;
-  indexCopy.append("?p=");
-  indexCopy.append(std::to_string(page));
-  printf("Fetching %s\n", indexCopy.c_str());
-  MemoryStruct* index = new MemoryStruct();
-  ApiManager::get_res(index, indexCopy);
-
-  if(index->size == 0){
-    delete index;
-    return;
-  }
-
-  // Load to xml
-  xmlDocPtr doc = htmlReadMemory(index->memory, index->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
-
-  if(doc == nullptr){
-    xmlCleanupParser();
-    return;
-  }
-
-  // Get node list matching XPath
-  xmlXPathObjectPtr result = get_node_set(doc, path);
-
-  // Iterate through results
-  if(result) {
-    xmlNodeSetPtr nodeset = result->nodesetval;
-    printf("Found %d entries\n", nodeset->nodeNr);
-    if(block_size == 1)
-      block_size = nodeset->nodeNr;
-
-    for (i=0; i < nodeset->nodeNr; i++) {
-			keyword = xmlGetProp(nodeset->nodeTab[i], (xmlChar*) "href");
-  		printf("Page %d: %s\n", i, keyword);
-      active_gallery->pages.push_back((char *)keyword);
-  		xmlFree(keyword);
-		}
-  }
-
-  // Cleanup
-  xmlFreeDoc(doc);
-  xmlCleanupParser();
-  delete index;
+  Domain* domain = HSearch::current_domain();
+  if(domain != nullptr)
+    domain->load_gallery_urls(page, &block_size, active_gallery);
 }
 
-void GalleryBrowser::save_all_pages(std::string dir){
+int GalleryBrowser::save_all_pages(std::string dir){
   // Load all URLs
   int url_page = 1;
   while((int) active_gallery->pages.size() < active_gallery->total_pages){
@@ -288,54 +242,13 @@ void GalleryBrowser::save_all_pages(std::string dir){
     url_page++;
   }
 
-  for(int page = 0; page < (int) active_gallery->pages.size(); page++){
-    // Update progress
-    int progress = ((float) page / (float) active_gallery->total_pages) * ((screen_width / 2) - 10);
-
-    Screen::clear(ThemeBG);
-    Screen::draw_text_centered("Downloading Gallery...", 0, (screen_height / 2) - 120, screen_width, 100, ThemeText, Screen::header);
-    Screen::draw_rect(screen_width / 4, screen_height / 2, screen_width / 2, 150, ThemePanelDark);
-    Screen::draw_rect(screen_width / 4 + 5, (screen_height / 2) + 5, progress, 140, ThemePanelLight);
-    Screen::render();
-
-    xmlChar *path;
-    xmlChar *keyword = NULL;
-    xmlXPathObjectPtr result;
-    xmlDocPtr doc;
-    xmlNodeSetPtr nodeset;
-
-    // Get html page
-    MemoryStruct* pageMem = new MemoryStruct();
-    ApiManager::get_res(pageMem, active_gallery->pages[page].c_str());
-
-    // If page failed to load, return failure image
-    if(pageMem->size == 0){
-      delete pageMem;
-      img_buffer[page]->texture = Screen::load_stored_texture(0);
-    }
-
-    doc = htmlReadMemory(pageMem->memory, pageMem->size, active_gallery->index.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
-
-    // Get node list matching XPath for direct image url
-    path = (xmlChar*) imageXPath;
-    result = get_node_set(doc, path);
-    if(result){
-      nodeset = result->nodesetval;
-      keyword = xmlGetProp(nodeset->nodeTab[0], (xmlChar*) "src");
-    }
-
-    // Save image
-    if(keyword){
-      printf("Saving page %d\n", page);
-      ApiManager::get_res(NULL, (char*) keyword, ApiManager::handle, 1, dir + "/page" + std::to_string(page) + ".jpg");
-    }
-
-    xmlFree(keyword);
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
-    delete pageMem;
-
+  Domain* domain = HSearch::current_domain();
+  int fail = 1;
+  if(domain != nullptr){
+    fail = domain->download_gallery(img_buffer, active_gallery, dir);
   }
+
+  return fail;
 }
 
 void GalleryBrowser::render(){

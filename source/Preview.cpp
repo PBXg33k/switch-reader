@@ -15,9 +15,11 @@
 Entry* GalleryPreview::entry;
 static int curX, curY;
 static int scroll_pos;
+static std::string message;
 std::string last_category;
 
 void GalleryPreview::load_gallery(Entry* entry){
+    message.clear();
     GalleryPreview::entry = entry;
     scroll_pos = 0;
 }
@@ -46,7 +48,14 @@ HandlerEnum GalleryPreview::on_event(int val){
   // Download Gallery
   if(val == 111){
     printf("Downloading Gallery\n");
-    ApiManager::download_gallery(entry, nullptr);
+    int ret = ApiManager::download_gallery(entry, nullptr);
+
+    if(ret == 1)
+      message = "Download Not Supported";
+    else if(ret != 0)
+      message = "Download Failed";
+    else
+      message = "Download Successful";
   }
 
   // Exit to Browser
@@ -76,6 +85,10 @@ void render_tag(std::string type, std::string name){
 void GalleryPreview::render(){
   Screen::clear(ThemeBG);
   last_category = "none";
+
+  // Info message
+  if(!message.empty())
+    Screen::draw_text_centered(message, 30, screen_height - 100, 240, 80, ThemeText, Screen::large);
 
   // Load Gallery button
   Screen::draw_button(screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButton, ThemeButtonBorder, 4);
