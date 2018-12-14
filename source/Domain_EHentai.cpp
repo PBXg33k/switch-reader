@@ -13,6 +13,7 @@
 #define listXPath "//div[@class='it5']/a"
 #define pagesXPath "//p[@class='ip']"
 #define urlsXPath "//a[contains(@href, 'hentai.org/s/')]"
+#define usernameXPath "//a[contains(@href, '?showuser=')]"
 
 #define imageXPath "//img[@id='img']"
 
@@ -687,4 +688,88 @@ HandlerEnum Domain_EHentai::search_event(int val){
   }
 
   return HandlerEnum::Search;
+}
+
+void Domain_EHentai::login(std::string username, std::string password){
+  CURL *curl;
+  curl = curl_easy_init();
+  std::string login = "https://forums.e-hentai.org/index.php?act=Login&CODE=01";
+  const char* host = ApiProxy.c_str();
+  std::string payload;
+
+  // Set login form data
+  payload += "{'UserName':'" + username + "', 'PassWord':'" + password + "', 'CookieDate': '1', 'Privacy': '0'}";
+  printf("Login Data - %s\n", payload.c_str());
+
+  // Append url to host as a parameter, use as new url
+  char *uri = curl_easy_escape(curl, login.c_str(), strlen(login.c_str()));
+  char *link = (char*)malloc(strlen(host) + strlen(uri) + 1);
+  strcpy(link, host);
+  strcat(link, uri);
+
+  if(curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, link);
+
+    // Cookies
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
+    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+
+  	curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+  }
+
+  // Cleanup
+  free(link);
+}
+
+std::string Domain_EHentai::get_username(){
+  xmlChar *path;
+  xmlChar *keyword = NULL;
+  xmlXPathObjectPtr result;
+  xmlDocPtr doc;
+  xmlNodeSetPtr nodeset;
+
+  std::string username = "User Check Failed";
+
+  MemoryStruct* pageMem = new MemoryStruct();
+  ApiManager::get_res(pageMem, UserURL.c_str());
+
+  // If page failed to load, return failure image
+  if(pageMem->size == 0){
+    delete pageMem;
+    return username;
+  }
+  printf("Loaded user page\n");
+
+  doc = htmlReadMemory(pageMem->memory, pageMem->size, UserURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+
+  if(doc == nullptr){
+    printf("Page empty\n");
+    xmlCleanupParser();
+    delete pageMem;
+    return username;
+  }
+
+  // Get node list matching XPath for direct image url
+  path = (xmlChar*) usernameXPath;
+  result = GalleryBrowser::get_node_set(doc, path);
+  
+  if(!xmlXPathNodeSetIsEmpty(result->nodesetval)){
+    printf("User was logged in\n");
+    nodeset = result->nodesetval;
+    keyword = xmlNodeListGetString(doc, nodeset->nodeTab[0]->xmlChildrenNode, 1);
+    printf("Casting\n");
+    username = std::string(reinterpret_cast<char*> (keyword));
+  } else {
+    printf("No user found logged in\n");
+    username = "Not Logged In";
+  }
+
+  xmlFree(keyword);
+  xmlFreeDoc(doc);
+  xmlCleanupParser();
+  delete pageMem;
+
+  return username;
 }

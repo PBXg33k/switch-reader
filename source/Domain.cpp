@@ -9,6 +9,8 @@ void Domain::search_favourites(){}
 void Domain::prefill_gallery(Entry* e, Gallery* gallery){}
 void Domain::load_gallery_urls(size_t page, int* block_size, Gallery* gallery){}
 int Domain::download_gallery(Gallery* gallery){ return 1; }
+void Domain::login(std::string username, std::string password) {}
+std::string Domain::get_username() { return ""; }
 
 void Domain::search_touch(){}
 void Domain::search_render(){}

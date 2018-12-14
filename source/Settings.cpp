@@ -121,7 +121,8 @@ HandlerEnum Settings::on_event(int val){
         Screen::clear(ThemeBG);
         Screen::draw_text_centered("Logging in...", 0, 0, screen_width, screen_height, ThemeText, Screen::header);
         Screen::render();
-        ApiManager::login(username, password);
+        Domain* domain = HSearch::current_domain();
+        domain->login(username, password);
       }
 
       // Don't keep in memory

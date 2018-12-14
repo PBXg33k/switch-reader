@@ -16,13 +16,15 @@ struct ResultsList{
 class Domain {
   public:
     virtual void process_gallery_req(Resource* res); /* Process Gallery Page Requests - Page in Resource Meta */
-    virtual void search(std::string keywords); /* Search and fill Browser */
+    virtual void search(std::string keywords); /* REQUIRED - Search and fill Browser */
     virtual void search(std::string keywords, std::string type); /* Might be used for favourites later? */
-    virtual void expand_search(std::string completeURL, int page); /* Adds more results to Browser */
+    virtual void expand_search(std::string completeURL, int page); /* REQUIRED - Adds more results to Browser */
     virtual void search_favourites(); /* Loads the default favourites immediately */
     virtual void prefill_gallery(Entry* e, Gallery* gallery); /* Fills the Gallery's Resource list when loaded, useful if the urls are immediately known */
     virtual int download_gallery(Gallery* gallery); /* Saves all gallery pages. Returns - 1 = Download not supported, Other = Failure */
     virtual void load_gallery_urls(size_t page, int* block_size, Gallery* gallery); /* Loads URLs from the next page - Block size is 1 when not set, your job to do so */
+    virtual void login(std::string username, std::string password); /* Log into domain, will save cookies - May collide with others when using Proxy */
+    virtual std::string get_username(); /* Fetch username of logged in user (none otherwise) */
 
     virtual void search_touch();
     virtual void search_render();
@@ -44,6 +46,8 @@ class Domain_EHentai : public Domain {
     int download_gallery(Gallery* gallery);
     void load_gallery_urls(size_t page, int* block_size, Gallery* gallery);
     json_object* get_galleries(std::vector<std::string> gids, std::vector<std::string> gtkns);
+    void login(std::string username, std::string password);
+    std::string get_username();
 
     // Search page expansion
     void search_touch();

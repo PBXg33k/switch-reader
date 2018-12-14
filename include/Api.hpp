@@ -33,8 +33,6 @@ class ApiManager {
 		static json_object* post_api(char* payload, std::string url);
     static int download_gallery(Entry* entry);
 
-    static void login(std::string username, std::string password);
-
     static const std::string gallery_template;
     static bool delete_active;
 

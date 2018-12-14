@@ -11,8 +11,6 @@
 #include <iostream>
 #include <math.h>
 
-#define usernameXPath "//a[contains(@href, '?showuser=')]"
-
 int Browser::active_gallery = -1;
 std::string Browser::currentUrl;
 int Browser::numOfResults = 0;
@@ -39,55 +37,8 @@ json_object* get_json_obj(json_object* root, const char* key)
 }
 
 void Browser::load_username(){
-  xmlChar *path;
-  xmlChar *keyword = NULL;
-  xmlXPathObjectPtr result;
-  xmlDocPtr doc;
-  xmlNodeSetPtr nodeset;
-
-  username = "User Check Failed";
-
-  MemoryStruct* pageMem = new MemoryStruct();
-  ApiManager::get_res(pageMem, UserURL.c_str());
-
-  // If page failed to load, return failure image
-  if(pageMem->size == 0){
-    delete pageMem;
-    return;
-  }
-  printf("Loaded user page\n");
-
-  doc = htmlReadMemory(pageMem->memory, pageMem->size, UserURL.c_str(), NULL, HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
-
-  if(doc == nullptr){
-    printf("Page empty\n");
-    xmlCleanupParser();
-    delete pageMem;
-    return;
-  }
-
-  // Get node list matching XPath for direct image url
-  path = (xmlChar*) usernameXPath;
-  result = GalleryBrowser::get_node_set(doc, path);
-  
-  if(!xmlXPathNodeSetIsEmpty(result->nodesetval)){
-    printf("User found\n");
-    nodeset = result->nodesetval;
-    keyword = xmlNodeListGetString(doc, nodeset->nodeTab[0]->xmlChildrenNode, 1);
-    printf("Casting\n");
-    username = std::string(reinterpret_cast<char*> (keyword));
-  } else {
-    printf("No user found logged in\n");
-    username = "Not Logged In";
-  }
-
-  printf("Cleaning up\n");
-
-  xmlFree(keyword);
-  xmlFreeDoc(doc);
-  xmlCleanupParser();
-  delete pageMem;
-
+  Domain* domain = HSearch::current_domain();
+  username = domain->get_username();
 }
 
 // Set up bounding boxes with paired values

@@ -167,39 +167,6 @@ void load_res_thread(void *args){
   mutexUnlock(mutex);
 }
 
-// Log into site, save cookies
-void ApiManager::login(std::string username, std::string password){
-  CURL *curl = handle;
-  std::string login = "https://forums.e-hentai.org/index.php?act=Login&CODE=01";
-  const char* host = ApiProxy.c_str();
-  std::string payload;
-
-  // Set login form data
-  payload += "{'UserName':'" + username + "', 'PassWord':'" + password + "', 'CookieDate': '1', 'Privacy': '0'}";
-  printf("Login Data - %s\n", payload.c_str());
-
-  // Append url to host as a parameter, use as new url
-  char *uri = curl_easy_escape(curl, login.c_str(), strlen(login.c_str()));
-  char *link = (char*)malloc(strlen(host) + strlen(uri) + 1);
-  strcpy(link, host);
-  strcat(link, uri);
-
-  if(curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, link);
-
-    // Cookies
-    curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
-    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
-
-  	curl_easy_perform(curl);
-    curl_easy_reset(curl);
-  }
-
-  // Cleanup
-  free(link);
-}
-
 int ApiManager::download_gallery(Entry* entry){
   // Save pages
   printf("Loading Gallery\n");
