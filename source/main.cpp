@@ -14,12 +14,12 @@
 #include "Config.hpp"
 #include "Settings.hpp"
 #include "Keyboard.hpp"
+#include "Dialog.hpp"
 
 #define lookupURL "http://www.google.com"
 
 static SDL_Event* customEvent;
 static int state;
-const int joy_val[24] = {102, 101, 110, 111, 0, 0, 0, 0, 103, 104, 0, 0, 123, 120, 121, 122, 123, 120, 121, 122, 0, 0, 0, 0};
 float motion_track;
 
 void Browser::quit_app(){
@@ -164,6 +164,7 @@ int main(int argc, char **argv)
 {
   HandlerEnum handler = HandlerEnum::Browser;
   motion_track = 0;
+  bool finger_was_down = false;
 
   // Domain setup
   Domain_EHentai* ex = new Domain_EHentai();
@@ -232,36 +233,36 @@ int main(int argc, char **argv)
       float moved;
       switch (event.type) {
         case SDL_JOYBUTTONDOWN:
-          val = joy_val[event.jbutton.button];
+          val = Shared::joy_val[event.jbutton.button];
           break;
 
         case SDL_MOUSEBUTTONDOWN:
           SDL_GetMouseState(&x, &y);
-          val = TouchManager::get_value(x, y);
-          if(val == 100)
-            state = 0;
+          val = TouchManager::instance.get_value(x, y);
           break;
 
         case SDL_FINGERDOWN:
           Handler::fingerTouches.insert(std::make_pair(event.tfinger.fingerId, FloatPoint {event.tfinger.x, event.tfinger.y}));
           finger_down(handler, event);
+          finger_was_down = true;
           break;
 
         case SDL_FINGERUP:
-          if(motion_track < 0.017){
-            printf("Motion Track %f\n", motion_track);
-            val = TouchManager::get_value(event.tfinger.x*1280, event.tfinger.y*720);
-            if(val == 100)
-              state = 0;
+          if(finger_was_down){
+            if(motion_track < 0.01 + 0.09*(stod(ConfigManager::get_value("press_sens")) / 300)){
+              printf("Motion Track %f\n", motion_track);
+              val = TouchManager::instance.get_value(event.tfinger.x*screen_width, event.tfinger.y*screen_height);
+            }
+            // Remove finger from map
+            if(Handler::fingerTouches.count(event.tfinger.fingerId))
+              Handler::fingerTouches.erase(event.tfinger.fingerId);
+            // Do event
+            finger_up(handler, event);
+            // If no fingers touching, reset motion track
+            if(Handler::fingerTouches.empty())
+              motion_track = 0;
+            finger_was_down = false;
           }
-          // Remove finger from map
-          if(Handler::fingerTouches.count(event.tfinger.fingerId))
-            Handler::fingerTouches.erase(event.tfinger.fingerId);
-          // Do event
-          finger_up(handler, event);
-          // If no fingers touching, reset motion track
-          if(Handler::fingerTouches.empty())
-            motion_track = 0;
           break;
 
         // Browser scrolling
@@ -286,6 +287,11 @@ int main(int argc, char **argv)
 
         default:
           break;
+      }
+      
+      if(val == 100){
+        if(Dialog_Confirm::get_bool("Quit app?"))
+          state = 0;
       }
 
       if(val > -1){

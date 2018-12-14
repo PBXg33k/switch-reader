@@ -35,7 +35,7 @@ void HSearch::register_domain(std::string name, Domain* domain){
 }
 
 Domain* HSearch::current_domain(){
-  auto iter = domains.find(ConfigManager::get_value("mode"));
+  auto iter = domains.find(ConfigManager::get_value("domain"));
 
   if(iter != domains.end()){
     return iter->second;

@@ -92,26 +92,26 @@ void Browser::load_username(){
 
 // Set up bounding boxes with paired values
 void Browser::set_touch(){
-  TouchManager::clear();
+  TouchManager::instance.clear();
 
   // Settings
-  TouchManager::add_bounds(screen_width-190, (screen_height/2) + 140, 180, 80, 111);
+  TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) + 140, 180, 80, 111);
   // Search
-  TouchManager::add_bounds(screen_width-190, (screen_height/2) - 190, 180, 80, 110);
+  TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) - 190, 180, 80, 110);
   // Load Gallery
-  TouchManager::add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
+  TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
 
   // E-Hentai specific button
-  if(ConfigManager::get_value("mode") != "NHentai"){
+  if(ConfigManager::get_value("domain") != "NHentai"){
     // Favourites
-    TouchManager::add_bounds(screen_width-190, (screen_height/2) + 50, 180, 80, 115);
+    TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) + 50, 180, 80, 115);
   }
 
 
   // Quit app
-  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
+  TouchManager::instance.add_bounds(screen_width - 75, 0, 75, 75, 100);
   // Stop pressing in button backgrounds
-  TouchManager::add_bounds(screen_width-200, 0, 200, screen_height, 1000);
+  TouchManager::instance.add_bounds(screen_width-200, 0, 200, screen_height, 1000);
 
   int baseX = 30;
   int baseY = 30;
@@ -124,7 +124,7 @@ void Browser::set_touch(){
     for (int y = 0; y < 3; y++){
       int newX = baseX + (x * incX) - offset;
       int newY = baseY + (y * incY);
-      TouchManager::add_bounds(newX, newY, Browser::maxw2, Browser::maxh, val);
+      TouchManager::instance.add_bounds(newX, newY, Browser::maxw2, Browser::maxh, val);
       val++;
     }
   }
@@ -227,7 +227,7 @@ void Browser::render(){
   Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
 
   // E-Hentai specific
-  if(ConfigManager::get_value("mode") != "NHentai"){
+  if(ConfigManager::get_value("domain") != "NHentai"){
     // Favourites button
     Screen::draw_button(screen_width-190, (screen_height/2) + 50, 180, 80, ThemeButton, ThemeButtonBorder, 4);
     Screen::draw_text_centered("Favourites", screen_width-190, (screen_height/2) + 50, 180, 80, ThemeButtonText, Screen::normal);
@@ -237,7 +237,7 @@ void Browser::render(){
   }
 
   // Mode
-  Screen::draw_text_aligned(ConfigManager::get_value("mode"), 0, screen_height-40, screen_width - 210, 40, FC_ALIGN_RIGHT, ThemeText, Screen::large);
+  Screen::draw_text_aligned(ConfigManager::get_value("domain"), 0, screen_height-40, screen_width - 210, 40, FC_ALIGN_RIGHT, ThemeText, Screen::large);
 
   // Quit button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
@@ -340,9 +340,6 @@ HandlerEnum Browser::on_event(int val){
   } else if (val == 111){
     Settings::set_touch();
     return HandlerEnum::Settings;
-  // Quit app
-  } else if (val == 101){
-    quit_app();
   }
 
   return HandlerEnum::Browser;

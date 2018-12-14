@@ -25,16 +25,16 @@ void GalleryPreview::load_gallery(Entry* entry){
 }
 
 void GalleryPreview::set_touch(){
-  TouchManager::clear();
+  TouchManager::instance.clear();
 
   // Back to browser
-  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
+  TouchManager::instance.add_bounds(screen_width - 75, 0, 75, 75, 101);
 
   // Load Gallery
-  TouchManager::add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
+  TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
 
   // Download/Delete Gallery
-  TouchManager::add_bounds(screen_width-190, (screen_height/2) + 110, 180, 80, 111);
+  TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) + 110, 180, 80, 111);
 }
 
 HandlerEnum GalleryPreview::on_event(int val){

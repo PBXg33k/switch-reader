@@ -15,6 +15,7 @@
 
 #define themeDefault "1"
 #define rotationDefault "0"
+#define pressDefault "150"
 #define proxyDefault "http://192.168.0.123:5000/?url=" 
 #define categoriesDefault Category::NonH
 
@@ -23,8 +24,9 @@ static std::map<std::string, std::string> configPairs;
 void load_defaults(){
   configPairs.insert(std::make_pair("theme", themeDefault));
   configPairs.insert(std::make_pair("rotation", rotationDefault));
-  configPairs.insert(std::make_pair("mode", HSearch::get_domains().begin()->first));
+  configPairs.insert(std::make_pair("domain", HSearch::get_domains().begin()->first));
   configPairs.insert(std::make_pair("proxy", proxyDefault));
+  configPairs.insert(std::make_pair("press_sens", pressDefault));
   configPairs.insert(std::make_pair("lang", ""));
   configPairs.insert(std::make_pair("stars","1"));
   configPairs.insert(std::make_pair("search", "Public"));
@@ -38,7 +40,14 @@ void create_config_default(){
   configPairs.clear();
 }
 
+// Update old config files by finding missing pairs
 void update_config(){
+  if(!configPairs.count("press_sens"))
+    ConfigManager::set_pair("press_sens", pressDefault);
+
+  if(!configPairs.count("domain"))
+    ConfigManager::set_pair("domain", HSearch::get_domains().begin()->first);
+
   if(!configPairs.count("lang"))
     ConfigManager::set_pair("lang", "");
 
@@ -196,16 +205,6 @@ void ConfigManager::set_theme(){
   }
 }
 
-void ConfigManager::set_mode(){
-  std::string mode = get_value("mode");
-
-  // No mode set, make default
-  if(mode.empty()){
-    mode = HSearch::get_domains().begin()->first;
-    set_pair("mode", mode);
-  }
-}
-
 void ConfigManager::set_proxy(){
   std::string proxy = get_value("proxy");
 
@@ -220,12 +219,11 @@ void ConfigManager::set_proxy(){
 
 void ConfigManager::set_all(){
   set_theme();
-  set_mode();
   set_proxy();
 }
 
 void ConfigManager::save_entry_info(Entry* entry){
-  std::string path = "/switch/Reader/" + std::to_string(entry->id) + "/info";
+  std::string path = configDir + std::to_string(entry->id) + "/info";
   std::ofstream f;
 
   f.open(path.c_str());

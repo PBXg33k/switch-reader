@@ -65,26 +65,26 @@ void GalleryBrowser::load_gallery(Entry* entry){
 
 // Set up touch controls
 void GalleryBrowser::set_touch(){
-  TouchManager::clear();
+  TouchManager::instance.clear();
 
   // Browser
-  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
+  TouchManager::instance.add_bounds(screen_width - 75, 0, 75, 75, 101);
 
   // Portrait
   if(rotation == 1){
     // Forwards
-    TouchManager::add_bounds(0, screen_height * 0.7, screen_width, screen_width * 0.3, 104);
+    TouchManager::instance.add_bounds(0, screen_height * 0.7, screen_width, screen_width * 0.3, 104);
 
     // Back
-    TouchManager::add_bounds(0, 0, screen_width, screen_height * 0.3, 103);
+    TouchManager::instance.add_bounds(0, 0, screen_width, screen_height * 0.3, 103);
   } 
   // Landscape
   else {
     // Forwards
-    TouchManager::add_bounds(screen_width * 0.7, 0, screen_width * 0.3, screen_height, 104);
+    TouchManager::instance.add_bounds(screen_width * 0.7, 0, screen_width * 0.3, screen_height, 104);
 
     // Back
-    TouchManager::add_bounds(0, 0, screen_width * 0.3, screen_height, 103);
+    TouchManager::instance.add_bounds(0, 0, screen_width * 0.3, screen_height, 103);
   }
 }
 

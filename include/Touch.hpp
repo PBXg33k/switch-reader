@@ -4,13 +4,13 @@
 #include <vector>
 #include <utility>
 
-using namespace std;
-
 class TouchManager {
   public:
-    static void add_bounds(int x, int y, int w, int h, int val);
-    static int get_value(int x, int y);
-    static void clear();
+    static TouchManager instance;
+
+    void add_bounds(int x, int y, int w, int h, int val);
+    int get_value(int x, int y);
+    void clear();
   private:
-    static vector<pair<SDL_Rect, int>> bounds;
+    std::vector<std::pair<SDL_Rect, int>> bounds;
 };

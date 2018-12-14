@@ -21,16 +21,16 @@ static int field = 0;
 std::string SearchBrowser::search_str;
 
 void SearchBrowser::set_touch(){
-  TouchManager::clear();
+  TouchManager::instance.clear();
 
   // Return to Browser
-  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
+  TouchManager::instance.add_bounds(screen_width - 75, 0, 75, 75, 101);
 
   // Open Keywords Entry
-  TouchManager::add_bounds(keyboard_x, 60, 680, 100, 102);
+  TouchManager::instance.add_bounds(keyboard_x, 60, 680, 100, 102);
 
   // Open Language Entry
-  TouchManager::add_bounds(keyboard_x, 260, 680, 100, 110);
+  TouchManager::instance.add_bounds(keyboard_x, 260, 680, 100, 110);
 
   // Domain specific touch events
   Domain* domain = HSearch::current_domain();
@@ -53,7 +53,7 @@ HandlerEnum SearchBrowser::on_event(int val){
   // Open keyboard
   if(val == 102){
     field = 0;
-    Keyboard::setup(HandlerEnum::Search, search_str);
+    Keyboard::setup(HandlerEnum::Search, "Search", search_str);
     Keyboard::set_touch();
     return HandlerEnum::Keyboard;
   }
@@ -61,7 +61,7 @@ HandlerEnum SearchBrowser::on_event(int val){
   // Open lang keyboard
   if(val == 110){
     field = 1;
-    Keyboard::setup(HandlerEnum::Search, ConfigManager::get_value("lang"));
+    Keyboard::setup(HandlerEnum::Search, "Language", ConfigManager::get_value("lang"));
     Keyboard::set_touch();
     return HandlerEnum::Keyboard;
   }
@@ -94,12 +94,12 @@ void SearchBrowser::render(){
   // Render search string
   Screen::draw_text("Search", keyboard_x, 15, ThemeText, Screen::large);
   Screen::draw_button(keyboard_x, 60, 680, 100, ThemeButton, ThemeButtonBorder, 6);
-  Screen::draw_text_centered(search_str, keyboard_x, 60, 680, 100, ThemeButtonText, Screen::large);
+  Screen::draw_text_centered(search_str, keyboard_x, 60, 680, 100, ThemeText, Screen::large);
 
   // Render language selection
   Screen::draw_text("Language", keyboard_x, 215, ThemeText, Screen::large);
   Screen::draw_button(keyboard_x, 260, 680, 100, ThemeButton, ThemeButtonBorder, 6);
-  Screen::draw_text_centered(ConfigManager::get_value("lang"), keyboard_x, 260, 680, 100, ThemeButtonText, Screen::large);
+  Screen::draw_text_centered(ConfigManager::get_value("lang"), keyboard_x, 260, 680, 100, ThemeText, Screen::large);
 
   Domain* domain = HSearch::current_domain();
   domain->search_render();

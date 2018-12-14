@@ -10,6 +10,8 @@ int Keyboard::active_elem = 0;
 int Keyboard::caps_lock = 0;
 
 std::string Keyboard::text;
+std::string Keyboard::message;
+
 static HandlerEnum handler = HandlerEnum::Browser;
 
 std::vector<char> alphabet = { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
@@ -21,49 +23,50 @@ std::vector<char> altAlphabet = { '!', '"', '#', '$', '%', '^', '&', '*', '(', '
       'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '@',
       'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?' };
 
-void Keyboard::setup(HandlerEnum handle, std::string start_str){
+void Keyboard::setup(HandlerEnum handle,  std::string message, std::string start_str){
   handler = handle;
   text = start_str;
+  Keyboard::message = message;
 }
 
 void Keyboard::set_touch(){
   int letter = 0;
   int i;
 
-  TouchManager::clear();
+  TouchManager::instance.clear();
 
   // Number row
   for(i = 0; i < 12; i++){
-    TouchManager::add_bounds(keyboard_x + (i * (box_size + gap)), keyboard_y - 5*(box_size + gap), box_size, box_size, letter);
+    TouchManager::instance.add_bounds(keyboard_x + (i * (box_size + gap)), keyboard_y - 5*(box_size + gap), box_size, box_size, letter);
     letter++;
   }
 
   // Top row
   for(i = 0; i < 12; i++){
-    TouchManager::add_bounds(keyboard_x + (box_size / 2) + (i * (box_size + gap)), keyboard_y - 4*(box_size + gap), box_size, box_size, letter);
+    TouchManager::instance.add_bounds(keyboard_x + (box_size / 2) + (i * (box_size + gap)), keyboard_y - 4*(box_size + gap), box_size, box_size, letter);
     letter++;
   }
 
   // Middle row
   for(i = 0; i < 11; i++){
-    TouchManager::add_bounds(keyboard_x + box_size + ((box_size + gap) * i), keyboard_y - 3*(box_size + gap), box_size, box_size, letter);
+    TouchManager::instance.add_bounds(keyboard_x + box_size + ((box_size + gap) * i), keyboard_y - 3*(box_size + gap), box_size, box_size, letter);
     letter++;
   }
 
   // Bottom row
   for(i = 0; i < 10; i++){
-    TouchManager::add_bounds(keyboard_x + (box_size*1.5) + ((box_size + gap) * i), keyboard_y - 2*(box_size + gap), box_size, box_size, letter);
+    TouchManager::instance.add_bounds(keyboard_x + (box_size*1.5) + ((box_size + gap) * i), keyboard_y - 2*(box_size + gap), box_size, box_size, letter);
     letter++;
   }
   // Backspace
-  TouchManager::add_bounds(keyboard_x + (box_size*1.5) + ((box_size + gap) * 10), keyboard_y - 2*(box_size + gap), box_size * 1.5, box_size, 50);
+  TouchManager::instance.add_bounds(keyboard_x + (box_size*1.5) + ((box_size + gap) * 10), keyboard_y - 2*(box_size + gap), box_size * 1.5, box_size, 50);
   // Caps Lock
-  TouchManager::add_bounds(keyboard_x, keyboard_y - 2*(box_size + gap), box_size * 1.5 - gap, box_size, 51);
+  TouchManager::instance.add_bounds(keyboard_x, keyboard_y - 2*(box_size + gap), box_size * 1.5 - gap, box_size, 51);
   // Space
-  TouchManager::add_bounds(keyboard_x + (box_size*2), keyboard_y - (box_size + gap), box_size * 10, box_size, 52);
+  TouchManager::instance.add_bounds(keyboard_x + (box_size*2), keyboard_y - (box_size + gap), box_size * 10, box_size, 52);
 
   // Return to Browser
-  TouchManager::add_bounds(screen_width - 75, 0, 75, 75, 101);
+  TouchManager::instance.add_bounds(screen_width - 75, 0, 75, 75, 101);
 }
 
 HandlerEnum Keyboard::on_event(int val){
@@ -149,12 +152,13 @@ void Keyboard::render(){
   Screen::draw_button(keyboard_x + (box_size*2), keyboard_y - (box_size + gap), box_size * 10, box_size, ThemeButton, ThemeButtonBorder, 5);
   Screen::draw_text_centered("Space", keyboard_x + (box_size*2), keyboard_y - (box_size + gap), box_size * 10, box_size, ThemeText, Screen::large);
 
-  // TODO Render fields
-
   // Render search string
   Screen::draw_button(keyboard_x, 60, 680, 100, ThemeButton, ThemeButtonBorder, 6);
   if(!text.empty())
     Screen::draw_text_centered(text, keyboard_x, 60, 680, 100, ThemeText, Screen::large);
+
+  // Render message
+  Screen::draw_text_centered(message, keyboard_x + 700, 60, screen_width - (keyboard_x + 700 + 75), 100, ThemeText, Screen::large);
 
   // Back button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);

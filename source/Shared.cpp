@@ -36,6 +36,8 @@ SDL_Color ThemeText = COLOR_GRAY;
 SDL_Color ThemeOptionSelected = COLOR_PALEWHITE;
 SDL_Color ThemeOptionUnselected = COLOR_VLIGHTGRAY;
 
+const int Shared::joy_val[24] = {102, 101, 110, 111, 0, 0, 0, 0, 103, 104, 0, 0, 123, 120, 121, 122, 123, 120, 121, 122, 0, 0, 0, 0};
+
 std::map<SDL_FingerID, FloatPoint> Handler::fingerTouches;
 void Handler::set_touch() {};
 HandlerEnum Handler::on_event(int val) { return HandlerEnum::Browser; };

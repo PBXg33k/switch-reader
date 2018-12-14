@@ -9,7 +9,6 @@ namespace ConfigManager {
   void set_pair(std::string key, std::string pair);
   std::string get_value(std::string key);
   void set_theme();
-  void set_mode();
   void set_proxy();
   void set_all();
 

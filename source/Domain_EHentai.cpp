@@ -551,31 +551,31 @@ json_object* Domain_EHentai::get_galleries(std::vector<std::string> gids, std::v
 void Domain_EHentai::search_touch(){
   // Star Ratings
   for(int i = 0; i < 5; i++)
-      TouchManager::add_bounds(SearchBrowser::keyboard_x + (31 * i * starScale), 460, 62, 30 * starScale, 150 + i);
+      TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + (31 * i * starScale), 460, 62, 30 * starScale, 150 + i);
 
   // Public or Favourites
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 5*(50 + SearchBrowser::gap-12), 420, 100, 111);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 5*(50 + SearchBrowser::gap-12), 420, 100, 111);
 
   // All 10 Categorys
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10, 200, 50, 50);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10, 200, 50, 50);
 
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 50 + SearchBrowser::gap-12, 200, 50, 51);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 50 + SearchBrowser::gap-12, 200, 50, 51);
 
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 2*(50 + SearchBrowser::gap-12), 200, 50, 52);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 2*(50 + SearchBrowser::gap-12), 200, 50, 52);
 
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 3*(50 + SearchBrowser::gap-12), 200, 50, 53);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 3*(50 + SearchBrowser::gap-12), 200, 50, 53);
 
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 4*(50 + SearchBrowser::gap-12), 200, 50, 54);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 30, 10 + 4*(50 + SearchBrowser::gap-12), 200, 50, 54);
 
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10, 200, 50, 55);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10, 200, 50, 55);
 
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 50 + SearchBrowser::gap-12, 200, 50, 56);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 50 + SearchBrowser::gap-12, 200, 50, 56);
 
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 2*(50 + SearchBrowser::gap-12), 200, 50, 57);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 2*(50 + SearchBrowser::gap-12), 200, 50, 57);
 
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 3*(50 + SearchBrowser::gap-12), 200, 50, 58);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 3*(50 + SearchBrowser::gap-12), 200, 50, 58);
 
-  TouchManager::add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 4*(50 + SearchBrowser::gap-12), 200, 50, 59);
+  TouchManager::instance.add_bounds(SearchBrowser::keyboard_x + 680 + 250, 10 + 4*(50 + SearchBrowser::gap-12), 200, 50, 59);
 }
 
 void Domain_EHentai::search_render(){

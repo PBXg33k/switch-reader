@@ -42,6 +42,7 @@ class Handler {
 
 class Shared{
   public:
+    static const int joy_val[24];
     static HandlerEnum do_event(HandlerEnum handler, int val);
     static const int KeyboardReturn = 9999;
 };
