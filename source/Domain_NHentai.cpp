@@ -44,6 +44,7 @@ void Domain_NHentai::parse_page(std::string completeURL, int page){
   json_object* holder;
   json_object* images;
   std::string copy = completeURL;
+  int skipped_entries = 0;
 
   if(completeURL.find('?') != std::string::npos)
     completeURL += "&page=" + std::to_string(page);
@@ -120,8 +121,16 @@ void Domain_NHentai::parse_page(std::string completeURL, int page){
       }
       e->tags.insert(std::make_pair(type, name));
     }
-
-    Browser::add_entry(e);
+    if(!ConfigManager::get_value("lang").empty()){
+      if(contains_tag(e, ConfigManager::get_value("lang"))){
+        Browser::add_entry(e);
+      } else {
+        delete e;
+        skipped_entries++;
+      }
+    } else {
+      Browser::add_entry(e);
+    }
   }
 
   // Set results amount - TODO: Adjust for last page differences
@@ -141,6 +150,8 @@ void Domain_NHentai::parse_page(std::string completeURL, int page){
     if(Browser::numOfResults < 0)
       Browser::numOfResults = 0;
   }
+
+  Browser::numOfResults -= skipped_entries;
 
   json_object_put(num_check);
   json_object_put(json);
@@ -229,4 +240,16 @@ int Domain_NHentai::download_gallery(Gallery * gallery){
   }
 
   return 0;
+}
+
+bool Domain_NHentai::contains_tag(Entry* e, std::string tag) {
+  if(tag.empty())
+    return true;
+
+  for(auto t : e->tags){
+    if(strcasecmp(tag.c_str(), t.second.c_str()) == 0)
+      return true;
+  }
+
+  return false;
 }

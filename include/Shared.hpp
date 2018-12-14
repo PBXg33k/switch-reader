@@ -51,6 +51,7 @@ extern std::string ApiProxy;
 extern std::string UserURL;
 
 extern SDL_Color ThemeBG;
+extern SDL_Color ThemeBG_Trans;
 extern SDL_Color ThemeButton;
 extern SDL_Color ThemeButtonQuit;
 extern SDL_Color ThemeButtonText;
@@ -73,11 +74,13 @@ extern SDL_Color COLOR_PALEISHYELLOW;
 extern SDL_Color COLOR_PALEISHRED;
 extern SDL_Color COLOR_PALERED;
 extern SDL_Color COLOR_PALEYELLOW;
+extern SDL_Color COLOR_PALEYELLOW_TRANS;
 extern SDL_Color COLOR_PALEWHITE;
 extern SDL_Color COLOR_VLIGHTGRAY;
 
 extern SDL_Color COLOR_PALEBLACK;
 extern SDL_Color COLOR_SHADEDBLACK;
+extern SDL_Color COLOR_SHADEDBLACK_TRANS;
 extern SDL_Color COLOR_YELLOWWHITE;
 extern SDL_Color COLOR_TRUEGRAY;
 extern SDL_Color COLOR_DARKISH;

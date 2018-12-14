@@ -126,16 +126,21 @@ int Domain_EHentai::json_entries(std::vector<std::string> gids, std::vector<std:
   for(size_t c = 0; c < gids.size(); c++){
     Entry* e = new Entry;
     fill_tags(e, json_object_array_get_idx(json, c));
-    if(contains_tag(e, ConfigManager::get_value("lang"))){
-      Browser::new_entry(json, e, c, urls[c]);
+    if(!ConfigManager::get_value("lang").empty()){
+      if(contains_tag(e, ConfigManager::get_value("lang"))){
+        Browser::new_entry(json, e, c, urls[c]);
+      } else {
+        delete e;
+        skipped_entries++;
+      }
     } else {
-      delete e;
-      skipped_entries++;
+      Browser::new_entry(json, e, c, urls[c]);
     }
   }
 
   json_object_put(json);
 
+  printf("Skipped %d\n", skipped_entries);
   return skipped_entries;
 } 
 
@@ -198,8 +203,9 @@ ResultsList Domain_EHentai::parse_page(MemoryStruct* pageMem, std::string comple
 
     resultsNum = atoi(content.c_str());
     printf("Results found : %d\n", resultsNum);
-    if(Browser::numOfResults == 0)
+    if(Browser::numOfResults == 0){
       Browser::numOfResults = resultsNum;
+    }
   }
 
   // Free up page memory
@@ -250,9 +256,6 @@ void Domain_EHentai::search(std::string keywords){
     completeURL.append("&f_srdd=" + std::to_string(stars));
   }
 
-  // Add language filter
-  keywords += " " + ConfigManager::get_value("lang");
-
   // Convert to URI (Mostly because of search keywords)
   CURL* curl;
   curl = curl_easy_init();
@@ -288,9 +291,9 @@ void Domain_EHentai::search(std::string keywords){
 
   if(rList.gids.size() > 25){
     printf("Making subvectors\n");
-    std::vector<std::string> subGids(rList.gids.begin(), rList.gids.begin() + 24);
-    std::vector<std::string> subGtkns(rList.gtkns.begin(), rList.gtkns.begin() + 24);
-    std::vector<std::string> subUrls(rList.urls.begin(), rList.urls.begin() + 24);
+    std::vector<std::string> subGids(rList.gids.begin(), rList.gids.begin() + 25);
+    std::vector<std::string> subGtkns(rList.gtkns.begin(), rList.gtkns.begin() + 25);
+    std::vector<std::string> subUrls(rList.urls.begin(), rList.urls.begin() + 25);
     printf("Subs made\n");
 
     skipped_entries = json_entries(subGids, subGtkns, subUrls);
@@ -332,10 +335,31 @@ void Domain_EHentai::expand_search(std::string completeURL, int page){
   if(rList.gids.empty())
     return;
 
-  json_entries(rList.gids, rList.gtkns, rList.urls);
+  int skipped_entries;
+
+  if(rList.gids.size() > 25){
+    printf("Making subvectors\n");
+    std::vector<std::string> subGids(rList.gids.begin(), rList.gids.begin() + 25);
+    std::vector<std::string> subGtkns(rList.gtkns.begin(), rList.gtkns.begin() + 25);
+    std::vector<std::string> subUrls(rList.urls.begin(), rList.urls.begin() + 25);
+    printf("Subs made\n");
+
+    skipped_entries = json_entries(subGids, subGtkns, subUrls);
+
+    std::vector<std::string> subGids2(rList.gids.begin() + 25, rList.gids.end());
+    std::vector<std::string> subGtkns2(rList.gtkns.begin() + 25, rList.gtkns.end());
+    std::vector<std::string> subUrls2(rList.urls.begin() + 25, rList.urls.end()); 
+
+    skipped_entries += json_entries(subGids2, subGtkns2, subUrls2);
+  } else {
+    skipped_entries = json_entries(rList.gids, rList.gtkns, rList.urls);
+  }
+
+  Browser::numOfResults -= skipped_entries;
 }
 
 void Domain_EHentai::search_favourites(){
+
   std::string completeURL = FavouritesURL;
   Browser::numOfResults = 0;
 
@@ -343,6 +367,9 @@ void Domain_EHentai::search_favourites(){
   MemoryStruct* pageMem = new MemoryStruct();
   ApiManager::get_res(pageMem, completeURL.c_str());
   delete pageMem;
+
+  Browser::currentUrl = completeURL;
+  Browser::loadedPages = 0;
 
   // The real request
   pageMem = new MemoryStruct();
@@ -360,15 +387,13 @@ void Domain_EHentai::search_favourites(){
 
   delete pageMem;
 
-  Browser::currentUrl = completeURL;
-  Browser::loadedPages = 0;
   int skipped_entries;
 
   if(rList.gids.size() > 25){
     printf("Making subvectors\n");
-    std::vector<std::string> subGids(rList.gids.begin(), rList.gids.begin() + 24);
-    std::vector<std::string> subGtkns(rList.gtkns.begin(), rList.gtkns.begin() + 24);
-    std::vector<std::string> subUrls(rList.urls.begin(), rList.urls.begin() + 24);
+    std::vector<std::string> subGids(rList.gids.begin(), rList.gids.begin() + 25);
+    std::vector<std::string> subGtkns(rList.gtkns.begin(), rList.gtkns.begin() + 25);
+    std::vector<std::string> subUrls(rList.urls.begin(), rList.urls.begin() + 25);
     printf("Subs made\n");
 
     skipped_entries = json_entries(subGids, subGtkns, subUrls);

@@ -306,7 +306,7 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    fprintf(stdout, "Getting Link - %s\n", url.c_str());
+    //fprintf(stdout, "Getting Link - %s\n", url.c_str());
 
     // Check if saving locally or to memory
     if(save){
@@ -342,7 +342,7 @@ json_object* ApiManager::get_res_json(std::string url, CURL* curl){
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    fprintf(stdout, "Getting Link - %s\n", url.c_str());
+    //fprintf(stdout, "Getting Link - %s\n", url.c_str());
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);

@@ -73,6 +73,7 @@ class Domain_NHentai : public Domain {
   private:
     void parse_page(std::string completeURL, int page);
     std::string build_image(Entry* e, int page, std::string type, bool thumbnail);
+    bool contains_tag(Entry* e, std::string tag);
 };
 
 class Domain_Local : public Domain {

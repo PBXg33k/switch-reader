@@ -173,6 +173,7 @@ void ConfigManager::set_theme(){
     // Light
     case 0:
       ThemeBG = COLOR_PALEYELLOW;
+      ThemeBG_Trans = COLOR_PALEYELLOW_TRANS;
       ThemeButton = COLOR_PALEWHITE;
       ThemeButtonQuit = COLOR_RED;
       ThemeButtonText = COLOR_LIGHTGRAY;
@@ -188,6 +189,7 @@ void ConfigManager::set_theme(){
     // Dark
     case 1:
       ThemeBG = COLOR_SHADEDBLACK;
+      ThemeBG_Trans = COLOR_SHADEDBLACK_TRANS;
       ThemeButton = COLOR_SHADEDBLACK;
       ThemeButtonQuit = COLOR_RED;
       ThemeButtonText = COLOR_YELLOWWHITE;
