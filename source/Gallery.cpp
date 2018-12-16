@@ -235,7 +235,7 @@ int GalleryBrowser::save_all_pages(){
 void GalleryBrowser::render(){
   Screen::clear(ThemeBG);
   // Image (If loaded)
-  while(active_gallery->total_pages-1 >= (int) active_gallery->images.size()){
+  while(active_gallery->total_pages-1 > (int) active_gallery->images.size()){
     int block = (active_gallery->images.size()/block_size);
     printf("Loading page block %d\n", block);
     load_urls(block);
