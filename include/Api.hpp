@@ -31,7 +31,7 @@ class ApiManager {
 		static void get_res(MemoryStruct* mem, std::string url, CURL* curl=ApiManager::handle, int save=0, std::string path = std::string());
     static void load_res(MemoryStruct* mem, std::string url);
     static json_object* get_res_json(std::string url, CURL* curl);
-		static json_object* post_api(char* payload, std::string url, CURL* curl);
+		static json_object* post_api(const char* payload, std::string url, CURL* curl);
 
     static int download_gallery(Entry* entry);
 

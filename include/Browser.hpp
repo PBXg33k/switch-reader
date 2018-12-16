@@ -11,6 +11,9 @@ class Browser : public Handler {
     static void close();
     static void set_touch();
     static void scroll(float dx, float dy);
+
+    static void force_handler(HandlerEnum forced);
+    static HandlerEnum get_handler();
     static void quit_app();
 
     static void load_username();

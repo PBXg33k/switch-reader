@@ -108,8 +108,7 @@ HandlerEnum Settings::on_event(int val){
     username.clear();
     password.clear();
 
-    if(ConfigManager::get_value("domain") != "NHentai")
-      Browser::load_username();
+    Browser::load_username();
     Browser::clear();
 
     ConfigManager::set_pair("press_sens", std::to_string(press_sens));

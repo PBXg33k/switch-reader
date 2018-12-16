@@ -111,11 +111,13 @@ class Domain_Szuru : public Domain {
   public:
     std::string domain;
     std::string name;
+    std::string username;
 
     void search(std::string keywords);
     void login(std::string username, std::string password);
     void prefill_gallery(Entry* e, Gallery* gallery);
     void load_gallery_urls(size_t page, int* block_size, Gallery* gallery);
+    std::string get_username();
 
     void browser_touch();
     void browser_render();
@@ -126,10 +128,13 @@ class Domain_Szuru : public Domain {
     HandlerEnum preview_event(int val);
 
     Domain_Szuru(std::string d, std::string n){
+      username = "Not Logged In";
+      search_entry = nullptr;
       domain = d;
       name = n;
     }
   private:
+    Entry* search_entry;
     void empty_search();
     std::string token;
     bool token_valid();

@@ -43,6 +43,11 @@ HandlerEnum SearchBrowser::on_event(int val){
     
     HSearch::search_keywords(search_str.c_str());
 
+    // Special check for midchange
+    if(Browser::get_handler() != HandlerEnum::Search){
+      return Browser::get_handler();
+    }
+
     // Go back to Browser
     Browser::set_touch();
     return HandlerEnum::Browser;

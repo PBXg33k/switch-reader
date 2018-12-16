@@ -330,7 +330,7 @@ json_object* ApiManager::get_res_json(std::string url, CURL* curl){
 
 
 
-json_object* ApiManager::post_api(char* payload, std::string url, CURL* curl)
+json_object* ApiManager::post_api(const char* payload, std::string url, CURL* curl)
 {
   std::string readBuffer;
   const char* host = ApiProxy.c_str();

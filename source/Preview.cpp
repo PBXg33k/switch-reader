@@ -10,7 +10,7 @@
 #include "Ui.hpp"
 #include "HSearch.hpp"
 
-#define tags_x 440
+#define tags_x 300
 #define tags_y 86
 
 Entry* GalleryPreview::entry;
@@ -75,7 +75,7 @@ void render_tag(std::string type, std::string name){
   h = FC_GetHeight(Screen::normal, name.c_str());
   // Next line
   if(curX + w + 10 > screen_width - 200){
-    curX = tags_x;
+    curX = tags_x + 140;
     curY += (h + 21);
   }
   // Render tag here
@@ -103,6 +103,7 @@ void GalleryPreview::render(){
 
   // Load thumbnail
   if(!entry->res->requested){
+    entry->res->url = entry->thumb;
     ApiManager::request_res(entry->res);
   }
 
@@ -111,22 +112,28 @@ void GalleryPreview::render(){
     Screen::draw_adjusted_mem(entry->res->texture, 30, 30, 240, 450);
   }
 
+
   // Draw tags
   curX = tags_x;
   curY = tags_y - scroll_pos;
+
+  // Page amount
+  Screen::draw_text(std::to_string(entry->pages) + " Pages", curX, curY, ThemeText, Screen::large);
+  curY += 42;
+
   for(auto tag : entry->tags){
     if(tag.first != last_category){
-      curX = tags_x;
+      curX = tags_x + 140;
       curY += 42;
-      Screen::draw_text(tag.first, tags_x - 140, curY, ThemeText);
+      Screen::draw_text(tag.first, tags_x, curY, ThemeText);
       last_category = tag.first;
     }
     render_tag(tag.first, tag.second);
   }
 
   // Draw title
-  Screen::draw_rect(tags_x - 140, 0, screen_width - (tags_x - 140), tags_y, ThemeBG);
-  Screen::draw_text(entry->title, tags_x - 140, tags_y - 40, ThemeText, Screen::large);
+  Screen::draw_rect(tags_x, 0, screen_width - tags_x, tags_y, ThemeBG);
+  Screen::draw_text(entry->title, tags_x, tags_y - 40, ThemeText, Screen::large);
 
   // Back button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);

@@ -20,7 +20,16 @@
 
 static SDL_Event* customEvent;
 static int state;
+static HandlerEnum handler;
 float motion_track;
+
+void Browser::force_handler(HandlerEnum forced){
+  handler = forced;
+}
+
+HandlerEnum Browser::get_handler(){
+  return handler;
+}
 
 void Browser::quit_app(){
   state = 0;
@@ -147,7 +156,7 @@ void do_scroll(HandlerEnum handler, SDL_Event e){
 
 int main(int argc, char **argv)
 {
-  HandlerEnum handler = HandlerEnum::Browser;
+  handler = HandlerEnum::Browser;
   motion_track = 0;
   bool finger_was_down = false;
 

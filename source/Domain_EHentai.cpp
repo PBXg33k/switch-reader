@@ -781,12 +781,11 @@ void Domain_EHentai::preview_touch(){
 }
 
 void Domain_EHentai::preview_render(){
-  // Favourites
-  Screen::draw_button(screen_width-190, 395, 180, 80, ThemeButton, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Favourite", screen_width-190, 395, 180, 80, ThemeText, Screen::normal);
+  // Favourites - TODO
+  Screen::draw_button(screen_width-190, 395, 180, 80, ThemeOptionSelected, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Favourite", screen_width-190, 395, 180, 80, ThemeButtonText, Screen::normal);
 }
 
 HandlerEnum Domain_EHentai::preview_event(int val){
-
   return HandlerEnum::Preview;
 }
