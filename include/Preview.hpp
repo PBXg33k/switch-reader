@@ -5,11 +5,11 @@
 
 class GalleryPreview : public Handler {
   public:
+    static Entry* entry;
     static void load_gallery(Entry* entry);
     static void set_touch();
     static HandlerEnum on_event(int val);
     static void scroll(float dx, float dy);
     static void render();
   private:
-    static Entry* entry;
 };

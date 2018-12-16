@@ -8,8 +8,7 @@ enum class HandlerEnum { Browser,
                      Search,
                      Gallery,
                      Preview,
-                     Settings,
-                     Keyboard };
+                     Settings};
 
 enum class Category : int { Doujinshi=1,
                       Manga=2,

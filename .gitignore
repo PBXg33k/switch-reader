@@ -9,6 +9,7 @@ nxlink
 testfile
 build/
 testy/
+api_test/
 
 # Prerequisites
 *.d

@@ -9,6 +9,7 @@ void TouchManager::add_bounds(int x, int y, int w, int h, int val){
 }
 
 int TouchManager::get_value(int x, int y){
+  printf("Size %d\n", bounds.size());
   for(auto pair : bounds) {
     SDL_Rect box = pair.first;
     // Check within bounds

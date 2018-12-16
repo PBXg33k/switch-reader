@@ -12,8 +12,6 @@ int Keyboard::caps_lock = 0;
 std::string Keyboard::text;
 std::string Keyboard::message;
 
-static HandlerEnum handler = HandlerEnum::Browser;
-
 std::vector<char> alphabet = { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
       'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']',
       'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'',
@@ -23,53 +21,47 @@ std::vector<char> altAlphabet = { '!', '"', '#', '$', '%', '^', '&', '*', '(', '
       'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '@',
       'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?' };
 
-void Keyboard::setup(HandlerEnum handle,  std::string message, std::string start_str){
-  handler = handle;
-  text = start_str;
-  Keyboard::message = message;
-}
-
-void Keyboard::set_touch(){
+void Keyboard::set_touch(TouchManager* touch){
   int letter = 0;
   int i;
 
-  TouchManager::instance.clear();
+  touch->clear();
 
   // Number row
   for(i = 0; i < 12; i++){
-    TouchManager::instance.add_bounds(keyboard_x + (i * (box_size + gap)), keyboard_y - 5*(box_size + gap), box_size, box_size, letter);
+    touch->add_bounds(keyboard_x + (i * (box_size + gap)), keyboard_y - 5*(box_size + gap), box_size, box_size, letter);
     letter++;
   }
 
   // Top row
   for(i = 0; i < 12; i++){
-    TouchManager::instance.add_bounds(keyboard_x + (box_size / 2) + (i * (box_size + gap)), keyboard_y - 4*(box_size + gap), box_size, box_size, letter);
+    touch->add_bounds(keyboard_x + (box_size / 2) + (i * (box_size + gap)), keyboard_y - 4*(box_size + gap), box_size, box_size, letter);
     letter++;
   }
 
   // Middle row
   for(i = 0; i < 11; i++){
-    TouchManager::instance.add_bounds(keyboard_x + box_size + ((box_size + gap) * i), keyboard_y - 3*(box_size + gap), box_size, box_size, letter);
+    touch->add_bounds(keyboard_x + box_size + ((box_size + gap) * i), keyboard_y - 3*(box_size + gap), box_size, box_size, letter);
     letter++;
   }
 
   // Bottom row
   for(i = 0; i < 10; i++){
-    TouchManager::instance.add_bounds(keyboard_x + (box_size*1.5) + ((box_size + gap) * i), keyboard_y - 2*(box_size + gap), box_size, box_size, letter);
+    touch->add_bounds(keyboard_x + (box_size*1.5) + ((box_size + gap) * i), keyboard_y - 2*(box_size + gap), box_size, box_size, letter);
     letter++;
   }
   // Backspace
-  TouchManager::instance.add_bounds(keyboard_x + (box_size*1.5) + ((box_size + gap) * 10), keyboard_y - 2*(box_size + gap), box_size * 1.5, box_size, 50);
+  touch->add_bounds(keyboard_x + (box_size*1.5) + ((box_size + gap) * 10), keyboard_y - 2*(box_size + gap), box_size * 1.5, box_size, 50);
   // Caps Lock
-  TouchManager::instance.add_bounds(keyboard_x, keyboard_y - 2*(box_size + gap), box_size * 1.5 - gap, box_size, 51);
+  touch->add_bounds(keyboard_x, keyboard_y - 2*(box_size + gap), box_size * 1.5 - gap, box_size, 51);
   // Space
-  TouchManager::instance.add_bounds(keyboard_x + (box_size*2), keyboard_y - (box_size + gap), box_size * 10, box_size, 52);
+  touch->add_bounds(keyboard_x + (box_size*2), keyboard_y - (box_size + gap), box_size * 10, box_size, 52);
 
   // Return to Browser
-  TouchManager::instance.add_bounds(screen_width - 75, 0, 75, 75, 101);
+  touch->add_bounds(screen_width - 75, 0, 75, 75, 101);
 }
 
-HandlerEnum Keyboard::on_event(int val){
+void Keyboard::on_event(int val){
   // Number row, A-Z and , and .
   if(val >= 0 && val < 50){
     if(caps_lock)
@@ -96,13 +88,6 @@ HandlerEnum Keyboard::on_event(int val){
     default:
       break;
   }
-
-  if(val == 101){
-    Shared::do_event(handler, Shared::KeyboardReturn);
-    return handler;
-  }
-
-  return HandlerEnum::Keyboard;
 }
 
 void Keyboard::render(){
@@ -162,4 +147,44 @@ void Keyboard::render(){
 
   // Back button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
+}
+
+std::string Keyboard::get_input(std::string msg, std::string start_str){
+  message = msg;
+  text = start_str;
+  SDL_Event event;
+  TouchManager touch;
+
+  set_touch(&touch);
+
+  while(1){
+    // Render
+    
+    render();
+    Screen::render();
+
+    // Check events
+
+    while(SDL_PollEvent(&event)){
+      int val = -1;
+
+      switch (event.type) {
+        case SDL_JOYBUTTONDOWN:
+          val = Shared::joy_val[event.jbutton.button];
+          break;
+        case SDL_FINGERDOWN:
+          val = touch.get_value(event.tfinger.x*screen_width, event.tfinger.y*screen_height);
+          printf("{%f, %f} - %d\n", event.tfinger.x*screen_width, event.tfinger.y*screen_height, val);
+          break;
+        default:
+          break;
+      }
+
+      if(val == 101){
+        return text;
+      }
+
+      on_event(val);
+    }
+  }
 }

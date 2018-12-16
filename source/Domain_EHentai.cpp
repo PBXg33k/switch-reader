@@ -494,6 +494,7 @@ void Domain_EHentai::load_gallery_urls(size_t page, int* block_size, Gallery* ga
   xmlChar *keyword;
 
   int i;
+  int num = 1;
 
   // Load page into memory
   std::string indexCopy = gallery->index;
@@ -528,7 +529,8 @@ void Domain_EHentai::load_gallery_urls(size_t page, int* block_size, Gallery* ga
 
     for (i=0; i < nodeset->nodeNr; i++) {
 			keyword = xmlGetProp(nodeset->nodeTab[i], (xmlChar*) "href");
-  		printf("Page %d: %s\n", i, keyword);
+  		printf("Page %d: %s\n", num, keyword);
+      num++;
       Resource* res = new Resource();
       res->url = (char*) keyword;
       gallery->images.push_back(res);
@@ -569,7 +571,7 @@ json_object* Domain_EHentai::get_galleries(std::vector<std::string> gids, std::v
   char* data = (char*)malloc((strlen(gallery_list.c_str()) + 64) * sizeof(char));
   sprintf(data, "{\"method\": \"gdata\",\"gidlist\": [%s],\"namespace\": 1}", gallery_list.c_str());
   printf("%s\n",data);
-  json_object* json = ApiManager::post_api(data, ApiURL);
+  json_object* json = ApiManager::post_api(data, ApiURL, ApiManager::handle);
   free(data);
   return json;
 }
@@ -772,4 +774,19 @@ std::string Domain_EHentai::get_username(){
   delete pageMem;
 
   return username;
+}
+
+void Domain_EHentai::preview_touch(){
+
+}
+
+void Domain_EHentai::preview_render(){
+  // Favourites
+  Screen::draw_button(screen_width-190, 395, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Favourite", screen_width-190, 395, 180, 80, ThemeText, Screen::normal);
+}
+
+HandlerEnum Domain_EHentai::preview_event(int val){
+
+  return HandlerEnum::Preview;
 }

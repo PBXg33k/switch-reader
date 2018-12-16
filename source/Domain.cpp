@@ -16,6 +16,18 @@ void Domain::search_touch(){}
 void Domain::search_render(){}
 HandlerEnum Domain::search_event(int val){ return HandlerEnum::Search; }
 
+void Domain::browser_touch(){}
+void Domain::browser_render(){}
+HandlerEnum Domain::browser_event(int val){ return HandlerEnum::Browser; }
+
+void Domain::settings_touch(){}
+void Domain::settings_render(){}
+HandlerEnum Domain::settings_event(int val){ return HandlerEnum::Settings; }
+
+void Domain::preview_touch(){}
+void Domain::preview_render(){}
+HandlerEnum Domain::preview_event(int val){ return HandlerEnum::Preview; }
+
 xmlXPathObjectPtr Domain::get_node_set(xmlDocPtr doc, xmlChar *xpath){
     xmlXPathContextPtr context;
     xmlXPathObjectPtr result;

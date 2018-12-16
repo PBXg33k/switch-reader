@@ -14,7 +14,7 @@ Gallery* GalleryBrowser::active_gallery;
 int GalleryBrowser::cur_page = 0;
 const int GalleryBrowser::buffer_size = 2; // 1 - 1 Page, 2 - 3 pages, 3 - 5 pages...
 static int rotation = 0;
-static int block_size;
+int GalleryBrowser::block_size;
 
 static float oldZoomFactor = 1;
 static float zoomFactor = 1;
@@ -90,7 +90,7 @@ void GalleryBrowser::set_touch(){
 
 void GalleryBrowser::load_page(int page){
   // Load more URLs if needed - block_size on each page
-  if(page >= (int) active_gallery->images.size()){
+  while(page >= (int) active_gallery->images.size()){
     int block = (active_gallery->images.size()/block_size);
     printf("Loading page block %d\n", block);
     load_urls(block);
@@ -235,10 +235,8 @@ int GalleryBrowser::save_all_pages(){
 void GalleryBrowser::render(){
   Screen::clear(ThemeBG);
   // Image (If loaded)
-  while(active_gallery->total_pages-1 > (int) active_gallery->images.size()){
-    int block = (active_gallery->images.size()/block_size);
-    printf("Loading page block %d\n", block);
-    load_urls(block);
+  if(active_gallery->images[cur_page]->texture){
+    Screen::draw_adjusted_mem(active_gallery->images[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
   }
 
   // Page Number

@@ -8,6 +8,7 @@
 #include "Gallery.hpp"
 #include "Touch.hpp"
 #include "Ui.hpp"
+#include "HSearch.hpp"
 
 #define tags_x 440
 #define tags_y 86
@@ -30,11 +31,13 @@ void GalleryPreview::set_touch(){
   // Back to browser
   TouchManager::instance.add_bounds(screen_width - 75, 0, 75, 75, 101);
 
-  // Load Gallery
-  TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
-
   // Download/Delete Gallery
-  TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) + 110, 180, 80, 111);
+  TouchManager::instance.add_bounds(screen_width-190, 95, 180, 80, 111);
+
+  // Load Gallery
+  TouchManager::instance.add_bounds(screen_width-190, 195, 180, 80, 102);
+
+  HSearch::current_domain()->preview_touch();
 }
 
 HandlerEnum GalleryPreview::on_event(int val){
@@ -63,7 +66,7 @@ HandlerEnum GalleryPreview::on_event(int val){
     return HandlerEnum::Browser;
   }
 
-  return HandlerEnum::Preview;
+  return HSearch::current_domain()->preview_event(val);
 }
 
 void render_tag(std::string type, std::string name){
@@ -88,18 +91,15 @@ void GalleryPreview::render(){
 
   // Info message
   if(!message.empty())
-    Screen::draw_text_centered(message, 30, screen_height - 100, 240, 80, ThemeText, Screen::large);
+    Screen::draw_text_centered(message, 25, screen_height - 100, 240, 90, ThemeText, Screen::large);
+
+  // Download Gallery button
+  Screen::draw_button(screen_width-190, 95, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Download", screen_width-190, 95, 180, 80, ThemeButtonText, Screen::normal);
 
   // Load Gallery button
-  Screen::draw_button(screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButton, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
-
-  // Download/Delete Gallery button
-  Screen::draw_button(screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButton, ThemeButtonBorder, 4);
-  if(entry->local)
-    Screen::draw_text_centered("Delete", screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButtonText, Screen::normal);
-  else
-    Screen::draw_text_centered("Download", screen_width-190, (screen_height/2) + 110, 180, 80, ThemeButtonText, Screen::normal);
+  Screen::draw_button(screen_width-190, 195, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Load Gallery", screen_width-190, 195, 180, 80, ThemeButtonText, Screen::normal);
 
   // Load thumbnail
   if(!entry->res->requested){
@@ -124,12 +124,14 @@ void GalleryPreview::render(){
     render_tag(tag.first, tag.second);
   }
 
-    // Draw title
+  // Draw title
   Screen::draw_rect(tags_x - 140, 0, screen_width - (tags_x - 140), tags_y, ThemeBG);
   Screen::draw_text(entry->title, tags_x - 140, tags_y - 40, ThemeText, Screen::large);
 
   // Back button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
+
+  HSearch::current_domain()->preview_render();
 }
 
 void GalleryPreview::scroll(float dx, float dy) {

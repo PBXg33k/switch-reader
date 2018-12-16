@@ -1,4 +1,3 @@
-#include <map>
 #include <string>
 #include <utility>
 #include <algorithm>
@@ -19,7 +18,8 @@
 #define proxyDefault "http://192.168.0.123:5000/?url=" 
 #define categoriesDefault Category::NonH
 
-static std::map<std::string, std::string> configPairs;
+typedef std::multimap<std::string, std::string>::iterator iterator;
+static std::multimap<std::string, std::string> configPairs;
 
 void load_defaults(){
   configPairs.insert(std::make_pair("theme", themeDefault));
@@ -116,6 +116,7 @@ int ConfigManager::init(){
 
   update_config();
   set_all();
+  register_domains();
 
   return 0;
 }
@@ -125,15 +126,18 @@ void ConfigManager::save(){
   std::ofstream configFile;
   configFile.open(configPath);
 
+  printf("Saving config\n");
+
   if(!configFile.is_open())
     return;
 
-  for(auto pair : configPairs){
+  for(const auto &pair : configPairs){
+    printf("Saving %s = %s\n", pair.first.c_str(), pair.second.c_str());
     configFile << pair.first + "=" + pair.second + "\n";
+    printf("Saved!\n");
   }
 
   configFile.close();
-  configFile.clear();
 
   printf("Saved config file\n");
 }
@@ -146,6 +150,10 @@ void ConfigManager::set_pair(std::string key, std::string value){
   } else {
     configPairs.insert(std::make_pair(key, value));
   }
+}
+
+void ConfigManager::add_pair(std::string key, std::string value){
+  configPairs.insert(std::make_pair(key, value));
 }
 
 std::string ConfigManager::get_value(std::string key){
@@ -224,6 +232,18 @@ void ConfigManager::set_all(){
   set_proxy();
 }
 
+void ConfigManager::register_domains(){
+  for(const auto &pair : configPairs){
+    if(pair.first == "szuru_domain"){
+      auto delimiterPos = pair.second.find(",");
+      auto name = pair.second.substr(0, delimiterPos);
+      auto host = pair.second.substr(delimiterPos + 1);
+
+      HSearch::register_domain(name, new Domain_Szuru(host, name));
+    }
+  }
+}
+
 void ConfigManager::save_entry_info(Entry* entry){
   std::string path = configDir + std::to_string(entry->id) + "/info";
   std::ofstream f;
@@ -231,4 +251,20 @@ void ConfigManager::save_entry_info(Entry* entry){
   f.open(path.c_str());
   f << *entry << std::endl;
   f.close();
+}
+
+std::multimap<std::string, std::string> ConfigManager::get_all(){
+  return configPairs;
+}
+
+void ConfigManager::remove_pair(std::string key, std::string value){
+  std::pair<iterator, iterator> iterpair = configPairs.equal_range(key);
+  iterator it = iterpair.first;
+
+  for(; it != iterpair.second; ++it){
+    if(it->second == value){
+      configPairs.erase(it);
+      break;
+    }
+  }
 }

@@ -273,7 +273,7 @@ void ApiManager::get_res(MemoryStruct* chunk, std::string url, CURL* curl, int s
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    //fprintf(stdout, "Getting Link - %s\n", url.c_str());
+    fprintf(stdout, "Getting Link - %s\n", url.c_str());
 
     // Check if saving locally or to memory
     if(save){
@@ -309,7 +309,7 @@ json_object* ApiManager::get_res_json(std::string url, CURL* curl){
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, link);
-    //fprintf(stdout, "Getting Link - %s\n", url.c_str());
+    fprintf(stdout, "Getting Link - %s\n", url.c_str());
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
@@ -328,13 +328,13 @@ json_object* ApiManager::get_res_json(std::string url, CURL* curl){
   return NULL;
 }
 
-json_object* ApiManager::post_api(char* payload, std::string url)
+
+
+json_object* ApiManager::post_api(char* payload, std::string url, CURL* curl)
 {
-  CURL *curl;
   std::string readBuffer;
   const char* host = ApiProxy.c_str();
 
-  curl = curl_easy_init();
   char *uri = curl_easy_escape(curl, url.c_str(), strlen(url.c_str()));
 
   char *link = (char*)malloc(strlen(host) + strlen(uri) + 1);
@@ -342,14 +342,15 @@ json_object* ApiManager::post_api(char* payload, std::string url)
   strcat(link, uri);
 
   if(curl) {
+    fprintf(stdout, "Getting Link - %s\n", url.c_str());
     curl_easy_setopt(curl, CURLOPT_URL, link);
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-    //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
   	curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
+    curl_easy_reset(curl);
     // Mark json as in use - caller must put later
     json_object* json = json_tokener_parse(readBuffer.c_str());
     json_object_get(json);

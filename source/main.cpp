@@ -43,9 +43,6 @@ HandlerEnum Shared::do_event(HandlerEnum handler, int val){
     case HandlerEnum::Preview:
       handler = GalleryPreview::on_event(val);
       break;
-    case HandlerEnum::Keyboard:
-      handler = Keyboard::on_event(val);
-      break;
     default:
       break;
   }
@@ -71,9 +68,6 @@ void finger_down(HandlerEnum handler, SDL_Event e){
     case HandlerEnum::Preview:
       GalleryPreview::finger_down(e);
       break;
-    case HandlerEnum::Keyboard:
-      Keyboard::finger_down(e);
-      break;
     default:
       break;
   }
@@ -96,9 +90,6 @@ void finger_up(HandlerEnum handler, SDL_Event e){
       break;
     case HandlerEnum::Preview:
       GalleryPreview::finger_up(e);
-      break;
-    case HandlerEnum::Keyboard:
-      Keyboard::finger_up(e);
       break;
     default:
       break;
@@ -125,9 +116,6 @@ void do_gesture(HandlerEnum handler, SDL_Event e){
     case HandlerEnum::Preview:
       GalleryPreview::gesture(e);
       break;
-    case HandlerEnum::Keyboard:
-      Keyboard::gesture(e);
-      break;
     default:
       break;
     }
@@ -151,9 +139,6 @@ void do_scroll(HandlerEnum handler, SDL_Event e){
       break;
     case HandlerEnum::Preview:
       GalleryPreview::scroll(e.tfinger.dx, e.tfinger.dy);
-      break;
-    case HandlerEnum::Keyboard:
-      Keyboard::scroll(e.tfinger.dx, e.tfinger.dy);
       break;
     default:
       break;
@@ -290,8 +275,10 @@ int main(int argc, char **argv)
       }
       
       if(val == 100){
-        if(Dialog_Confirm::get_bool("Quit app?"))
+        if(Dialog_Confirm::get_bool("Quit app?")){
           state = 0;
+          break;
+        }
       }
 
       if(val > -1){
@@ -319,9 +306,6 @@ int main(int argc, char **argv)
           case HandlerEnum::Preview:
             GalleryPreview::render();
             break;
-          case HandlerEnum::Keyboard:
-            Keyboard::render();
-            break;
           default:
             break;
         }
@@ -340,9 +324,9 @@ int main(int argc, char **argv)
     }
   }
 
+  ConfigManager::save();
   ApiManager::close();
   Screen::close();
-  ConfigManager::save();
 
   return 0;
 }

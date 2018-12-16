@@ -26,9 +26,25 @@ class Domain {
     virtual void login(std::string username, std::string password); /* Log into domain, will save cookies - May collide with others when using Proxy */
     virtual std::string get_username(); /* Fetch username of logged in user (none otherwise) */
 
+    // Search page extension
     virtual void search_touch();
     virtual void search_render();
     virtual HandlerEnum search_event(int val);
+
+    // Browser page extension
+    virtual void browser_touch();
+    virtual void browser_render();
+    virtual HandlerEnum browser_event(int val);
+
+    // Settings page extension
+    virtual void settings_touch();
+    virtual void settings_render();
+    virtual HandlerEnum settings_event(int val);
+
+    // Gallery Preview page extension
+    virtual void preview_touch();
+    virtual void preview_render();
+    virtual HandlerEnum preview_event(int val);
 
     // Shared functions
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
@@ -49,7 +65,10 @@ class Domain_EHentai : public Domain {
     void login(std::string username, std::string password);
     std::string get_username();
 
-    // Search page expansion
+    void preview_touch();
+    void preview_render();
+    HandlerEnum preview_event(int val);
+
     void search_touch();
     void search_render();
     HandlerEnum search_event(int val);
@@ -86,4 +105,32 @@ class Domain_Local : public Domain {
     void prefill_gallery(Entry* e, Gallery* gallery);
   private:
     std::vector<std::string> get_directories(const std::string& s);
+};
+
+class Domain_Szuru : public Domain {
+  public:
+    std::string domain;
+    std::string name;
+
+    void search(std::string keywords);
+    void login(std::string username, std::string password);
+    void prefill_gallery(Entry* e, Gallery* gallery);
+    void load_gallery_urls(size_t page, int* block_size, Gallery* gallery);
+
+    void browser_touch();
+    void browser_render();
+    HandlerEnum browser_event(int val);
+
+    void preview_touch();
+    void preview_render();
+    HandlerEnum preview_event(int val);
+
+    Domain_Szuru(std::string d, std::string n){
+      domain = d;
+      name = n;
+    }
+  private:
+    void empty_search();
+    std::string token;
+    bool token_valid();
 };

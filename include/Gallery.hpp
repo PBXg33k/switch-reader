@@ -40,6 +40,7 @@ class GalleryBrowser : public Handler {
 
     static void render();
 
+    static int block_size;
     static int cur_page;
     static Gallery* active_gallery;
     static const int buffer_size;

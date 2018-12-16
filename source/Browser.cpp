@@ -45,24 +45,23 @@ void Browser::load_username(){
 void Browser::set_touch(){
   TouchManager::instance.clear();
 
-  // Settings
-  TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) + 140, 180, 80, 111);
   // Search
-  TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) - 190, 180, 80, 110);
+  TouchManager::instance.add_bounds(screen_width-190, 95, 180, 80, 110);
+  // Favourites
+  TouchManager::instance.add_bounds(screen_width-190, 195, 180, 80, 115);
   // Load Gallery
-  TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) - 40, 180, 80, 102);
-
-  // E-Hentai specific button
-  if(ConfigManager::get_value("domain") != "NHentai"){
-    // Favourites
-    TouchManager::instance.add_bounds(screen_width-190, (screen_height/2) + 50, 180, 80, 115);
-  }
+  TouchManager::instance.add_bounds(screen_width-190, 295, 180, 80, 102);
+  // Settings
+  TouchManager::instance.add_bounds(screen_width-190, screen_height - 100, 180, 80, 111);
 
 
   // Quit app
   TouchManager::instance.add_bounds(screen_width - 75, 0, 75, 75, 100);
+
+  HSearch::current_domain()->browser_touch();
+
   // Stop pressing in button backgrounds
-  TouchManager::instance.add_bounds(screen_width-200, 0, 200, screen_height, 1000);
+  TouchManager::instance.add_bounds(screen_width-200, 0, 200, screen_height, -1);
 
   int baseX = 30;
   int baseY = 30;
@@ -167,22 +166,22 @@ void Browser::render(){
 
   // Clean background for buttons
   Screen::draw_rect(screen_width - 200, 0, 200, screen_height, ThemeBG);
-  // Settings button
-  Screen::draw_button(screen_width-190, (screen_height/2) + 140, 180, 80, ThemeButton, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Settings", screen_width-190, (screen_height/2) + 140, 180, 80, ThemeButtonText, Screen::normal);
+
   // Search button
-  Screen::draw_button(screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButton, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Search", screen_width-190, (screen_height/2) - 190, 180, 80, ThemeButtonText, Screen::normal);
+  Screen::draw_button(screen_width-190, 95, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Search", screen_width-190, 95, 180, 80, ThemeButtonText, Screen::normal);
   // Load Gallery button
-  Screen::draw_button(screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButton, ThemeButtonBorder, 4);
-  Screen::draw_text_centered("Load Gallery", screen_width-190, (screen_height/2) - 40, 180, 80, ThemeButtonText, Screen::normal);
+  Screen::draw_button(screen_width-190, 295, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Load Gallery", screen_width-190, 295, 180, 80, ThemeButtonText, Screen::normal);
+  // Settings button
+  Screen::draw_button(screen_width-190, screen_height - 100, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Settings", screen_width-190, screen_height - 100, 180, 80, ThemeButtonText, Screen::normal);
+  // Favourites button
+  Screen::draw_button(screen_width-190, 195, 180, 80, ThemeButton, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Favourites", screen_width-190, 195, 180, 80, ThemeButtonText, Screen::normal);
 
   // E-Hentai specific
   if(ConfigManager::get_value("domain") != "NHentai"){
-    // Favourites button
-    Screen::draw_button(screen_width-190, (screen_height/2) + 50, 180, 80, ThemeButton, ThemeButtonBorder, 4);
-    Screen::draw_text_centered("Favourites", screen_width-190, (screen_height/2) + 50, 180, 80, ThemeButtonText, Screen::normal);
-
     // Username
     Screen::draw_text(username.c_str(), 30, screen_height - 40, ThemeText, Screen::large);
   }
@@ -192,6 +191,9 @@ void Browser::render(){
 
   // Quit button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);
+
+  // Render extensions
+  HSearch::current_domain()->browser_render();
 }
 
 void Browser::render_entry(Entry* entry, int x, int y, bool active)
@@ -293,7 +295,7 @@ HandlerEnum Browser::on_event(int val){
     return HandlerEnum::Settings;
   }
 
-  return HandlerEnum::Browser;
+  return HSearch::current_domain()->browser_event(val);
 }
 
 // Scrolls based on a normalized float - Screen moves left as number rises

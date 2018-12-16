@@ -16,8 +16,6 @@ int SearchBrowser::box_size = 75;
 int SearchBrowser::active_elem = 0;
 int SearchBrowser::caps_lock = 0;
 
-static int field = 0;
-
 std::string SearchBrowser::search_str;
 
 void SearchBrowser::set_touch(){
@@ -50,35 +48,14 @@ HandlerEnum SearchBrowser::on_event(int val){
     return HandlerEnum::Browser;
   }
 
-  // Open keyboard
+  // Get search words
   if(val == 102){
-    field = 0;
-    Keyboard::setup(HandlerEnum::Search, "Search", search_str);
-    Keyboard::set_touch();
-    return HandlerEnum::Keyboard;
+    search_str = Keyboard::get_input("Search", search_str);
   }
   
-  // Open lang keyboard
+  // Edit language
   if(val == 110){
-    field = 1;
-    Keyboard::setup(HandlerEnum::Search, "Language", ConfigManager::get_value("lang"));
-    Keyboard::set_touch();
-    return HandlerEnum::Keyboard;
-  }
-
-  // Returned from Keyboard
-  if(val == Shared::KeyboardReturn){
-    switch(field){
-      case 0:
-        search_str = Keyboard::text;
-        break;
-      case 1:
-        ConfigManager::set_pair("lang", Keyboard::text);
-        break;
-      default:
-        break;
-    }
-    set_touch();
+    ConfigManager::set_pair("lang", Keyboard::get_input("Language", ConfigManager::get_value("lang")));
   }
 
   Domain* domain = HSearch::current_domain();
