@@ -225,12 +225,7 @@ void GalleryBrowser::load_urls(size_t page){
 int GalleryBrowser::save_all_pages(){
   // Load all URLs
   printf("Loading URLs\n");
-  int url_page = 1;
-  while(active_gallery->images[active_gallery->total_pages-1]->url.empty()){
-    load_urls(url_page);
-    url_page++;
-  }
-
+  load_page(active_gallery->total_pages - 1);
   Domain* domain = HSearch::current_domain();
   int fail = domain->download_gallery(active_gallery);
 
@@ -240,8 +235,10 @@ int GalleryBrowser::save_all_pages(){
 void GalleryBrowser::render(){
   Screen::clear(ThemeBG);
   // Image (If loaded)
-  if(active_gallery->images[cur_page]->texture){
-    Screen::draw_adjusted_mem(active_gallery->images[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
+  while(active_gallery->total_pages-1 >= (int) active_gallery->images.size()){
+    int block = (active_gallery->images.size()/block_size);
+    printf("Loading page block %d\n", block);
+    load_urls(block);
   }
 
   // Page Number
