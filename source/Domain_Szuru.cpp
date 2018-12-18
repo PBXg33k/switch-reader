@@ -112,6 +112,7 @@ void Domain_Szuru::empty_search(){
       entry->title = name;
       entry->url = query;
       entry->pages = json_object_get_int(get_json_obj(result, "total"));
+      entry->tags = query_to_tags(query);
       
       // Add thumbnail, if result given
       if(entry->pages != 0){
@@ -128,6 +129,46 @@ void Domain_Szuru::empty_search(){
       json_object_put(result);
     }
   } 
+}
+
+std::multimap<std::string, std::string> Domain_Szuru::query_to_tags(std::string query){
+  // Get individual groups by splitting spaces
+  std::vector<std::string> groupings;
+  std::multimap<std::string, std::string> tags;
+  std::string temp;
+
+  std::stringstream splitable(query);
+  while(splitable >> temp){
+    groupings.push_back(temp);
+  }
+
+  for(auto group : groupings){
+    std::vector<std::string> OR_groups;
+
+    // OR grouping - "apple,banana,cucumber"
+    if(group.find(',') != std::string::npos){
+      std::replace(group.begin(), group.end(), ',', ' ');
+      splitable = std::stringstream(group);
+      while(splitable >> temp){
+        OR_groups.push_back(temp);
+      }
+      for(auto word : OR_groups){
+        tags.insert(std::make_pair("Optional", word));
+      }
+    // Special groups - "key:value"
+    } else if(group.find(':') != std::string::npos){
+      tags.insert(std::make_pair("Special Case", group));
+    // Negative groups - "-kiwi"
+    } else if(group.find('-') != std::string::npos){
+      // Remove - symbol from tag
+      tags.insert(std::make_pair("Blacklisted", group.substr(1)));
+    // Required groups - "word"
+    } else {
+      tags.insert(std::make_pair("Required", group));
+    }
+  }
+
+  return tags;
 }
 
 void Domain_Szuru::search(std::string keywords){
@@ -151,9 +192,10 @@ void Domain_Szuru::search(std::string keywords){
       if(get_json_obj(json, "query") != NULL){
         printf("Success\n");
         search_entry = new Entry();
-        search_entry->title = keywords;
+        search_entry->title = "Custom Search Results";
         search_entry->url = keywords;
         search_entry->pages = json_object_get_int(get_json_obj(json, "total"));
+        search_entry->tags = query_to_tags(keywords);
 
         // No results!
         if(search_entry->pages == 0){
@@ -398,4 +440,9 @@ HandlerEnum Domain_Szuru::settings_event(int val){
   }
 
   return HandlerEnum::Settings;
+}
+
+int Domain_Szuru::download_gallery(Gallery* gallery){
+  
+  return 1;
 }

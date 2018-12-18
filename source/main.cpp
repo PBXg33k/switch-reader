@@ -182,9 +182,9 @@ int main(int argc, char **argv)
   curl_easy_setopt(curlLookup, CURLOPT_URL, lookupURL);
   curl_easy_setopt(curlLookup, CURLOPT_NOBODY, 1);
 
-  while((rc = curl_easy_perform(curlLookup)) == CURLE_COULDNT_CONNECT){
+  while((rc = curl_easy_perform(curlLookup)) != CURLE_OK){
     Screen::clear(ThemeBG);
-    Screen::draw_text("Network still loading...", 0, 0, ThemeText, Screen::header);
+    Screen::draw_text_centered("Network still loading...", 0, 0, screen_width, screen_height, ThemeText, Screen::header);
     Screen::render();
     sleep(1);
   }

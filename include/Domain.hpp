@@ -117,6 +117,7 @@ class Domain_Szuru : public Domain {
     void login(std::string username, std::string password);
     void prefill_gallery(Entry* e, Gallery* gallery);
     void load_gallery_urls(size_t page, int* block_size, Gallery* gallery);
+    int download_gallery(Gallery* gallery);
     std::string get_username();
 
     void browser_touch();
@@ -130,6 +131,7 @@ class Domain_Szuru : public Domain {
     void settings_touch();
     void settings_render();
     HandlerEnum settings_event(int val);
+    
 
     Domain_Szuru(std::string d, std::string n){
       username = "Not Logged In";
@@ -138,6 +140,7 @@ class Domain_Szuru : public Domain {
       name = n;
     }
   private:
+    std::multimap<std::string, std::string> query_to_tags(std::string query);
     Entry* search_entry;
     void empty_search();
     std::string token;
