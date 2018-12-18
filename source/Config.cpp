@@ -92,9 +92,7 @@ int ConfigManager::init(){
     printf("Loading config file\n");
     std::string line;
     // Read each line as a key=value, store in pairs
-    while(getline(configFile, line)){
-      line.erase(std::remove_if(line.begin(), line.end(), isspace),
-                                 line.end());
+    while(getline(configFile, line, '\n')){
       if(line[0] == '#' || line.empty())
           continue;
       auto delimiterPos = line.find("=");

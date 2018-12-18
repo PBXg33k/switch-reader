@@ -85,13 +85,17 @@ HandlerEnum Settings::on_event(int val){
   } else if(val == 4){
     password = Keyboard::get_input("Password", password);
   } else if(val == 5){
+  // Proxy URL
     ConfigManager::set_pair("proxy", Keyboard::get_input("Proxy URL", ApiProxy));
     ConfigManager::set_proxy();
   } else if(val == 10){
+  // Add Szuru
     std::string name = Keyboard::get_input("Name");
     std::string domain = Keyboard::get_input("Domain URL");
     ConfigManager::add_pair("szuru_domain", name + "," + domain);
+    ConfigManager::set_pair("domain", name);
     HSearch::register_domain(name, new Domain_Szuru(domain, name));
+    HSearch::current_domain()->settings_touch();
   }
 
   // Return to Browser
@@ -186,7 +190,7 @@ void Settings::render(){
 
   // Add Szuru
   Screen::draw_button(860, 190, 330, 120, ThemeButton, ThemeButtonBorder, 5);
-  Screen::draw_text_centered("Add Szuru Domain", 860, 190, 330, 120, ThemeText, Screen::large);
+  Screen::draw_text_centered("Add Szuru Domain", 860, 190, 330, 120, ThemeButtonText, Screen::large);
 
   // Quit Button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);

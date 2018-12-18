@@ -127,6 +127,10 @@ class Domain_Szuru : public Domain {
     void preview_render();
     HandlerEnum preview_event(int val);
 
+    void settings_touch();
+    void settings_render();
+    HandlerEnum settings_event(int val);
+
     Domain_Szuru(std::string d, std::string n){
       username = "Not Logged In";
       search_entry = nullptr;

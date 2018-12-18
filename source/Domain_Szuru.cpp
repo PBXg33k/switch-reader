@@ -6,6 +6,7 @@
 #include "Keyboard.hpp"
 #include "HSearch.hpp"
 #include "Preview.hpp"
+#include "Dialog.hpp"
 
 #include <unistd.h>
 
@@ -359,4 +360,42 @@ HandlerEnum Domain_Szuru::preview_event(int val){
 
 std::string Domain_Szuru::get_username(){
   return username;
+}
+
+void Domain_Szuru::settings_touch(){
+  // Remove Szuru
+  TouchManager::instance.add_bounds(860, 330, 330, 120, 50);
+}
+
+void Domain_Szuru::settings_render(){
+  // Remove Szuru
+  Screen::draw_button(860, 330, 330, 120, ThemeButton, ThemeButtonBorder, 5);
+  Screen::draw_text_centered("Del Szuru Domain", 860, 330, 330, 120, ThemeButtonText, Screen::large);
+}
+
+HandlerEnum Domain_Szuru::settings_event(int val){
+  // Remove Szuru
+  if(val == 50){
+    // Build config value to remove
+    Domain_Szuru* domain = (Domain_Szuru*) HSearch::current_domain();
+    std::string val = domain->name + "," + domain->domain.c_str();
+
+    // Verify act of deletion
+    if(Dialog_Confirm::get_bool("Are you sure you want to delete '" + name + "'?")){
+      ConfigManager::remove_pair("szuru_domain", val);
+      HSearch::delete_domain(domain->name);
+      printf("Removed val %s\n", val.c_str());
+
+      // Remove tokens ?
+
+      // Set to first listed domain
+      std::map<std::string, Domain*> list_of_domains = HSearch::get_domains();
+      if(list_of_domains.size() > 0){
+        ConfigManager::set_pair("domain", list_of_domains.begin()->first);
+        printf("Set new domain %s\n", list_of_domains.begin()->first.c_str());
+      }
+    }
+  }
+
+  return HandlerEnum::Settings;
 }

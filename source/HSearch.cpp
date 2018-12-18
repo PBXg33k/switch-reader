@@ -47,3 +47,10 @@ Domain* HSearch::current_domain(){
 std::map<std::string, Domain*> HSearch::get_domains(){
   return domains;
 }
+
+void HSearch::delete_domain(std::string name){
+  auto iter = domains.find(name);
+  if(iter != domains.end()){
+    domains.erase(iter);
+  }
+}
