@@ -686,8 +686,6 @@ HandlerEnum Domain_EHentai::search_event(int val){
 }
 
 void Domain_EHentai::login(std::string username, std::string password){
-  CURL *curl;
-  curl = curl_easy_init();
   std::string login = "https://forums.e-hentai.org/index.php?act=Login&CODE=01";
   const char* host = ApiProxy.c_str();
   std::string payload;
@@ -697,21 +695,21 @@ void Domain_EHentai::login(std::string username, std::string password){
   printf("Login Data - %s\n", payload.c_str());
 
   // Append url to host as a parameter, use as new url
-  char *uri = curl_easy_escape(curl, login.c_str(), strlen(login.c_str()));
+  char *uri = curl_easy_escape(ApiManager::handle, login.c_str(), strlen(login.c_str()));
   char *link = (char*)malloc(strlen(host) + strlen(uri) + 1);
   strcpy(link, host);
   strcat(link, uri);
 
-  if(curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, link);
+  if(ApiManager::handle) {
+    curl_easy_setopt(ApiManager::handle, CURLOPT_URL, link);
 
     // Cookies
-    curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
+    curl_easy_setopt(ApiManager::handle, CURLOPT_POST, 1L);
+    curl_easy_setopt(ApiManager::handle, CURLOPT_POSTFIELDS, payload.c_str());
     //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 
-  	curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
+  	curl_easy_perform(ApiManager::handle);
+    curl_easy_reset(ApiManager::handle);
   }
 
   // Cleanup
