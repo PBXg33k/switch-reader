@@ -9,6 +9,8 @@
 #include "Dialog.hpp"
 
 #include <unistd.h>
+#include <sys/stat.h>
+#include <fstream>
 
 void Domain_Szuru::login(std::string username, std::string password){
   printf("Checking user token\n");
@@ -443,6 +445,43 @@ HandlerEnum Domain_Szuru::settings_event(int val){
 }
 
 int Domain_Szuru::download_gallery(Gallery* gallery){
-  
-  return 1;
+  int block_size = 100;
+  struct stat info;
+  Domain_Szuru* domain = (Domain_Szuru*) HSearch::current_domain();
+  std::string dir = ConfigManager::downloadsDir + "/Szuru_" + domain->name + "_" + gallery->entry->title;
+
+  printf("Downloading into %s\n", dir.c_str());
+
+  // Create gallery directory
+  stat(dir.c_str(), &info);
+  if(!(info.st_mode & S_IFDIR)){
+    printf("Creating gallery directory\n");
+    mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  }
+
+  // Save Gallery Info
+  std::ofstream f;
+
+  f.open((dir + "/info").c_str());
+  // Fill info file
+  f << *gallery->entry << std::endl;
+  f.close();
+
+  printf("Saved info\n");
+
+  // Save thumbnail
+  ApiManager::get_res(nullptr, gallery->entry->thumb, ApiManager::handle, 1, dir + "/thumb.jpg");
+
+  // Load all URLs
+  while((int) gallery->images.size() < gallery->total_pages){
+    load_gallery_urls(0, &block_size, gallery);
+  }
+
+  for(int page = 0; page < (int) gallery->images.size(); page++){
+    // Update progress
+    download_update(page, gallery);
+    ApiManager::get_res(NULL, gallery->images[page]->url, ApiManager::handle, 1, dir + "/page" + std::to_string(page) + ".jpg");
+  }
+
+  return 0;
 }

@@ -1,5 +1,9 @@
 #include "Domain.hpp"
 #include "Config.hpp"
+#include "Touch.hpp"
+#include "Preview.hpp"
+#include "HSearch.hpp"
+
 #include <filesystem>
 #include <fstream>
 
@@ -15,6 +19,7 @@ void Domain_Local::search(std::string keywords){
     std::string line;
 
     Entry* entry = new Entry();
+    entry->url = path;
     getline(info, entry->title);
     getline(info, entry->category);
     getline(info, entry->language);
@@ -58,4 +63,28 @@ std::vector<std::string> Domain_Local::get_directories(const std::string& s)
     if(p.status().type() == std::filesystem::file_type::directory)
       r.push_back(p.path().string());
   return r;
+}
+
+void Domain_Local::preview_touch(){
+  // Remove gallery
+  TouchManager::instance.add_bounds(screen_width-190, screen_height - 100, 180, 80, 50);
+}
+
+void Domain_Local::preview_render(){
+  // Remove gallery button
+  Screen::draw_button(screen_width-190, screen_height - 100, 180, 80, ThemeOptionSelected, ThemeButtonBorder, 4);
+  Screen::draw_text_centered("Delete", screen_width-190, screen_height - 100, 180, 80, ThemeButtonText, Screen::normal);
+}
+
+HandlerEnum Domain_Local::preview_event(int val){
+  // // Remove gallery
+  // if(val == 50){
+  //   printf("Removing %s\n", GalleryPreview::entry->url.c_str());
+  //   std::filesystem::remove_all(GalleryPreview::entry->url.c_str());
+  //   Browser::clear();
+  //   HSearch::search_keywords("");
+  //   return HandlerEnum::Browser;
+  // }
+
+  return HandlerEnum::Preview;
 }

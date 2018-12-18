@@ -49,6 +49,7 @@ class Domain {
     // Shared functions
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
     static json_object* get_json_obj(json_object* root, std::string key);
+    void download_update(int page, Gallery* gallery);
 };
 
 // Domain list
@@ -103,6 +104,10 @@ class Domain_Local : public Domain {
   public:
     void search(std::string keywords);
     void prefill_gallery(Entry* e, Gallery* gallery);
+
+    void preview_touch();
+    void preview_render();
+    HandlerEnum preview_event(int val);
   private:
     std::vector<std::string> get_directories(const std::string& s);
 };

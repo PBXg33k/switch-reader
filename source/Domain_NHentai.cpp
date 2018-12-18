@@ -227,15 +227,7 @@ int Domain_NHentai::download_gallery(Gallery * gallery){
 
   for(int page = 0; page < (int) gallery->images.size(); page++){
     // Update progress
-    int progress = ((float) page / (float) gallery->total_pages) * ((screen_width / 2) - 10);
-
-    Screen::clear(ThemeBG);
-    std::string to_print = "Downloading Gallery - Page " + std::to_string(page + 1) + " of " + std::to_string(gallery->images.size());
-    Screen::draw_text_centered(to_print, 0, (screen_height / 2) - 120, screen_width, 100, ThemeText, Screen::header);
-    Screen::draw_rect(screen_width / 4, screen_height / 2, screen_width / 2, 150, ThemePanelDark);
-    Screen::draw_rect(screen_width / 4 + 5, (screen_height / 2) + 5, progress, 140, ThemePanelLight);
-    Screen::render();
-
+    download_update(page, gallery);
     ApiManager::get_res(NULL, gallery->images[page]->url, ApiManager::handle, 1, dir + "/page" + std::to_string(page) + ".jpg");
   }
 
