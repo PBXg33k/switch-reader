@@ -61,17 +61,17 @@ Latest libnx, switch-curl, switch-libxml2, switch-(sdl sdl_image sdl_ttf), switc
 available from dkp-pacman.
 
 ## Current Planned Features
+- Domains
+  - Various Booru site support
 - Search
   - Filters
  	- History of Searches (As an option)
- 	- Minimum Star Ratings
 	- Permanent filters
-	- Permanent language setting
-- Browser
-  - Downloaded Galleries Viewing
+- Gallery Preview
+  - Comments
+  - Related galleries (If domain supports it)
 - Gallery
   - Custom local galleries
   - Page select by Numpad
   - Skip to start/end
   - (Un)Favourite gallery
-  - Download (Partially done)
