@@ -60,8 +60,7 @@ void GalleryBrowser::load_gallery(Entry* entry){
   }
 
   // Set current page to start of gallery
-  cur_page = 98;
-  GalleryBrowser::load_page(98);
+  cur_page = 0;
 }
 
 // Set up touch controls
