@@ -5,10 +5,15 @@
 #include "Ui.hpp"
 #include "Browser.hpp"
 #include "HSearch.hpp"
+#include "Gif_Renderer.hpp"
+
+#include <gif_lib.h>
 #include <cstdlib>
 
 #define pagesXPath "//a[contains(@href, 'hentai.org/s/')]"
 #define imageXPath "//img[@id='img']"
+
+GifFileType* test_gif;
 
 Gallery* GalleryBrowser::active_gallery;
 int GalleryBrowser::cur_page = 0;
@@ -32,6 +37,7 @@ void GalleryBrowser::close(){
 
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
+  test_gif = Gif_Renderer::get_test_gif();
   Domain* domain = HSearch::current_domain();
   block_size = 1;
   // Cur image load
@@ -60,8 +66,7 @@ void GalleryBrowser::load_gallery(Entry* entry){
   }
 
   // Set current page to start of gallery
-  cur_page = 98;
-  GalleryBrowser::load_page(98);
+  cur_page = 0;
 }
 
 // Set up touch controls
@@ -236,9 +241,11 @@ int GalleryBrowser::save_all_pages(){
 void GalleryBrowser::render(){
   Screen::clear(ThemeBG);
   // Image (If loaded)
-  if(active_gallery->images[cur_page]->texture){
-    Screen::draw_adjusted_mem(active_gallery->images[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
-  }
+  // if(active_gallery->images[cur_page]->texture){
+  //   Screen::draw_adjusted_mem(active_gallery->images[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
+  // }
+
+  Gif_Renderer::render(test_gif, 0);
 
   // Page Number
   Screen::draw_text("Page " + std::to_string(cur_page+1), 30, 30, ThemeText, Screen::large);
