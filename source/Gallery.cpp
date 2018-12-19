@@ -7,13 +7,15 @@
 #include "HSearch.hpp"
 #include "Gif_Renderer.hpp"
 
-#include <gif_lib.h>
+#include "SDL_Gifwrap.h"
 #include <cstdlib>
 
 #define pagesXPath "//a[contains(@href, 'hentai.org/s/')]"
 #define imageXPath "//img[@id='img']"
 
-GifFileType* test_gif;
+static SDL_Texture* test_tex = NULL;
+static GIF_Image* test_gif;
+static int cur_frame = 0;
 
 Gallery* GalleryBrowser::active_gallery;
 int GalleryBrowser::cur_page = 0;
@@ -245,7 +247,19 @@ void GalleryBrowser::render(){
   //   Screen::draw_adjusted_mem(active_gallery->images[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
   // }
 
-  Gif_Renderer::render(test_gif, 0);
+  if(test_tex != NULL){
+    SDL_DestroyTexture(test_tex);
+    test_tex = NULL;
+  }
+
+  test_tex = SDL_CreateTextureFromSurface(Screen::renderer, test_gif->frames[cur_frame]->surface);
+  
+  Screen::draw_adjusted_mem(test_tex, 0, 0, screen_width, screen_height);
+  SDL_Delay(test_gif->frames[cur_frame]->delay);
+
+  cur_frame++;
+  if(cur_frame >= test_gif->num_frames)
+    cur_frame = 0;
 
   // Page Number
   Screen::draw_text("Page " + std::to_string(cur_page+1), 30, 30, ThemeText, Screen::large);

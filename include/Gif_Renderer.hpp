@@ -1,9 +1,9 @@
 #pragma once
 
-#include <gif_lib.h>
+#include "SDL_Gifwrap.h"
 
 namespace Gif_Renderer {
-  GifFileType* get_test_gif();
+  GIF_Image* get_test_gif();
 
-  void render(GifFileType* gif, int frame);
+  void render(GIF_Image* gif, int frame);
 }
