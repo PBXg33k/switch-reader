@@ -58,6 +58,9 @@ void Domain_EHentai::process_gallery_req(Resource* res){
   if(keyword){
     printf("Requesting page %d - %s\n", res->meta, (char*) keyword);
     res->url = (char*)keyword;
+    if(res->url.find(".gif") != std::string::npos){
+      res->is_gif = true;
+    }
     res->populated = 1;
     ApiManager::request_res(res);
     printf("Sent for resource\n");

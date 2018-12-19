@@ -1,5 +1,8 @@
-#include "Gif_Renderer.hpp"
+
 #include "Api.hpp"
+#include "Config.hpp"
+
+#include <fstream>
 
 #define testGifPath "/test.gif"
 
@@ -36,4 +39,16 @@ SDL_Texture* GIF_Info::get_texture(){
   }
 
   return texture;
+}
+
+void GIF_Info::load_gif(MemoryStruct* mem){
+  // Save to temp file
+  temp_path = ConfigManager::downloadsDir + "/" + std::to_string(SDL_GetTicks()) + ".gif";
+  printf("Making temp file at %s\n", temp_path.c_str());
+  FILE* file = fopen(temp_path.c_str(), "wb");
+  fwrite(mem->memory, 1, mem->size, file);
+  fclose(file);
+
+  // Load as GIF
+  gif = GIF_LoadImage(temp_path.c_str());
 }

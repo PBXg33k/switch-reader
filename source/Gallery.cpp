@@ -5,15 +5,12 @@
 #include "Ui.hpp"
 #include "Browser.hpp"
 #include "HSearch.hpp"
-#include "Gif_Renderer.hpp"
 
 #include "SDL_Gifwrap.h"
 #include <cstdlib>
 
 #define pagesXPath "//a[contains(@href, 'hentai.org/s/')]"
 #define imageXPath "//img[@id='img']"
-
-static GIF_Info* test_gif;
 
 Gallery* GalleryBrowser::active_gallery;
 int GalleryBrowser::cur_page = 0;
@@ -37,7 +34,6 @@ void GalleryBrowser::close(){
 
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
-  test_gif = get_test_gif();
   Domain* domain = HSearch::current_domain();
   block_size = 1;
   // Cur image load
@@ -153,7 +149,9 @@ HandlerEnum GalleryBrowser::on_event(int val){
       Resource* removing = active_gallery->images[to_remove];
       removing->requested = 0;
 
-      if(removing->texture)
+      if(removing->is_gif && removing->gif){
+        delete removing->gif;
+      } else if(removing->texture)
         Screen::cleanup_texture(active_gallery->images[to_remove]->texture);
       removing->texture = NULL;
     }
@@ -181,7 +179,9 @@ HandlerEnum GalleryBrowser::on_event(int val){
       Resource* removing = active_gallery->images[to_remove];
       removing->requested = 0;
 
-      if(removing->texture)
+      if(removing->is_gif && removing->gif){
+        delete removing->gif;
+      } else if(removing->texture)
         Screen::cleanup_texture(active_gallery->images[to_remove]->texture);
       removing->texture = NULL;
     }
@@ -240,13 +240,16 @@ int GalleryBrowser::save_all_pages(){
 
 void GalleryBrowser::render(){
   Screen::clear(ThemeBG);
-  // Image (If loaded)
-  // if(active_gallery->images[cur_page]->texture){
-  //   Screen::draw_adjusted_mem(active_gallery->images[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
-  // }
 
-  if(test_gif->gif != nullptr)
-    Screen::draw_adjusted_mem(test_gif->get_texture(), 0, 0, screen_width, screen_height);
+  // Update texture if gif
+  if(active_gallery->images[cur_page]->is_gif && active_gallery->images[cur_page]->gif != nullptr){
+    active_gallery->images[cur_page]->texture = active_gallery->images[cur_page]->gif->get_texture();
+  } 
+  
+  // Render texture
+  if(active_gallery->images[cur_page]->texture){
+    Screen::draw_adjusted_mem(active_gallery->images[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
+  }
 
   // Page Number
   Screen::draw_text("Page " + std::to_string(cur_page+1), 30, 30, ThemeText, Screen::large);

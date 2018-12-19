@@ -10,12 +10,14 @@
 #include <iostream>
 #include <map>
 
+#include "SDL_Gifwrap.h"
 #include "Ui.hpp"
 
 struct MemoryStruct;
 struct Tag;
 struct Resource;
 struct Entry;
+struct GIF_Info;
 
 class ApiManager {
 	public:
@@ -54,13 +56,47 @@ struct MemoryStruct {
   }
 };
 
+struct GIF_Info{
+  GIF_Image* gif;
+  int frame;
+  SDL_Texture* texture;
+  unsigned long next_render;
+  unsigned long delay;
+  std::string temp_path;
+
+  SDL_Texture* get_texture();
+  void load_gif(MemoryStruct* mem);
+
+  GIF_Info(MemoryStruct* mem) : GIF_Info() {
+    load_gif(mem);
+  }
+
+  GIF_Info(){
+    next_render = 0L;
+    frame = 0;
+    delay = 0L;
+    gif = nullptr;
+    texture = nullptr;
+  }
+
+  ~GIF_Info(){
+    if(texture != nullptr)
+      SDL_DestroyTexture(texture);
+    if(gif != nullptr)
+      GIF_FreeImage(gif);
+  }
+};
+
+
 struct Resource{
   MemoryStruct* mem;
   SDL_Texture* texture;
+  GIF_Info* gif;
   std::string url;
   int meta;
   void(*res_func)(Resource*);
 
+  bool is_gif;
   int done;
   int requested;
   int populated;
@@ -70,9 +106,14 @@ struct Resource{
     done = 0;
     requested = 0;
     populated = 0;
+    is_gif = false;
+    gif = nullptr;
   }
   ~Resource(){
-    if(texture)
+    if(gif)
+      delete gif;
+    // Gif deletes texture, don't do it twice
+    else if(texture)
       Screen::cleanup_texture(texture);
     delete mem;
   }

@@ -176,7 +176,11 @@ int ApiManager::download_gallery(Entry* entry){
 }
 
 void ApiManager::handle_req(Resource* res){
-  res->texture = Screen::load_texture(res->mem->memory, res->mem->size);
+  if(res->is_gif){
+    res->gif = new GIF_Info(res->mem);
+  } else {
+    res->texture = Screen::load_texture(res->mem->memory, res->mem->size);
+  }
 }
 
 void ApiManager::update(){

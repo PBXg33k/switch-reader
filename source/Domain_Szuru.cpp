@@ -276,6 +276,9 @@ void Domain_Szuru::prefill_gallery(Entry* e, Gallery* gallery){
 
     Resource* res = new Resource();
     res->url = domain + json_object_get_string(get_json_obj(result, "contentUrl"));
+    if(res->url.find(".gif") != std::string::npos){
+      res->is_gif = true;
+    }
     res->populated = 1;
     gallery->images.push_back(res);
   }
