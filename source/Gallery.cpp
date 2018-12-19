@@ -13,9 +13,7 @@
 #define pagesXPath "//a[contains(@href, 'hentai.org/s/')]"
 #define imageXPath "//img[@id='img']"
 
-static SDL_Texture* test_tex = NULL;
-static GIF_Image* test_gif;
-static int cur_frame = 0;
+static GIF_Info* test_gif;
 
 Gallery* GalleryBrowser::active_gallery;
 int GalleryBrowser::cur_page = 0;
@@ -39,7 +37,7 @@ void GalleryBrowser::close(){
 
 // Load gallery
 void GalleryBrowser::load_gallery(Entry* entry){
-  test_gif = Gif_Renderer::get_test_gif();
+  test_gif = get_test_gif();
   Domain* domain = HSearch::current_domain();
   block_size = 1;
   // Cur image load
@@ -247,19 +245,8 @@ void GalleryBrowser::render(){
   //   Screen::draw_adjusted_mem(active_gallery->images[cur_page]->texture, pos.x, pos.y, screen_width * zoomFactor, screen_height * zoomFactor, rotation);
   // }
 
-  if(test_tex != NULL){
-    SDL_DestroyTexture(test_tex);
-    test_tex = NULL;
-  }
-
-  test_tex = SDL_CreateTextureFromSurface(Screen::renderer, test_gif->frames[cur_frame]->surface);
-  
-  Screen::draw_adjusted_mem(test_tex, 0, 0, screen_width, screen_height);
-  SDL_Delay(test_gif->frames[cur_frame]->delay);
-
-  cur_frame++;
-  if(cur_frame >= test_gif->num_frames)
-    cur_frame = 0;
+  if(test_gif->gif != nullptr)
+    Screen::draw_adjusted_mem(test_gif->get_texture(), 0, 0, screen_width, screen_height);
 
   // Page Number
   Screen::draw_text("Page " + std::to_string(cur_page+1), 30, 30, ThemeText, Screen::large);

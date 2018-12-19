@@ -3,14 +3,37 @@
 
 #define testGifPath "/test.gif"
 
-GIF_Image* Gif_Renderer::get_test_gif(){
+GIF_Info* get_test_gif(){
   printf("Loading test gif\n");
-  return GIF_LoadImage(testGifPath);
+  GIF_Info* gif = new GIF_Info();
+  gif->gif = GIF_LoadImage(testGifPath);
+  return gif;
 }
 
-void Gif_Renderer::render(GIF_Image* gif, int frame){
-  printf("Rendering gif\n");
-  if(gif != NULL){
-    // Render
+SDL_Texture* GIF_Info::get_texture(){
+  // Check if ready to change
+  if(SDL_GetTicks() > next_render){
+    // Cleanup last frame
+    if(texture != nullptr)
+      SDL_DestroyTexture(texture);
+
+    // Stash new frame
+    texture = SDL_CreateTextureFromSurface(Screen::renderer, gif->frames[frame]->surface);
+
+    // Update delays
+    frame++;
+    if(frame >= gif->num_frames)
+      frame = 0;
+    delay = gif->frames[frame]->delay;
+    // Keep it at the right speed, play catchup if needed
+    next_render += delay;
+    while(next_render < SDL_GetTicks()){
+      next_render += delay;
+      frame++;
+      if(frame >= gif->num_frames)
+        frame = 0;
+    }
   }
+
+  return texture;
 }

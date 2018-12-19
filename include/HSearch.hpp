@@ -17,4 +17,4 @@ namespace HSearch {
   void register_domain(std::string name, Domain* domain);
   Domain* current_domain();
   std::map<std::string, Domain*> get_domains();
-};
+}
