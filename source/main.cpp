@@ -284,7 +284,7 @@ int main(int argc, char **argv)
       }
       
       if(val == 100){
-        if(Dialog_Confirm::get_bool("Quit app?")){
+        if(Dialog::get_bool("Quit app?")){
           state = 0;
           break;
         }

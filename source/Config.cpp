@@ -238,6 +238,12 @@ void ConfigManager::register_domains(){
       auto host = pair.second.substr(delimiterPos + 1);
 
       HSearch::register_domain(name, new Domain_Szuru(host, name));
+    } else if (pair.first == "lanraragi_domain") {
+      auto delimiterPos = pair.second.find(",");
+      auto name = pair.second.substr(0, delimiterPos);
+      auto host = pair.second.substr(delimiterPos + 1);
+
+      HSearch::register_domain(name, new Domain_Lanraragi(host, name));
     }
   }
 }

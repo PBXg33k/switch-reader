@@ -425,7 +425,7 @@ HandlerEnum Domain_Szuru::settings_event(int val){
     std::string val = domain->name + "," + domain->domain.c_str();
 
     // Verify act of deletion
-    if(Dialog_Confirm::get_bool("Are you sure you want to delete '" + name + "'?")){
+    if(Dialog::get_bool("Are you sure you want to delete '" + name + "'?")){
       ConfigManager::remove_pair("szuru_domain", val);
       HSearch::delete_domain(domain->name);
       printf("Removed val %s\n", val.c_str());

@@ -90,11 +90,18 @@ HandlerEnum Settings::on_event(int val){
     ConfigManager::set_proxy();
   } else if(val == 10){
   // Add Szuru
+    int type = Dialog::get_response("Which type?", {"Szuru", "LANraragi"});
     std::string name = Keyboard::get_input("Name");
     std::string domain = Keyboard::get_input("Domain URL");
-    ConfigManager::add_pair("szuru_domain", name + "," + domain);
-    ConfigManager::set_pair("domain", name);
-    HSearch::register_domain(name, new Domain_Szuru(domain, name));
+    if(type == 0){
+      ConfigManager::add_pair("szuru_domain", name + "," + domain);
+      ConfigManager::set_pair("domain", name);
+      HSearch::register_domain(name, new Domain_Szuru(domain, name));
+    } else if(type == 1){
+      ConfigManager::add_pair("lanraragi_domain", name + "," + domain);
+      ConfigManager::set_pair("domain", name);
+      HSearch::register_domain(name, new Domain_Lanraragi(domain, name));
+    }
     HSearch::current_domain()->settings_touch();
   }
 
@@ -188,9 +195,9 @@ void Settings::render(){
 
   // Szuru Controls
 
-  // Add Szuru
+  // Add Domain
   Screen::draw_button(860, 190, 330, 120, ThemeButton, ThemeButtonBorder, 5);
-  Screen::draw_text_centered("Add Szuru Domain", 860, 190, 330, 120, ThemeButtonText, Screen::large);
+  Screen::draw_text_centered("Add Domain", 860, 190, 330, 120, ThemeButtonText, Screen::large);
 
   // Quit Button
   Screen::draw_button(screen_width - 75, 0, 75, 75, ThemeButtonQuit, ThemeButtonBorder, 4);

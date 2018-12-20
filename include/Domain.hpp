@@ -46,6 +46,8 @@ class Domain {
     virtual void preview_render();
     virtual HandlerEnum preview_event(int val);
 
+    void (*thumb_func)(Resource*) = ApiManager::handle_req;
+
     // Shared functions
     static xmlXPathObjectPtr get_node_set(xmlDocPtr doc, xmlChar *xpath);
     static json_object* get_json_obj(json_object* root, std::string key);
@@ -150,4 +152,27 @@ class Domain_Szuru : public Domain {
     void empty_search();
     std::string token;
     bool token_valid();
+};
+
+class Domain_Lanraragi : public Domain{
+  public:
+    std::string domain;
+    std::string name;
+
+    void search(std::string keywords);
+    void login(std::string username, std::string password);
+    bool key_valid();
+
+    Domain_Lanraragi(std::string d, std::string n){
+      domain = d;
+      name = n;
+    }
+  private:
+    std::string api_key;
+};
+
+class Domain_E621 : public Domain {
+  public:
+    void search(std::string keywords);
+
 };
