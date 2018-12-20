@@ -49,10 +49,12 @@ void GalleryBrowser::load_gallery(Entry* entry){
   active_gallery->entry = entry;
   active_gallery->title = entry->title;
   active_gallery->index = entry->url;
-  active_gallery->total_pages = entry->pages;
 
   // Early fill images
   domain->prefill_gallery(entry, active_gallery);
+
+  // For domains that don't know total pages until call
+  active_gallery->total_pages = entry->pages;
 
   // Populate image buffer area
   for(int i = 0; i < active_gallery->total_pages && i < buffer_size; i++){

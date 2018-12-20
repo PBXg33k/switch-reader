@@ -118,7 +118,8 @@ void GalleryPreview::render(){
   curY = tags_y - scroll_pos;
 
   // Page amount
-  Screen::draw_text(std::to_string(entry->pages) + " Pages", curX, curY, ThemeText, Screen::large);
+  if(entry->pages >= 0)
+    Screen::draw_text(std::to_string(entry->pages) + " Pages", curX, curY, ThemeText, Screen::large);
   curY += 42;
 
   for(auto tag : entry->tags){

@@ -139,7 +139,6 @@ class Domain_Szuru : public Domain {
     void settings_render();
     HandlerEnum settings_event(int val);
     
-
     Domain_Szuru(std::string d, std::string n){
       username = "Not Logged In";
       search_entry = nullptr;
@@ -160,8 +159,13 @@ class Domain_Lanraragi : public Domain{
     std::string name;
 
     void search(std::string keywords);
+    void prefill_gallery(Entry* entry, Gallery* gallery);
     void login(std::string username, std::string password);
     bool key_valid();
+
+    void settings_touch();
+    void settings_render();
+    HandlerEnum settings_event(int val);
 
     Domain_Lanraragi(std::string d, std::string n){
       domain = d;

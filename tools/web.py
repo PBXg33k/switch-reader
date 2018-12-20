@@ -42,7 +42,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
     # /?url=<formatted_url>
     def do_POST(self):
       parsed = urlparse(self.path)
-      params = parse_qs(parsed.query);
+      params = parse_qs(parsed.query)
       self.data_string = self.rfile.read(int(self.headers['Content-Length']))
       payload = eval(self.data_string.decode("utf-8"))
 

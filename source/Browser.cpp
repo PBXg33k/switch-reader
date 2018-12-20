@@ -228,7 +228,8 @@ void Browser::render_entry(Entry* entry, int x, int y, bool active)
 
   Screen::draw_text(entry->category, x + maxw + 10, y + 35, ThemeText, Screen::normal);
   
-  Screen::draw_text((std::to_string(entry->pages) + " Pages").c_str(), x + maxw + 10, y + 65, ThemeText, Screen::normal);
+  if(entry->pages >= 0)
+    Screen::draw_text((std::to_string(entry->pages) + " Pages").c_str(), x + maxw + 10, y + 65, ThemeText, Screen::normal);
 
   Screen::draw_partial(x + maxw + 10, y + 108, entry->rating / (double) 5, 1, Screen::s_stars);
 
